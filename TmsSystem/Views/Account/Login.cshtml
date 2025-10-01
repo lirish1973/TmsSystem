@@ -1,0 +1,57 @@
+﻿@model TmsSystem.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "כניסה";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4 text-primary">כניסה למערכת</h3>
+
+                    @* הודעת שגיאה כללית *@
+                    @if (ViewData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger text-center">
+                            @ViewData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <form asp-action="Login" method="post">
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">אימייל</label>
+                            <input asp-for="Email" class="form-control" placeholder="example@mail.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">סיסמה</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="********" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                            <label asp-for="RememberMe" class="form-check-label">זכור אותי</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">כניסה</button>
+                    </form>
+
+                    <hr />
+
+                    <div class="text-center">
+                        <a asp-controller="Account" asp-action="Register" class="text-primary">יצירת משתמש חדש</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

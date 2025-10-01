@@ -1,0 +1,64 @@
+﻿@model IEnumerable<TmsSystem.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "רשימת משתמשים";
+}
+
+<div class="container-xxl mt-4" dir="rtl">
+    <h2 class="mb-4 text-end">רשימת משתמשים</h2>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger text-end">@TempData["ErrorMessage"]</div>
+    }
+
+    <table class="table table-bordered table-striped text-end align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>שם משתמש</th>
+                <th>אימייל</th>
+                <th>טלפון</th>
+                <th>שם פרטי</th>
+                <th>שם משפחה</th>
+                <th>כתובת</th>
+                <th>חברה</th>
+                <th>תאריך לידה</th>
+                <th>פעולות</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>@user.PhoneNumber</td>
+                    <td>@user.FirstName</td>
+                    <td>@user.LastName</td>
+                    <td>@user.Address</td>
+                    <td>@user.CompanyName</td>
+                    <td>@user.BirthDate?.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-primary">עריכה</a>
+
+                     
+
+                        <!-- כפתור איפוס סיסמה -->
+                        <form asp-action="ResetPassword" asp-route-id="@user.Id" method="post" style="display:inline-block"
+                              onsubmit="return confirm('האם אתה בטוח שברצונך לאפס את הסיסמה של המשתמש לסיסמה קבועה?');">
+                            <button type="submit" class="btn btn-sm btn-info">איפוס סיסמה</button>
+                        </form>
+
+                        <form asp-action="Delete" asp-route-id="@user.Id" method="post" style="display:inline-block"
+                              onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את המשתמש?');">
+                            <button type="submit" class="btn btn-sm btn-danger">מחק</button>
+                        </form>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p>שימו לב - איפוס סיסמא מגדיר סיסמא ראשונית למשתמש  - '#$TempPass123' - במילים: סולמית, דולר T גדולה ושאר הסיסמא</p>
+</div>

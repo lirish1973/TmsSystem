@@ -1,0 +1,67 @@
+﻿@model TmsSystem.Models.Tour
+
+@{
+    ViewData["Title"] = "מחיקת סיור";
+    Layout = "_Layout"; // אם יש Layout
+}
+
+<div dir="rtl" style="text-align:right; font-family: Arial, sans-serif; margin:20px;">
+    <h1 style="color: #004080;">מחיקת סיור</h1>
+
+    <h3 style="color: #004080;">האם אתה בטוח שברצונך למחוק את הסיור הבא?</h3>
+
+    <div style="background-color: #e6f0ff; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <p><strong>מספר סיור:</strong> <span style="color: #007acc;">@Model.TourId</span></p>
+        <p><strong>שם הסיור:</strong> @Model.Title</p>
+        <p><strong>תיאור:</strong> @Model.Description</p>
+
+        @if (Model.Schedule != null && Model.Schedule.Any())
+        {
+            <div style="margin-top: 10px;">
+                <strong>לוח זמנים:</strong>
+                <ul>
+                    @foreach (var item in Model.Schedule)
+                    {
+                        <li>@item.StartTime - @item.EndTime : @item.Location (@item.Description)</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (Model.Includes != null && Model.Includes.Any())
+        {
+            <div style="margin-top: 10px;">
+                <strong>כולל:</strong>
+                <ul>
+                    @foreach (var inc in Model.Includes)
+                    {
+                        <li>@inc.Text</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (Model.Excludes != null && Model.Excludes.Any())
+        {
+            <div style="margin-top: 10px;">
+                <strong>לא כולל:</strong>
+                <ul>
+                    @foreach (var exc in Model.Excludes)
+                    {
+                        <li>@exc.Text</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="TourId" />
+        <button type="submit" class="btn btn-danger" style="background-color:#004080; border:none; padding:10px 20px; font-size:16px;">
+            מחק סופית
+        </button>
+        <a asp-action="Index" class="btn btn-secondary" style="margin-right:10px; padding:10px 20px; font-size:16px;">
+            ביטול
+        </a>
+    </form>
+</div>

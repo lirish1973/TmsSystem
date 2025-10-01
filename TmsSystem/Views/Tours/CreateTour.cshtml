@@ -1,0 +1,140 @@
+﻿@model TmsSystem.ViewModels.CreateTourViewModel
+@{
+    ViewData["Title"] = "הזמנת סיור";
+}
+
+
+<div class="container mt-4" dir="rtl" style="max-width:80%">
+    <h2 class="mb-4">יצירת סיור חדש</h2>
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <form asp-action="CreateTour" method="post">
+        <div class="card p-4 mb-4">
+            <h5>פרטי סיור</h5>
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">שם הסיור</label>
+                <input asp-for="Title" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">תיאור</label>
+                <textarea asp-for="Description" name="Description" class="form-control"></textarea>
+            </div>
+        </div>
+
+        <div class="card p-4 mb-4">
+            <h5>לוח זמנים</h5>
+            <div id="schedule-items">
+                <div class="row mb-3">
+                    <div class="col">
+                        <input type="time" name="Schedule[0].StartTime" class="form-control" placeholder="שעת התחלה" />
+                    </div>
+                    <div class="col">
+                        <input type="time" name="Schedule[0].EndTime" class="form-control" placeholder="שעת סיום" />
+                    </div>
+                    <div class="col">
+                        <input type="text" name="Schedule[0].Location" class="form-control" placeholder="מיקום" />
+                    </div>
+                    <div class="col">
+                        <div class="col">
+                            <textarea name="Schedule[0].Description"
+                                      class="form-control auto-expand"
+                                      placeholder="תיאור"></textarea>
+                        </div>
+                      <!---  <input type="text" name="Schedule[0].Description" class="form-control" placeholder="תיאור" />-->
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addScheduleItem()">הוסף שלב</button>
+        </div>
+
+        <div class="card p-4 mb-4">
+            <h5>מה כולל / לא כולל</h5>
+
+            <div id="includes">
+                <input type="text" name="Includes[0]" class="form-control mb-2" placeholder="דוגמה: מדריך מקצועי" />
+            </div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addInclude()">הוסף שורה כולל</button>
+
+            <div id="excludes" class="mt-3">
+                <input type="text" name="Excludes[0]" class="form-control mb-2" placeholder="דוגמה: ארוחת צהריים" />
+            </div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addExclude()">הוסף שורה לא כולל</button>
+        </div>
+
+
+        <button type="submit" class="btn btn-primary">צור סיור</button>
+    </form>
+</div>
+
+
+
+@section Scripts {
+
+    <script>
+        let scheduleIndex = 1;
+
+        function addScheduleItem() {
+            const container = document.getElementById("schedule-items");
+            const row = document.createElement("div");
+            row.classList.add("row", "mb-3");
+
+            row.innerHTML = `
+                <div class="col">
+                    <input type="time" name="Schedule[${scheduleIndex}].StartTime" class="form-control" placeholder="שעת התחלה" />
+                </div>
+                <div class="col">
+                    <input type="time" name="Schedule[${scheduleIndex}].EndTime" class="form-control" placeholder="שעת סיום" />
+                </div>
+                <div class="col">
+                    <input type="text" name="Schedule[${scheduleIndex}].Location" class="form-control" placeholder="מיקום" />
+                </div>
+                <div class="col">
+                    <textarea name="Schedule[${scheduleIndex}].Description"
+                              class="form-control auto-expand"
+                              placeholder="תיאור"></textarea>
+                </div>
+            `;
+
+            container.appendChild(row);
+            scheduleIndex++;
+        }
+
+        // סקריפט להתרחבות אוטומטית של textarea
+        document.addEventListener("input", function (e) {
+            if (e.target.classList.contains("auto-expand")) {
+                e.target.style.height = "auto";
+                e.target.style.height = (e.target.scrollHeight) + "px";
+            }
+        });
+    </script>
+}
+
+<script>
+    let includeIndex = 1;
+    let excludeIndex = 1;
+
+    function addInclude() {
+        const container = document.getElementById("includes");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = `Includes[${includeIndex}]`;
+        input.classList.add("form-control", "mb-2");
+        input.placeholder = "עוד פריט כולל";
+        container.appendChild(input);
+        includeIndex++;
+    }
+
+    function addExclude() {
+        const container = document.getElementById("excludes");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = `Excludes[${excludeIndex}]`;
+        input.classList.add("form-control", "mb-2");
+        input.placeholder = "עוד פריט לא כולל";
+        container.appendChild(input);
+        excludeIndex++;
+    }
+</script>
+
+
+}

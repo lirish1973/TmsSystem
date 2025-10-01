@@ -1,0 +1,99 @@
+﻿@model IEnumerable<TmsSystem.Models.Tour>
+
+@{
+    ViewData["Title"] = "רשימת סיורים";
+}
+
+<div class="container mt-4" dir="rtl" style="max-width:95%">
+    <h2 class="mb-4 text-primary">רשימת סיורים</h2>
+
+    <table class="table table-bordered table-striped table-hover" style="background-color:#e0f2ff;">
+        <thead class="table-primary">
+            <tr>
+                <th>מספר סיור</th>
+                <th>שם הסיור</th>
+                <th>תיאור</th>
+                <th>תאריך יצירה</th>
+                <th>לוח זמנים</th>
+                <th>כולל</th>
+                <th>לא כולל</th>
+                <th>פעולות</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tour in Model ?? Enumerable.Empty<TmsSystem.Models.Tour>())
+            {
+                <tr>
+                    <td>@tour.TourId</td>
+                    <td>@tour.Title </td>
+                    <td>@tour.Description </td>
+                    <td>@tour.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (tour.Schedule != null && tour.Schedule.Any())
+                        {
+                            <ul class="mb-0">
+                                @foreach (var item in tour.Schedule)
+                                {
+                                    <li>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime?.ToString(@"hh\:mm") : @item.Location (@item.Description)</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>אין לוח זמנים</span>
+                        }
+                    </td>
+                    <td>
+                        @if (tour.Includes != null && tour.Includes.Any())
+                        {
+                            <ul class="mb-0">
+                                @foreach (var inc in tour.Includes)
+                                {
+                                    <li>@inc.Description</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>אין פריטים</span>
+                        }
+                    </td>
+                    <td>
+                        @if (tour.Excludes != null && tour.Excludes.Any())
+                        {
+                            <ul class="mb-0">
+                                @foreach (var exc in tour.Excludes)
+                                {
+                                    <li>@exc.Description</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>אין פריטים</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@tour.TourId" class="btn btn-sm btn-info text-white mb-1">עריכה</a>
+                        <a asp-action="Delete" asp-route-id="@tour.TourId" class="btn btn-sm btn-danger mb-1">מחיקה</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    table th, table td {
+        vertical-align: middle !important;
+        text-align: right;
+    }
+
+    table tbody tr:hover {
+        background-color: #cce6ff;
+    }
+
+    h2, .table th {
+        color: #0d6efd;
+    }
+</style>

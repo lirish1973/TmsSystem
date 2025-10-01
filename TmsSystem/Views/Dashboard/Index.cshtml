@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "לוח בקרה";
+}
+
+<div class="container-xxl mt-4" dir="rtl">
+    <h2 class="mb-4 text-end">לוח בקרה</h2>
+
+    <div class="row g-4">
+
+        <!-- כרטיס משתמשים -->
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">משתמשים רשומים</h5>
+                    <p class="card-text display-6">@ViewBag.TotalUsers</p>
+                    <a asp-controller="Users" asp-action="Index" class="btn btn-primary">צפה ברשימה</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- כרטיס לקוחות -->
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">לקוחות רשומים</h5>
+                    <p class="card-text display-6">@ViewBag.TotalCustomers</p>
+                    <a asp-controller="Customers" asp-action="Index" class="btn btn-primary">צפה ברשימה</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">מספר סיורים</h5>
+                    <p class="card-text display-6">@ViewBag.TotalTours</p>
+                    <a asp-controller="Tours" asp-action="Index" class="btn btn-primary">צפה ברשימה</a>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
