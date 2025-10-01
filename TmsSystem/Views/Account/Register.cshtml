@@ -1,0 +1,99 @@
+﻿@model TmsSystem.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "הרשמה";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4 text-primary">יצירת משתמש חדש</h3>
+
+                    @if (ViewData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger text-center">
+                            @ViewData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <form asp-action="Register" method="post">
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">שם משתמש *</label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">אימייל *</label>
+                            <input asp-for="Email" class="form-control" placeholder="example@mail.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">סיסמה *</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="********" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label">אישור סיסמה *</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="********" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FirstName" class="form-label">שם פרטי</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="LastName" class="form-label">שם משפחה</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label">מספר נייד</label>
+                            <input asp-for="Phone" class="form-control" placeholder="050-1234567" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label">כתובת</label>
+                            <input asp-for="Address" class="form-control" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CompanyName" class="form-label">שם חברה</label>
+                            <input asp-for="CompanyName" class="form-control" />
+                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="BirthDate" class="form-label">תאריך לידה</label>
+                            <input asp-for="BirthDate" type="date" class="form-control" />
+                            <span asp-validation-for="BirthDate" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">צור משתמש</button>
+                    </form>
+
+                    <hr />
+
+                    <div class="text-center">
+                        <a asp-controller="Account" asp-action="Login" class="text-primary">כבר יש לך חשבון? כניסה</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

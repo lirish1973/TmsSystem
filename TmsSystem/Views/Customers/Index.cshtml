@@ -1,0 +1,51 @@
+﻿@model IEnumerable<TmsSystem.Models.Customer>
+
+@{
+    ViewData["Title"] = "רשימת לקוחות";
+}
+
+<div class="container-xxl mt-4" dir="rtl">
+    <h2 class="mb-4 text-end">רשימת לקוחות</h2>
+
+    <div class="mb-3 text-end">
+        <a asp-action="Create" class="btn btn-success">הוסף לקוח חדש</a>
+    </div>
+
+    <table class="table table-bordered table-striped text-end align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>שם לקוח</th>
+                <th>תאריך הוספה</th>
+                <th>שם חברה</th>
+                <th>טלפון</th>
+                <th>אימייל</th>
+                <th>שם מלא</th>
+                <th>תעודת זהות</th>
+                <th>כתובת</th>
+                <th>פעולות</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@customer.CustomerName</td>
+                    <td>@customer.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td>@customer.CompanyName</td>
+                    <td>@customer.Phone</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.FullName</td>
+                    <td>@customer.IDNumber</td>
+                    <td>@customer.Address</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-primary">עריכה</a>
+                        <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" style="display:inline-block"
+                              onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את הלקוח?');">
+                            <button type="submit" class="btn btn-sm btn-danger">מחק</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,52 @@
+﻿@model TmsSystem.ViewModels.CreateBookingViewModel
+@{
+    ViewData["Title"] = "הזמנת סיור";
+}
+
+<div class="container mt-4" dir="rtl" style="max-width:80%">
+    <h2 class="mb-4">הזמנת סיור</h2>
+
+    <form asp-action="CreateBooking" method="post">
+        <div class="mb-3">
+            <label asp-for="GroupName" class="form-label">שם הקבוצה</label>
+            <input asp-for="GroupName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="BookerName" class="form-label">שם המזמין</label>
+            <input asp-for="BookerName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ParticipantsCount" class="form-label">מספר משתתפים</label>
+            <input asp-for="ParticipantsCount" type="number" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PickupLocation" class="form-label">נקודת איסוף</label>
+            <input asp-for="PickupLocation" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TourDate" class="form-label">תאריך הסיור</label>
+            <input asp-for="TourDate" type="date" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="GuideName" class="form-label">שם מדריך</label>
+            <input asp-for="GuideName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="SpecialRequests" class="form-label">בקשות מיוחדות</label>
+            <textarea asp-for="SpecialRequests" class="form-control"></textarea>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="IncludesLunch" type="checkbox" class="form-check-input" />
+            <label asp-for="IncludesLunch" class="form-check-label">כולל ארוחת צהריים</label>
+        </div>
+
+        <button type="submit" class="btn btn-success">שמור הזמנה</button>
+    </form>
+</div>
