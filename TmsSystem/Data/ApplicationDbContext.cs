@@ -22,23 +22,28 @@ namespace TmsSystem.Data
         public DbSet<ItineraryItem> ItineraryItems { get; set; }
         public DbSet<TourInclude> TourIncludes { get; set; }
         public DbSet<TourExclude> TourExcludes { get; set; }
-        public DbSet<PaymentMethod> PaymentsMethod { get; set; }
-        public DbSet<Guide> Guides { get; set; } // <-- הוסף שורה זו
+
+        // שינוי כאן - PaymentMethods במקום PaymentsMethod
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+
+        public DbSet<Guide> Guides { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Offer> Offers { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-
             // שמות טבלאות מדויקים במסד
             builder.Entity<TourInclude>().ToTable("tourInclude");
             builder.Entity<TourExclude>().ToTable("tourExclude");
-            builder.Entity<ItineraryItem>().ToTable("ItineraryItems"); // אם צריך
-         
+            builder.Entity<ItineraryItem>().ToTable("ItineraryItems");
 
+            // הגדרת טבלת PaymentMethod
+            builder.Entity<PaymentMethod>()
+                .ToTable("paymentmethod");
 
             // IdentityUserLogin - מפתח קומפוזיט
             builder.Entity<IdentityUserLogin<string>>()
@@ -56,14 +61,12 @@ namespace TmsSystem.Data
             builder.Entity<TourExclude>()
                    .HasKey(te => te.Id);
 
-            //Cascade relationships
-
+            // Cascade relationships
             builder.Entity<Tour>()
-     .HasMany(t => t.Schedule)
-     .WithOne(s => s.Tour)
-     .HasForeignKey(s => s.TourId)
-     .OnDelete(DeleteBehavior.Cascade);
-
+                .HasMany(t => t.Schedule)
+                .WithOne(s => s.Tour)
+                .HasForeignKey(s => s.TourId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Tour>()
                 .HasMany(t => t.Includes)
@@ -77,18 +80,6 @@ namespace TmsSystem.Data
                 .HasForeignKey(e => e.TourId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-          
-
-
-
-
-            builder.Entity<Tour>()
-    .HasMany(t => t.Excludes)
-    .WithOne(e => e.Tour)
-    .HasForeignKey(e => e.TourId)
-    .OnDelete(DeleteBehavior.Cascade);
-
-           
 
         }
     }

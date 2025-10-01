@@ -10,6 +10,7 @@ using static TmsSystem.ViewModels.CreateOfferViewModel;
 
 namespace TmsSystem.Controllers
 {
+
     public class OffersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -39,11 +40,12 @@ namespace TmsSystem.Controllers
                     })
                     .ToListAsync(),
 
-                PaymentMethods = await _context.PaymentsMethod
+                // תיקון כאן - PaymentMethods במקום PaymentsMethod
+                PaymentMethods = await _context.PaymentMethods
                     .Select(pm => new PaymentMethodSelectViewModel
                     {
-                        PaymentMethodId = pm.id,      // שם השדה במודל: Id
-                        PaymentName = pm.method       // שם השדה במודל: Method
+                        PaymentMethodId = pm.ID,        // שימוש ב-ID (אותיות גדולות)
+                        PaymentName = pm.METHOD         // שימוש ב-METHOD (אותיות גדולות)
                     })
                     .ToListAsync()
             };
@@ -62,64 +64,95 @@ namespace TmsSystem.Controllers
             return View(offers);
         }
 
-        // POST: Offers/Create
-      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateOfferViewModel model)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                // טעינה מחדש של רשימות הבחירה אם יש שגיאה
-                model.Customers = await _context.Customers
-                    .Select(c => new CustomerSelectViewModel
-                    {
-                        CustomerId = c.CustomerId,
-                        DisplayName = (c.FullName ?? c.CustomerName ?? string.Empty) + $" ({c.Phone})"
-                    })
-                    .ToListAsync();
+                // בדיקת תקינות בסיסית
+                if (model.TourDate <= DateTime.Today)
+                {
+                    ModelState.AddModelError("TourDate", "תאריך הטיול חייב להיות בעתיד");
+                }
 
-                model.Guides = await _context.Guides
-                    .Select(g => new GuideSelectViewModel
-                    {
-                        GuideId = g.GuideId,
-                        GuideName = g.GuideName ?? string.Empty
-                    })
-                    .ToListAsync();
+                if (model.Participants <= 0)
+                {
+                    ModelState.AddModelError("Participants", "מספר המשתתפים חייב להיות גדול מאפס");
+                }
 
-                model.PaymentMethods = await _context.PaymentsMethod
-         .Select(pm => new PaymentMethodSelectViewModel
-         {
-             PaymentMethodId = pm.id,      // שם השדה במודל: Id
-             PaymentName = pm.method       // שם השדה במודל: Method
-         })
-         .ToListAsync();
+                if (!ModelState.IsValid)
+                {
+                    await LoadSelectLists(model);
+                    return View(model);
+                }
 
+                // יצירת ההצעה
+                var offer = new Offer
+                {
+                    CustomerId = model.CustomerId,
+                    GuideId = model.GuideId,
+                    TourId = model.TourId > 0 ? model.TourId : 1, // ברירת מחדל
+                    Participants = model.Participants,
+                    TourDate = model.TourDate,
+                    PickupLocation = model.PickupLocation ?? "",
+                    Price = model.Price,
+                    TotalPayment = model.Price * model.Participants,
+                    PriceIncludes = model.PriceIncludes ?? "",
+                    PriceExcludes = model.PriceExcludes ?? "",
+                    SpecialRequests = model.SpecialRequests ?? "",
+                    LunchIncluded = model.LunchIncluded,
+                    PaymentId = model.PaymentMethodId,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Offers.Add(offer);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "הצעת המחיר נוצרה בהצלחה!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // רישום שגיאה מפורט
+                var innerException = ex.InnerException?.Message ?? ex.Message;
+                ModelState.AddModelError("", $"שגיאה בשמירת הנתונים: {innerException}");
+
+                await LoadSelectLists(model);
                 return View(model);
             }
+        }
 
-            var offer = new Offer
-            {
-                CustomerId = model.CustomerId,
-                Participants = model.Participants,
-                TourDate = model.TourDate,
-                PickupLocation = model.PickupLocation,
-                Price = model.Price,
-                PriceIncludes = model.PriceIncludes,
-                PriceExcludes = model.PriceExcludes,
-                GuideId = model.GuideId,
-                TotalPayment = model.TotalPayment,
-                SpecialRequests = model.SpecialRequests,
-                LunchIncluded = model.LunchIncluded,
-                PaymentId = model.PaymentMethodId, // כאן משתמשים ב-ID מה PaymentsMethod!
-                TourId = model.TourId,
-                CreatedAt = DateTime.Now
-            };
+        private async Task LoadSelectLists(CreateOfferViewModel model)
+        {
+            model.Customers = await _context.Customers
+                .Where(c => c.CustomerId > 0) // רק לקוחות תקינים
+                .Select(c => new CustomerSelectViewModel
+                {
+                    CustomerId = c.CustomerId,
+                    DisplayName = !string.IsNullOrEmpty(c.FullName) ?
+                        $"{c.FullName} ({c.Phone})" :
+                        $"{c.CustomerName} ({c.Phone})"
+                })
+                .ToListAsync();
 
-            _context.Offers.Add(offer);
-            await _context.SaveChangesAsync();
+            model.Guides = await _context.Guides
+                .Where(g => !string.IsNullOrEmpty(g.GuideName))
+                .Select(g => new GuideSelectViewModel
+                {
+                    GuideId = g.GuideId,
+                    GuideName = g.GuideName
+                })
+                .ToListAsync();
 
-            return RedirectToAction("Index", "Offers");
+            // בהנחה שיש לך טבלת PaymentMethods עם השדות הנכונים
+            model.PaymentMethods = await _context.PaymentMethods
+                .Select(pm => new PaymentMethodSelectViewModel
+                {
+                    PaymentMethodId = pm.ID,    // השדה מהטבלה
+                    PaymentName = pm.METHOD     // השדה מהטבלה
+                })
+                .ToListAsync();
         }
     }
 }

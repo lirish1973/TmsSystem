@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TmsSystem.Models
@@ -9,36 +8,36 @@ namespace TmsSystem.Models
         [Key]
         public int OfferId { get; set; }
 
-        // לקוח
-        [Required]
+        [Required(ErrorMessage = "יש לבחור לקוח")]
         public int CustomerId { get; set; }
         [ForeignKey("CustomerId")]
         public Customer Customer { get; set; }
 
-        // מדריך
-        [Required]
+        [Required(ErrorMessage = "יש לבחור מדריך")]
         public int GuideId { get; set; }
         [ForeignKey("GuideId")]
         public Guide GuideName { get; set; }
 
-        // סיור
-        [Required]
+        [Required(ErrorMessage = "יש לבחור סיור")]
         public int TourId { get; set; }
         [ForeignKey("TourId")]
         public Tour Tour { get; set; }
 
-        // פרטי הצעה
-        [Required]
+        [Required(ErrorMessage = "יש להזין מספר משתתפים")]
+        [Range(1, 100, ErrorMessage = "מספר המשתתפים חייב להיות בין 1 ל-100")]
         public int Participants { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "יש לבחור תאריך טיול")]
         public DateTime TripDate { get; set; }
 
         [StringLength(500)]
         public string PickupLocation { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "יש להזין מחיר")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "המחיר חייב להיות גדול מאפס")]
         public decimal Price { get; set; }
+
+        public decimal TotalPayment { get; set; }
 
         [StringLength(2000)]
         public string PriceIncludes { get; set; }
@@ -53,14 +52,10 @@ namespace TmsSystem.Models
 
         public DateTime TourDate { get; set; }
 
-        public decimal TotalPayment { get; set; }
-
-
-        // אמצעי תשלום
-        [Required]
+        [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
         public int PaymentId { get; set; }
         [ForeignKey("PaymentId")]
-       // public Payments Payments { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

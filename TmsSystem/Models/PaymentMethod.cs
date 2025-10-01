@@ -3,15 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TmsSystem.Models
 {
-   
-    public class paymentMethod
+    [Table("paymentmethod")]
+    public class PaymentMethod
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int id { get; set; }
+        [Column("ID")]
+        public int ID { get; set; }
 
         [Required]
-        [MaxLength(255)]
-        public string method { get; set; }
+        [Column("METHOD")]
+        [StringLength(255)]
+        public string METHOD { get; set; }
     }
 }
