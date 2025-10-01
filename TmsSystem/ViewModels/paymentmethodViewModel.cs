@@ -7,12 +7,14 @@ namespace TmsSystem.ViewModels
 
     public class PaymentMethodViewModel
     {
-        [Key]
+   
      
         public int id { get; set; }
 
-        [Required]
-        [MaxLength(255)]
+        public int PaymentMethodid { get; set; }
+
+
+        public string PaymentMethodname { get; set; }
 
         public string method { get; set; }
         public List<PaymentMethod> PaymentMethods { get; set; } = new();

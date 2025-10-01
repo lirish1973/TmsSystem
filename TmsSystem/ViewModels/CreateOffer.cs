@@ -6,8 +6,18 @@ namespace TmsSystem.ViewModels
 {
     public class CreateOfferViewModel
     {
+
         [Required]
-        public int CustomerId { get; set; } // לקוח שנבחר
+        public int CustomerId { get; set; }
+
+        [Required]
+        public int TourId { get; set; } // הוספת שדה חסר
+
+        [Required]
+        public int GuideId { get; set; }
+
+        [Required]
+        public int PaymentMethodId { get; set; } // עקביות בשמות
 
         public List<CustomerSelectViewModel> Customers { get; set; } = new();
 
@@ -26,8 +36,7 @@ namespace TmsSystem.ViewModels
         public string PriceIncludes { get; set; }
         public string PriceExcludes { get; set; }
 
-        [Required]
-        public int GuideId { get; set; }
+        
         public List<GuideSelectViewModel> Guides { get; set; } = new();
 
         public decimal TotalPayment { get; set; }
@@ -40,17 +49,17 @@ namespace TmsSystem.ViewModels
         public int PaymentId { get; set; }
         public List<PaymentSelectViewModel> Payments { get; set; } = new();
 
-        public int TourId { get; set; }  // חובה למלא את השדה
 
 
-        public int PaymentMethodId { get; set; } // השדה שנבחר בפורם
-
-        public List<PaymentMethodSelectViewModel> PaymentMethods { get; set; } = new(); // הרשימה של כל אמצעי התשלום
+      
+       
+       
+        public List<PaymentMethodSelectViewModel> PaymentMethods { get; set; } = new();
 
         public class PaymentMethodSelectViewModel
         {
-            public int PaymentMethodId { get; set; }
-            public string PaymentName { get; set; }
+            public int PaymentMethodId { get; set; }  // מתאים ל-pm.id
+            public string PaymentName { get; set; }   // מתאים ל-pm.method
         }
         public class CustomerSelectViewModel
         {

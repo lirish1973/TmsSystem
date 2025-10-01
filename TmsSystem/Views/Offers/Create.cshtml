@@ -1,5 +1,28 @@
 ﻿@model TmsSystem.ViewModels.CreateOfferViewModel
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>שגיאות בטופס:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 @{
     ViewData["Title"] = "יצירת הצעת מחיר";
 }
@@ -300,8 +323,8 @@
                                     <label class="form-label required-field" for="PaymentMethodId">אמצעי תשלום</label>
                                     <div class="position-relative">
                                         <i class="fas fa-credit-card floating-icon"></i>
-                                        <select asp-for="id" class="form-select has-icon"
-                                                asp-items="@(new SelectList(Model.PaymentMethods, "id", "method"))">
+                                        <select asp-for="PaymentMethodId" class="form-select has-icon"
+                                                asp-items="@(new SelectList(Model.PaymentMethods, "PaymentMethodId", "PaymentName"))">
                                             <option value="">-- בחר אמצעי תשלום --</option>
                                         </select>
                                         @Html.ValidationMessageFor(m => m.PaymentMethodId, "", new { @class = "text-danger" })
