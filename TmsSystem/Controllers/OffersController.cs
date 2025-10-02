@@ -214,6 +214,51 @@ namespace TmsSystem.Controllers
             }
         }
 
+
+
+        [HttpGet]
+        public async Task<IActionResult> ShowOffers(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers
+                    .Include(o => o.Customer)
+                    .Include(o => o.Guide)
+                    .Include(o => o.Tour)
+                    .FirstOrDefaultAsync(o => o.OfferId == id);
+
+                if (offer == null)
+                {
+                    TempData["ErrorMessage"] = "ההצעה לא נמצאה";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // קבלת פרטי אמצעי התשלום
+                PaymentMethod paymentMethod = null;
+                if (offer.PaymentMethodId != null && offer.PaymentMethodId > 0)
+                {
+                    paymentMethod = await _context.PaymentMethods
+                        .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId);
+                }
+
+                var viewModel = new ShowOfferViewModel
+                {
+                    Offer = offer,
+                    PaymentMethod = paymentMethod
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"שגיאה בטעינת ההצעה: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+
+
+
         private async Task LoadSelectLists(CreateOfferViewModel model)
         {
             try
@@ -263,9 +308,10 @@ namespace TmsSystem.Controllers
             {
                 var offers = await _context.Offers
                     .Include(o => o.Customer)
-                    .Include(o => o.Guide) // השם במודל
-                    .Include(o => o.Tour)
-                    .Include(o => o.PaymentMethodId) // הוספה
+            .Include(o => o.Guide)
+            .Include(o => o.Tour)
+            .Include(o => o.PaymentMethod) // הוסף את זה
+            .OrderByDescending(o => o.CreatedAt)
                     .ToListAsync();
 
                 return View(offers);

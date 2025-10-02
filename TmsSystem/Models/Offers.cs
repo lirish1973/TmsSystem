@@ -63,7 +63,12 @@ namespace TmsSystem.Models
 
         // אם אתה צריך גישה ל-PaymentMethod, הוסף property נפרד:
         [NotMapped]
-        public int PaymentMethodId { get; set; }
+        //public int PaymentMethodId { get; set; }
+
+        [ForeignKey("PaymentMethodId")]
+        public PaymentMethod? PaymentMethod { get; set; }
+
+        public int? PaymentMethodId { get; set; } // וודא שזה nullable
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
