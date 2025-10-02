@@ -4,60 +4,673 @@
 }
 
 <div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
+    <div class="card blue-theme-card">
+        <div class="card-header bg-blue-primary text-white">
             <h2><i class="fas fa-file-invoice-dollar"></i> הצעת מחיר #@Model.Offer.OfferId</h2>
             <p class="mb-0">נוצרה ב-@Model.Offer.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-light-blue">
+            <!-- פרטי לקוח וטיול -->
             <div class="row">
                 <div class="col-md-6">
-                    <h5>פרטי הלקוח</h5>
-                    <p><strong>שם:</strong> @Model.Offer.Customer.FullName</p>
-                    <p><strong>טלפון:</strong> @Model.Offer.Customer.Phone</p>
-                    <p><strong>אימייל:</strong> @Model.Offer.Customer.Email</p>
+                    <div class="blue-section">
+                        <h5 class="text-blue-dark"><i class="fas fa-user"></i> פרטי הלקוח</h5>
+                        <p><strong>שם:</strong> @Model.Offer.Customer.FullName</p>
+                        <p><strong>טלפון:</strong> @Model.Offer.Customer.Phone</p>
+                        <p><strong>אימייל:</strong> @Model.Offer.Customer.Email</p>
+                        @if (!string.IsNullOrEmpty(Model.Offer.Customer.Address))
+                        {
+                            <p><strong>כתובת:</strong> @Model.Offer.Customer.Address</p>
+                        }
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <h5>פרטי הטיול</h5>
-                    <p><strong>טיול:</strong> @Model.Offer.Tour.Title</p>
-                    <p><strong>תאריך:</strong> @Model.Offer.TourDate.ToString("dd/MM/yyyy")</p>
-                    <p><strong>משתתפים:</strong> @Model.Offer.Participants</p>
+                    <div class="blue-section">
+                        <h5 class="text-blue-dark"><i class="fas fa-map-marked-alt"></i> פרטי הטיול</h5>
+                        <p><strong>טיול:</strong> @Model.Offer.Tour.Title</p>
+                        <p><strong>תאריך:</strong> @Model.Offer.TourDate.ToString("dd/MM/yyyy")</p>
+                        <p><strong>משתתפים:</strong> @Model.Offer.Participants</p>
+                        @if (!string.IsNullOrEmpty(Model.Offer.PickupLocation))
+                        {
+                            <p><strong>נקודת איסוף:</strong> @Model.Offer.PickupLocation</p>
+                        }
+                    </div>
                 </div>
             </div>
 
             <div class="row mt-3">
                 <div class="col-md-6">
-                    <h5>מדריך</h5>
-                    <p><strong>שם:</strong> @Model.Offer.Guide.GuideName</p>
+                    <div class="blue-section">
+                        <h5 class="text-blue-dark"><i class="fas fa-user-tie"></i> מדריך</h5>
+                        <p><strong>שם:</strong> @Model.Offer.Guide.GuideName</p>
+                        @if (!string.IsNullOrEmpty(Model.Offer.Guide.Description))
+                        {
+                            <p><strong>תיאור:</strong> @Model.Offer.Guide.Description</p>
+                        }
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <h5>מחיר</h5>
-                    <p><strong>מחיר לאדם:</strong> ₪@Model.Offer.Price.ToString("N2")</p>
-                    <p><strong>סה"כ:</strong> ₪@Model.Offer.TotalPayment.ToString("N2")</p>
+                    <div class="blue-section">
+                        <h5 class="text-blue-dark"><i class="fas fa-calculator"></i> מחיר</h5>
+                        <p><strong>מחיר לאדם:</strong> ₪@Model.Offer.Price.ToString("N2")</p>
+                        <p><strong>סה"כ:</strong> <span class="text-blue-primary font-weight-bold">₪@Model.Offer.TotalPayment.ToString("N2")</span></p>
+                        @if (Model.Offer.LunchIncluded)
+                        {
+                            <p><span class="badge badge-blue">כולל ארוחת צהריים</span></p>
+                        }
+                    </div>
                 </div>
             </div>
 
-            @if (Model.PaymentMethod != null)
+            <!-- תיאור הסיור -->
+            @if (!string.IsNullOrEmpty(Model.Offer.Tour.Description))
             {
-                <div class="row mt-3">
+                <div class="row mt-4">
                     <div class="col-12">
-                        <h5>אמצעי תשלום</h5>
-                        <p>@Model.PaymentMethod.METHOD</p>
+                        <div class="card border-blue-info">
+                            <div class="card-header bg-blue-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-info-circle"></i> אודות הסיור - @Model.Offer.Tour.Title</h5>
+                            </div>
+                            <div class="card-body bg-white">
+                                <p class="tour-description">@Html.Raw(Model.Offer.Tour.Description.Replace("\n", "<br/>").Replace("\r\n", "<br/>"))</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
 
-            <div class="mt-4">
-                <a href="@Url.Action("Index", "Offers")" class="btn btn-secondary">
+            <!-- לוח זמנים מפורט של הסיור -->
+            @if (Model.Offer.Tour.Schedule != null && Model.Offer.Tour.Schedule.Any())
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border-blue-primary">
+                            <div class="card-header bg-blue-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-clock"></i> לוח זמנים מפורט</h5>
+                            </div>
+                            <div class="card-body bg-white">
+                                <div class="schedule-timeline">
+                                    @foreach (var item in Model.Offer.Tour.Schedule.OrderBy(s => s.StartTime))
+                                    {
+                                        <div class="schedule-item">
+                                            <div class="schedule-time">
+                                                <span class="time-badge">@item.StartTime.ToString(@"hh\:mm")</span>
+                                                @if (item.EndTime.HasValue)
+                                                {
+                                                    <span class="time-separator">-</span>
+                                                    <span class="time-badge">@item.EndTime.Value.ToString(@"hh\:mm")</span>
+                                                }
+                                            </div>
+                                            <div class="schedule-content">
+                                                <h6 class="location-title text-blue-primary">@item.Location</h6>
+                                                <p class="description-text">@item.Description</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- מה כולל ולא כולל בסיור -->
+            @if ((Model.Offer.Tour.Includes != null && Model.Offer.Tour.Includes.Any()) ||
+                        (Model.Offer.Tour.Excludes != null && Model.Offer.Tour.Excludes.Any()))
+            {
+                <div class="row mt-4">
+                    <!-- מה כולל הסיור -->
+                    @if (Model.Offer.Tour.Includes != null && Model.Offer.Tour.Includes.Any())
+                    {
+                        <div class="col-md-6">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-check-circle"></i> הסיור כולל</h6>
+                                </div>
+                                <div class="card-body bg-light-green">
+                                    @foreach (var include in Model.Offer.Tour.Includes)
+                                    {
+                                        <div class="include-item-tour">
+                                            <i class="fas fa-check text-success"></i>
+                                            <span>@include.Description</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- מה לא כולל הסיור -->
+                    @if (Model.Offer.Tour.Excludes != null && Model.Offer.Tour.Excludes.Any())
+                    {
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-times-circle"></i> הסיור לא כולל</h6>
+                                </div>
+                                <div class="card-body bg-light-yellow">
+                                    @foreach (var exclude in Model.Offer.Tour.Excludes)
+                                    {
+                                        <div class="exclude-item-tour">
+                                            <i class="fas fa-times text-warning"></i>
+                                            <span>@exclude.Description</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- מה כלול במחיר -->
+            @if (!string.IsNullOrEmpty(Model.Offer.PriceIncludes))
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border-blue-success">
+                            <div class="card-header bg-blue-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-money-check-alt"></i> המחיר כולל</h5>
+                            </div>
+                            <div class="card-body bg-light-blue-success">
+                                @foreach (var item in Model.Offer.PriceIncludes.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-check-circle text-blue-success mr-2"></i>
+                                        <span>@item</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- מה לא כלול במחיר -->
+            @if (!string.IsNullOrEmpty(Model.Offer.PriceExcludes))
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border-blue-warning">
+                            <div class="card-header bg-blue-warning text-white">
+                                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> המחיר אינו כולל</h5>
+                            </div>
+                            <div class="card-body bg-light-blue-warning">
+                                @foreach (var item in Model.Offer.PriceExcludes.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-times-circle text-blue-warning mr-2"></i>
+                                        <span>@item</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- בקשות מיוחדות / טקסים -->
+            @if (!string.IsNullOrEmpty(Model.Offer.SpecialRequests))
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border-blue-info">
+                            <div class="card-header bg-blue-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-star"></i> בקשות מיוחדות וטקסים</h5>
+                            </div>
+                            <div class="card-body bg-light-blue-info">
+                                <div class="special-requests-content">
+                                    <i class="fas fa-info-circle text-blue-info mr-2"></i>
+                                    @Html.Raw(Model.Offer.SpecialRequests.Replace("\n", "<br/>").Replace("\r\n", "<br/>"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- תנאי ביטול ותשלום - סקציה קבועה -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-blue-secondary">
+                        <div class="card-header bg-blue-secondary text-white">
+                            <h5 class="mb-0"><i class="fas fa-file-contract"></i> תנאי ביטול ותשלום</h5>
+                        </div>
+                        <div class="card-body bg-light-blue-terms">
+                            <div class="terms-content">
+                                <div class="term-item">
+                                    <i class="fas fa-hand-holding-usd text-blue-primary mr-2"></i>
+                                    <strong>תשלום מקדמה:</strong> על מנת לשריין את הטיול יש להעביר מקדמה של 50% עם אישור ההזמנה. יש לסיים את כל התשלום עד 7 ימים עסקים מיום יציאת הטיול.
+                                </div>
+                                <div class="term-item">
+                                    <i class="fas fa-calendar-alt text-blue-primary mr-2"></i>
+                                    <strong>דחיית תאריך:</strong> במידה ותרצו לדחות את התאריך עד 14 יום לפני הסיור ניתן לעשות זאת ללא עלות.
+                                </div>
+                                <div class="term-item">
+                                    <i class="fas fa-times-circle text-warning mr-2"></i>
+                                    <strong>ביטול עד 30 יום:</strong> במידה ותרצו לבטל את הסיור עד 30 יום לפני הסיור, תקבלו החזר פחות 300ש"ח דמי טיפול.
+                                </div>
+                                <div class="term-item">
+                                    <i class="fas fa-exclamation-triangle text-orange mr-2"></i>
+                                    <strong>ביטול 30-14 ימים:</strong> ביטול שיתקיים בין 30 יום ל 14 יום לפני מועד הסיור - יגבו דמי ביטול של 50% מהמחיר.
+                                </div>
+                                <div class="term-item">
+                                    <i class="fas fa-ban text-danger mr-2"></i>
+                                    <strong>ביטול עד 14 ימים:</strong> ביטול שיתקיים בין 14 יום ליום הסיור - יגבו דמי ביטול מלאים.
+                                </div>
+                                <div class="term-item">
+                                    <i class="fas fa-shield-alt text-blue-primary mr-2"></i>
+                                    <strong>ביטול מטעמנו:</strong> במידה ולא ניתן לקיים את הסיור, ואנו נבטל אותו בשל תנאים ביטחוניים או תנאי מזג אויר, ולא תרצו מועד חלופי - תשלום מלא יוחזר.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- פרטי תשלום מפורטים -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-blue-primary">
+                        <div class="card-header bg-blue-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-credit-card"></i> פרטי תשלום</h5>
+                        </div>
+                        <div class="card-body bg-light-blue">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-blue-dark">אמצעי תשלום</h6>
+                                    @if (Model.PaymentMethod != null)
+                                    {
+                                        <p><i class="fas fa-money-bill-wave text-blue-primary mr-2"></i>@Model.PaymentMethod.METHOD</p>
+                                    }
+                                    else
+                                    {
+                                        <p><i class="fas fa-question-circle text-blue-secondary mr-2"></i>טרם נקבע</p>
+                                    }
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-blue-dark">סכום לתשלום</h6>
+                                    <p class="font-weight-bold text-blue-primary">₪@Model.Offer.TotalPayment.ToString("N2")</p>
+                                </div>
+                            </div>
+
+                            <div class="payment-details mt-3">
+                                <h6 class="text-blue-dark"><i class="fas fa-university"></i> פרטי העברה בנקאית</h6>
+                                <div class="bank-details bg-white p-3 rounded border">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>שם הבנק:</strong> בנק לאומי</p>
+                                            <p><strong>מספר סניף:</strong> 805</p>
+                                            <p><strong>מספר חשבון:</strong> 39820047</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>שם בעל החשבון:</strong> ספארי אפריקה בע"מ</p>
+                                            <p><strong>ח.פ:</strong> 515323970</p>
+                                            <p class="text-blue-dark"><strong>סכום להעברה:</strong> ₪@Model.Offer.TotalPayment.ToString("N2")</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contact-info mt-3">
+                                <h6 class="text-blue-dark"><i class="fas fa-phone"></i> ליצירת קשר</h6>
+                                <p><i class="fas fa-phone text-blue-primary mr-2"></i>058-7818560</p>
+                                <p><i class="fas fa-envelope text-blue-primary mr-2"></i>info@tryit.co.il</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- כפתורי פעולה -->
+            <div class="mt-4 text-center no-print">
+                <a href="@Url.Action("Index", "Offers")" class="btn btn-blue-secondary mr-2">
                     <i class="fas fa-arrow-left"></i> חזרה לרשימה
                 </a>
-                <a href="@Url.Action("Edit", "Offers", new { id = Model.Offer.OfferId })" class="btn btn-warning">
+                <a href="@Url.Action("Edit", "Offers", new { id = Model.Offer.OfferId })" class="btn btn-blue-warning mr-2">
                     <i class="fas fa-edit"></i> עריכה
                 </a>
-                <button onclick="window.print()" class="btn btn-info">
+                <button onclick="generatePDF()" class="btn btn-blue-primary mr-2">
+                    <i class="fas fa-file-pdf"></i> צפה בתור PDF
+                </button>
+                <button onclick="window.print()" class="btn btn-blue-info">
                     <i class="fas fa-print"></i> הדפסה
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* גווני כחול ותכלת */
+    .bg-blue-primary {
+        background-color: #1e3a8a !important;
+    }
+
+    .bg-blue-secondary {
+        background-color: #475569 !important;
+    }
+
+    .bg-blue-success {
+        background-color: #0369a1 !important;
+    }
+
+    .bg-blue-warning {
+        background-color: #0284c7 !important;
+    }
+
+    .bg-blue-info {
+        background-color: #0ea5e9 !important;
+    }
+
+    .bg-light-blue {
+        background-color: #f0f9ff !important;
+    }
+
+    .bg-light-blue-success {
+        background-color: #e0f2fe !important;
+    }
+
+    .bg-light-blue-warning {
+        background-color: #e0f7fa !important;
+    }
+
+    .bg-light-blue-info {
+        background-color: #e1f5fe !important;
+    }
+
+    .bg-light-blue-terms {
+        background-color: #f8fafc !important;
+    }
+
+    .bg-light-green {
+        background-color: #f0fdf4 !important;
+    }
+
+    .bg-light-yellow {
+        background-color: #fffbeb !important;
+    }
+
+    .text-blue-primary {
+        color: #1e3a8a !important;
+    }
+
+    .text-blue-dark {
+        color: #1e40af !important;
+    }
+
+    .text-blue-success {
+        color: #0369a1 !important;
+    }
+
+    .text-blue-warning {
+        color: #0284c7 !important;
+    }
+
+    .text-blue-info {
+        color: #0ea5e9 !important;
+    }
+
+    .text-blue-secondary {
+        color: #64748b !important;
+    }
+
+    .text-orange {
+        color: #ea580c !important;
+    }
+
+    .border-blue-success {
+        border-color: #0369a1 !important;
+    }
+
+    .border-blue-warning {
+        border-color: #0284c7 !important;
+    }
+
+    .border-blue-info {
+        border-color: #0ea5e9 !important;
+    }
+
+    .border-blue-primary {
+        border-color: #1e3a8a !important;
+    }
+
+    .border-blue-secondary {
+        border-color: #475569 !important;
+    }
+
+    /* כפתורים כחולים */
+    .btn-blue-primary {
+        background-color: #1e3a8a;
+        border-color: #1e3a8a;
+        color: white;
+    }
+
+        .btn-blue-primary:hover {
+            background-color: #1e40af;
+            border-color: #1e40af;
+        }
+
+    .btn-blue-secondary {
+        background-color: #64748b;
+        border-color: #64748b;
+        color: white;
+    }
+
+        .btn-blue-secondary:hover {
+            background-color: #475569;
+            border-color: #475569;
+        }
+
+    .btn-blue-warning {
+        background-color: #0284c7;
+        border-color: #0284c7;
+        color: white;
+    }
+
+        .btn-blue-warning:hover {
+            background-color: #0369a1;
+            border-color: #0369a1;
+        }
+
+    .btn-blue-info {
+        background-color: #0ea5e9;
+        border-color: #0ea5e9;
+        color: white;
+    }
+
+        .btn-blue-info:hover {
+            background-color: #0284c7;
+            border-color: #0284c7;
+        }
+
+    .badge-blue {
+        background-color: #0ea5e9;
+        color: white;
+    }
+
+    .blue-theme-card {
+        box-shadow: 0 4px 6px rgba(30, 58, 138, 0.1);
+        border: 1px solid #dbeafe;
+    }
+
+    .blue-section {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #1e3a8a;
+    }
+
+    .bank-details {
+        border-left: 4px solid #0ea5e9 !important;
+    }
+
+    .special-requests-content {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        border-right: 4px solid #0ea5e9;
+    }
+
+    /* עיצוב תיאור הסיור */
+    .tour-description {
+        font-size: 1.1em;
+        line-height: 1.7;
+        text-align: justify;
+        color: #374151;
+    }
+
+    /* עיצוב לוח זמנים */
+    .schedule-timeline {
+        position: relative;
+    }
+
+    .schedule-item {
+        display: flex;
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #f8faff;
+        border-radius: 10px;
+        border-right: 4px solid #1e3a8a;
+    }
+
+    .schedule-time {
+        min-width: 140px;
+        margin-left: 20px;
+    }
+
+    .time-badge {
+        background: #1e3a8a;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.9em;
+        font-weight: 600;
+    }
+
+    .time-separator {
+        margin: 0 5px;
+        color: #6b7280;
+    }
+
+    .schedule-content {
+        flex: 1;
+    }
+
+    .location-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .description-text {
+        color: #4b5563;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* פריטי כולל/לא כולל הסיור */
+    .include-item-tour,
+    .exclude-item-tour {
+        display: flex;
+        align-items-center;
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border-radius: 5px;
+    }
+
+    .include-item-tour {
+        background: rgba(34, 197, 94, 0.1);
+    }
+
+    .exclude-item-tour {
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+        .include-item-tour i,
+        .exclude-item-tour i {
+            margin-left: 10px;
+            font-size: 1em;
+        }
+
+    /* עיצוב תנאי ביטול ותשלום */
+    .terms-content {
+        padding: 15px 0;
+    }
+
+    .term-item {
+        display: flex;
+        align-items-flex-start;
+        margin-bottom: 15px;
+        padding: 12px 15px;
+        background: white;
+        border-radius: 8px;
+        border-right: 3px solid #1e3a8a;
+        line-height: 1.6;
+    }
+
+        .term-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .term-item i {
+            margin-top: 3px;
+            min-width: 20px;
+        }
+
+        .term-item strong {
+            color: #1e3a8a;
+            margin-left: 5px;
+        }
+
+    @@media print {
+        .no-print
+
+    {
+        display: none !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+
+    body {
+        background-color: white !important;
+    }
+
+    .bg-light-blue, .bg-light-blue-success, .bg-light-blue-warning, .bg-light-blue-info, .bg-light-blue-terms {
+        background-color: white !important;
+    }
+
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .card-header h5, .card-header h6 {
+        font-weight: 600;
+    }
+
+    .btn {
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+</style>
+
+<script>
+    function generatePDF() {
+        var buttons = document.querySelectorAll('.no-print');
+        buttons.forEach(function(btn) { btn.style.display = 'none'; });
+        window.print();
+        setTimeout(function() {
+            buttons.forEach(function(btn) { btn.style.display = 'block'; });
+        }, 1000);
+    }
+</script>

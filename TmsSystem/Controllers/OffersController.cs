@@ -225,6 +225,11 @@ namespace TmsSystem.Controllers
                     .Include(o => o.Customer)
                     .Include(o => o.Guide)
                     .Include(o => o.Tour)
+                        .ThenInclude(t => t.Schedule)    // טעינת לוח הזמנים
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Includes)   // טעינת מה כולל הסיור
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Excludes)   // טעינת מה לא כולל הסיור
                     .FirstOrDefaultAsync(o => o.OfferId == id);
 
                 if (offer == null)
