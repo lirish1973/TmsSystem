@@ -157,7 +157,7 @@ namespace TmsSystem.Controllers
                     CustomerId = model.CustomerId,
                     TourId = model.TourId, // הוסף את השורה הזו
                     GuideId = model.GuideId,
-                    PaymentId = model.PaymentMethodId,  // ודא שהשדה הזה תואם למודל
+                    PaymentId = model.PaymentMethodId,  // השתמש ב-PaymentId במקום PaymentMethodId
                     Participants = model.Participants,
                     TripDate = model.TourDate, // מיפוי לשדה TripDate
                     TourDate = model.TourDate, // מיפוי לשדה TourDate

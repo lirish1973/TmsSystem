@@ -54,7 +54,7 @@ namespace TmsSystem.Models
 
         [Required]
         public int PaymentId { get; set; }
-        [ForeignKey("PaymentId")]
+        [ForeignKey("PaymentMethodId")]
         public PaymentMethod PaymentMethod { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
