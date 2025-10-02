@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TmsSystem.Models;
 
 namespace TmsSystem.Controllers
 {
+    [Authorize(Roles = "Admin")] // רק מנהלים יכולים לגשת
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
