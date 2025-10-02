@@ -53,38 +53,102 @@ namespace TmsSystem.Controllers
             return View(model);
         }
 
-   
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateOfferViewModel model)
         {
             try
             {
-                // בדיקות תקינות
+                // בדיקות תקינות מפורטות
+                var validationErrors = new List<string>();
+
+                // בדיקת לקוח
+                if (model.CustomerId <= 0)
+                {
+                    validationErrors.Add("לא נבחר לקוח");
+                }
+                else
+                {
+                    var customerExists = await _context.Customers.AnyAsync(c => c.CustomerId == model.CustomerId);
+                    if (!customerExists)
+                    {
+                        validationErrors.Add($"הלקוח עם ID {model.CustomerId} לא קיים במערכת");
+                    }
+                }
+
+                // בדיקת מדריך
+                if (model.GuideId <= 0)
+                {
+                    validationErrors.Add("לא נבחר מדריך");
+                }
+                else
+                {
+                    var guideExists = await _context.Guides.AnyAsync(g => g.GuideId == model.GuideId);
+                    if (!guideExists)
+                    {
+                        validationErrors.Add($"המדריך עם ID {model.GuideId} לא קיים במערכת");
+                    }
+                }
+
+                // בדיקת אמצעי תשלום
+                if (model.PaymentMethodId <= 0)
+                {
+                    validationErrors.Add("לא נבחר אמצעי תשלום");
+                }
+                else
+                {
+                    var paymentExists = await _context.PaymentMethods.AnyAsync(p => p.ID == model.PaymentMethodId);
+                    if (!paymentExists)
+                    {
+                        validationErrors.Add($"אמצעי התשלום עם ID {model.PaymentMethodId} לא קיים במערכת");
+                    }
+                }
+
+                // בדיקת סיור (אם יש טבלת Tours)
+                int tourId = model.TourId > 0 ? model.TourId : 1;
+                var tourExists = await _context.Tours.AnyAsync(t => t.TourId == tourId);
+                if (!tourExists)
+                {
+                    validationErrors.Add($"הסיור עם ID {tourId} לא קיים במערכת");
+                }
+
+                // בדיקות נוספות
                 if (model.TourDate <= DateTime.Today)
                 {
-                    ModelState.AddModelError("TourDate", "תאריך הטיול חייב להיות בעתיד");
+                    validationErrors.Add("תאריך הטיול חייב להיות בעתיד");
                 }
 
                 if (model.Participants <= 0)
                 {
-                    ModelState.AddModelError("Participants", "מספר המשתתפים חייב להיות גדול מאפס");
+                    validationErrors.Add("מספר המשתתפים חייב להיות גדול מאפס");
                 }
 
-                if (!ModelState.IsValid)
+                if (model.Price <= 0)
                 {
+                    validationErrors.Add("המחיר חייב להיות גדול מאפס");
+                }
+
+                // הצגת השגיאות אם יש
+                if (validationErrors.Any())
+                {
+                    foreach (var error in validationErrors)
+                    {
+                        ModelState.AddModelError("", error);
+                    }
                     await LoadSelectLists(model);
                     return View(model);
                 }
 
-                // יצירת ההצעה - שמירה לטבלה עם השדות הנכונים
+                // יצירת ההצעה
                 var offer = new Offer
                 {
                     CustomerId = model.CustomerId,
                     GuideId = model.GuideId,
-                    TourId = model.TourId > 0 ? model.TourId : 1, // ברירת מחדל
+                    TourId = tourId,
                     Participants = model.Participants,
-                    TripDate = model.TourDate, // שמירה לשדה TripDate בטבלה
+                    TripDate = model.TourDate, // מיפוי לשדה TripDate
+                    TourDate = model.TourDate, // מיפוי לשדה TourDate
                     PickupLocation = model.PickupLocation ?? "",
                     Price = model.Price,
                     TotalPayment = model.Price * model.Participants,
@@ -96,26 +160,41 @@ namespace TmsSystem.Controllers
                     CreatedAt = DateTime.Now
                 };
 
+                // בדיקה לפני השמירה
+                Console.WriteLine($"CustomerId: {offer.CustomerId}");
+                Console.WriteLine($"GuideId: {offer.GuideId}");
+                Console.WriteLine($"TourId: {offer.TourId}");
+                Console.WriteLine($"PaymentId: {offer.PaymentId}");
+                Console.WriteLine($"Participants: {offer.Participants}");
+                Console.WriteLine($"Price: {offer.Price}");
+                Console.WriteLine($"TotalPayment: {offer.TotalPayment}");
+
                 _context.Offers.Add(offer);
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "הצעת המחיר נוצרה בהצלחה!";
                 return RedirectToAction(nameof(Index));
             }
+            catch (DbUpdateException dbEx)
+            {
+                // שגיאות מסד נתונים מפורטות
+                var innerException = dbEx.InnerException?.Message ?? dbEx.Message;
+                ModelState.AddModelError("", $"שגיאה בשמירה למסד הנתונים: {innerException}");
+
+                // הדפסה לקונסול לניפוי באגים
+                Console.WriteLine($"DbUpdateException: {dbEx.Message}");
+                Console.WriteLine($"InnerException: {innerException}");
+
+                await LoadSelectLists(model);
+                return View(model);
+            }
             catch (Exception ex)
             {
-                // הצגת שגיאה מפורטת
-                var fullError = ex.InnerException?.Message ?? ex.Message;
+                var innerException = ex.InnerException?.Message ?? ex.Message;
+                ModelState.AddModelError("", $"שגיאה כללית: {innerException}");
 
-                // אם זה שגיאת foreign key
-                if (fullError.Contains("foreign key") || fullError.Contains("FOREIGN KEY"))
-                {
-                    ModelState.AddModelError("", "שגיאה: אחד מהערכים שנבחרו לא קיים במערכת. אנא בדוק את הבחירות.");
-                }
-                else
-                {
-                    ModelState.AddModelError("", $"שגיאה בשמירת הנתונים: {fullError}");
-                }
+                Console.WriteLine($"General Exception: {ex.Message}");
+                Console.WriteLine($"InnerException: {innerException}");
 
                 await LoadSelectLists(model);
                 return View(model);
@@ -126,7 +205,6 @@ namespace TmsSystem.Controllers
         {
             try
             {
-                // לקוחות
                 model.Customers = await _context.Customers
                     .Where(c => c.CustomerId > 0)
                     .Select(c => new CustomerSelectViewModel
@@ -138,7 +216,6 @@ namespace TmsSystem.Controllers
                     })
                     .ToListAsync();
 
-                // מדריכים - שימוש בשם הטבלה הנכון
                 model.Guides = await _context.Guides
                     .Where(g => !string.IsNullOrEmpty(g.GuideName))
                     .Select(g => new GuideSelectViewModel
@@ -148,7 +225,6 @@ namespace TmsSystem.Controllers
                     })
                     .ToListAsync();
 
-                // אמצעי תשלום
                 model.PaymentMethods = await _context.PaymentMethods
                     .Select(pm => new PaymentMethodSelectViewModel
                     {
@@ -156,11 +232,15 @@ namespace TmsSystem.Controllers
                         PaymentName = pm.METHOD
                     })
                     .ToListAsync();
+
+                // לוג לבדיקה
+                Console.WriteLine($"Loaded {model.Customers.Count} customers");
+                Console.WriteLine($"Loaded {model.Guides.Count} guides");
+                Console.WriteLine($"Loaded {model.PaymentMethods.Count} payment methods");
             }
             catch (Exception ex)
             {
-                // אם יש בעיה בטעינת הנתונים
-                ModelState.AddModelError("", $"שגיאה בטעינת נתוני הטופס: {ex.Message}");
+                Console.WriteLine($"Error loading select lists: {ex.Message}");
             }
         }
 
@@ -170,7 +250,7 @@ namespace TmsSystem.Controllers
             {
                 var offers = await _context.Offers
                     .Include(o => o.Customer)
-                    .Include(o => o.GuideName) // השם במודל
+                    .Include(o => o.GuideId) // השם במודל
                     .Include(o => o.Tour)
                     .ToListAsync();
 

@@ -3,42 +3,40 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TmsSystem.Models
 {
+    [Table("offers")]
     public class Offer
     {
         [Key]
         public int OfferId { get; set; }
 
-        [Required(ErrorMessage = "יש לבחור לקוח")]
+        [Required]
         public int CustomerId { get; set; }
         [ForeignKey("CustomerId")]
         public Customer Customer { get; set; }
 
-        [Required(ErrorMessage = "יש לבחור מדריך")]
+        [Required]
         public int GuideId { get; set; }
         [ForeignKey("GuideId")]
-        public Guide GuideName { get; set; } // השם נשאר כך כי זה שם הטבלה במ
+        public Guide Guide { get; set; } // שינוי מ-GuideName
 
-        [Required(ErrorMessage = "יש לבחור סיור")]
+        [Required]
         public int TourId { get; set; }
         [ForeignKey("TourId")]
         public Tour Tour { get; set; }
 
-        [Required(ErrorMessage = "יש להזין מספר משתתפים")]
-        [Range(1, 100, ErrorMessage = "מספר המשתתפים חייב להיות בין 1 ל-100")]
+        [Required]
         public int Participants { get; set; }
 
-        // שני השדות כמו שמוגדרים בטבלה
-        [Required(ErrorMessage = "יש לבחור תאריך טיול")]
+        [Required]
         public DateTime TripDate { get; set; }
 
-        [Required(ErrorMessage = "יש לבחור תאריך טיול")]
+        [Required]
         public DateTime TourDate { get; set; }
 
         [StringLength(500)]
         public string PickupLocation { get; set; }
 
-        [Required(ErrorMessage = "יש להזין מחיר")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "המחיר חייב להיות גדול מאפס")]
+        [Required]
         public decimal Price { get; set; }
 
         public decimal TotalPayment { get; set; }
@@ -52,9 +50,9 @@ namespace TmsSystem.Models
         [StringLength(2000)]
         public string SpecialRequests { get; set; }
 
-        public bool LunchIncluded { get; set; }
+        public bool LunchIncluded { get; set; } = false;
 
-        [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
+        [Required]
         public int PaymentId { get; set; }
         [ForeignKey("PaymentId")]
         public PaymentMethod PaymentMethod { get; set; }
