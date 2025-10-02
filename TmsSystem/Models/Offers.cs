@@ -16,7 +16,7 @@ namespace TmsSystem.Models
         [Required(ErrorMessage = "יש לבחור מדריך")]
         public int GuideId { get; set; }
         [ForeignKey("GuideId")]
-        public Guide Guide { get; set; } // שינוי מ-GuideName
+        public Guide GuideName { get; set; } // השם נשאר כך כי זה שם הטבלה במ
 
         [Required(ErrorMessage = "יש לבחור סיור")]
         public int TourId { get; set; }

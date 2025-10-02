@@ -53,24 +53,14 @@ namespace TmsSystem.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Index()
-        {
-            var offers = await _context.Offers
-                .Include(o => o.Customer)
-                .Include(o => o.GuideId)
-                .Include(o => o.Tour)
-                .ToListAsync();
-
-            return View(offers);
-        }
-
+   
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateOfferViewModel model)
         {
             try
             {
-                // בדיקת תקינות בסיסית
+                // בדיקות תקינות
                 if (model.TourDate <= DateTime.Today)
                 {
                     ModelState.AddModelError("TourDate", "תאריך הטיול חייב להיות בעתיד");
@@ -87,15 +77,14 @@ namespace TmsSystem.Controllers
                     return View(model);
                 }
 
-                // יצירת ההצעה
+                // יצירת ההצעה - שמירה לטבלה עם השדות הנכונים
                 var offer = new Offer
                 {
                     CustomerId = model.CustomerId,
                     GuideId = model.GuideId,
-                    TourId = model.TourId > 0 ? model.TourId : 1,
+                    TourId = model.TourId > 0 ? model.TourId : 1, // ברירת מחדל
                     Participants = model.Participants,
-                    TripDate = model.TourDate,  // העתק לשני השדות
-                    TourDate = model.TourDate,  // כפי שמוגדר בטבלה
+                    TripDate = model.TourDate, // שמירה לשדה TripDate בטבלה
                     PickupLocation = model.PickupLocation ?? "",
                     Price = model.Price,
                     TotalPayment = model.Price * model.Participants,
@@ -115,9 +104,18 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                // רישום שגיאה מפורט
-                var innerException = ex.InnerException?.Message ?? ex.Message;
-                ModelState.AddModelError("", $"שגיאה בשמירת הנתונים: {innerException}");
+                // הצגת שגיאה מפורטת
+                var fullError = ex.InnerException?.Message ?? ex.Message;
+
+                // אם זה שגיאת foreign key
+                if (fullError.Contains("foreign key") || fullError.Contains("FOREIGN KEY"))
+                {
+                    ModelState.AddModelError("", "שגיאה: אחד מהערכים שנבחרו לא קיים במערכת. אנא בדוק את הבחירות.");
+                }
+                else
+                {
+                    ModelState.AddModelError("", $"שגיאה בשמירת הנתונים: {fullError}");
+                }
 
                 await LoadSelectLists(model);
                 return View(model);
@@ -126,41 +124,63 @@ namespace TmsSystem.Controllers
 
         private async Task LoadSelectLists(CreateOfferViewModel model)
         {
-            model.Customers = await _context.Customers
-                .Where(c => c.CustomerId > 0)
-                .Select(c => new CustomerSelectViewModel
-                {
-                    CustomerId = c.CustomerId,
-                    DisplayName = !string.IsNullOrEmpty(c.FullName) ?
-                        $"{c.FullName} ({c.Phone})" :
-                        $"{c.CustomerName} ({c.Phone})"
-                })
-                .ToListAsync();
+            try
+            {
+                // לקוחות
+                model.Customers = await _context.Customers
+                    .Where(c => c.CustomerId > 0)
+                    .Select(c => new CustomerSelectViewModel
+                    {
+                        CustomerId = c.CustomerId,
+                        DisplayName = !string.IsNullOrEmpty(c.FullName) ?
+                            $"{c.FullName} ({c.Phone})" :
+                            $"{c.CustomerName} ({c.Phone})"
+                    })
+                    .ToListAsync();
 
-            model.Guides = await _context.Guides
-                .Where(g => !string.IsNullOrEmpty(g.GuideName))
-                .Select(g => new GuideSelectViewModel
-                {
-                    GuideId = g.GuideId,
-                    GuideName = g.GuideName
-                })
-                .ToListAsync();
+                // מדריכים - שימוש בשם הטבלה הנכון
+                model.Guides = await _context.Guides
+                    .Where(g => !string.IsNullOrEmpty(g.GuideName))
+                    .Select(g => new GuideSelectViewModel
+                    {
+                        GuideId = g.GuideId,
+                        GuideName = g.GuideName
+                    })
+                    .ToListAsync();
 
-            model.Tours = await _context.Tours
-                .Select(t => new TourSelectViewModel
-                {
-                    TourId = t.TourId,
-                    TourName = t.Title ?? "סיור לא מוגדר"
-                })
-                .ToListAsync();
+                // אמצעי תשלום
+                model.PaymentMethods = await _context.PaymentMethods
+                    .Select(pm => new PaymentMethodSelectViewModel
+                    {
+                        PaymentMethodId = pm.ID,
+                        PaymentName = pm.METHOD
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // אם יש בעיה בטעינת הנתונים
+                ModelState.AddModelError("", $"שגיאה בטעינת נתוני הטופס: {ex.Message}");
+            }
+        }
 
-            model.PaymentMethods = await _context.PaymentMethods
-                .Select(pm => new PaymentMethodSelectViewModel
-                {
-                    PaymentMethodId = pm.ID,
-                    PaymentName = pm.METHOD
-                })
-                .ToListAsync();
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var offers = await _context.Offers
+                    .Include(o => o.Customer)
+                    .Include(o => o.GuideName) // השם במודל
+                    .Include(o => o.Tour)
+                    .ToListAsync();
+
+                return View(offers);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"שגיאה בטעינת ההצעות: {ex.Message}";
+                return View(new List<Offer>());
+            }
         }
     }
 }
