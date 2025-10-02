@@ -5,95 +5,304 @@
 }
 
 <div class="container mt-4" dir="rtl" style="max-width:95%">
-    <h2 class="mb-4 text-primary">רשימת סיורים</h2>
+    <h2 class="mb-4 text-primary">
+        <i class="fas fa-route"></i> רשימת סיורים
+    </h2>
 
-    <table class="table table-bordered table-striped table-hover" style="background-color:#e0f2ff;">
+    <table class="table table-bordered table-striped table-hover compact-table" style="background-color:#e0f2ff;">
         <thead class="table-primary">
             <tr>
-                <th>מספר סיור</th>
-                <th>שם הסיור</th>
-                <th>תיאור</th>
-                <th>תאריך יצירה</th>
-                <th>לוח זמנים</th>
-                <th>כולל</th>
-                <th>לא כולל</th>
-                <th>פעולות</th>
+                <th style="width: 80px;"></th>
+                <th style="width: 200px;">מס" סיור</th>
+                <th style="width: 250px;">תיאור</th>
+                <th style="width: 120px;">תאריך יצירה</th>
+                <th style="width: 100px;">לוח זמנים</th>
+                <th style="width: 80px;">כולל</th>
+                <th style="width: 80px;">לא כולל</th>
+                <th style="width: 120px;">פעולות</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var tour in Model ?? Enumerable.Empty<TmsSystem.Models.Tour>())
             {
-                <tr>
-                    <td>@tour.TourId</td>
-                    <td>@tour.Title </td>
-                    <td>@tour.Description </td>
-                    <td>@tour.CreatedAt.ToString("yyyy-MM-dd")</td>
+                <tr class="tour-row" data-tour-id="@tour.TourId" style="cursor: pointer;"
+                    onclick="window.location.href='@Url.Action("Details", new { id = tour.TourId })'">
+                    <td class="text-center" onclick="event.stopPropagation();">
+                        <span class="badge bg-primary">@tour.TourId</span>
+                    </td>
                     <td>
+                        <div class="tour-title">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                            <strong>@tour.Title</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="description-preview">
+                            @if (!string.IsNullOrEmpty(tour.Description))
+                            {
+                                <span title="@tour.Description">
+                                    @(tour.Description.Length > 80 ? tour.Description.Substring(0, 80) + "..." : tour.Description)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">אין תיאור</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="date-display">
+                            <i class="fas fa-calendar-alt text-info"></i>
+                            <small>@tour.CreatedAt.ToString("dd/MM/yyyy")</small>
+                        </div>
+                    </td>
+                    <td class="text-center">
                         @if (tour.Schedule != null && tour.Schedule.Any())
                         {
-                            <ul class="mb-0">
-                                @foreach (var item in tour.Schedule)
-                                {
-                                    <li>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime?.ToString(@"hh\:mm") : @item.Location (@item.Description)</li>
-                                }
-                            </ul>
+                            <span class="badge bg-info" title="@tour.Schedule.Count פריטים בלוח הזמנים">
+                                <i class="fas fa-clock"></i> @tour.Schedule.Count
+                            </span>
                         }
                         else
                         {
-                            <span>אין לוח זמנים</span>
+                            <span class="text-muted">
+                                <i class="fas fa-clock text-muted"></i> 0
+                            </span>
                         }
                     </td>
-                    <td>
+                    <td class="text-center">
                         @if (tour.Includes != null && tour.Includes.Any())
                         {
-                            <ul class="mb-0">
-                                @foreach (var inc in tour.Includes)
-                                {
-                                    <li>@inc.Description</li>
-                                }
-                            </ul>
+                            <span class="badge bg-info" title="@tour.Includes.Count פריטים כלולים">
+                                <i class="fas fa-check"></i> @tour.Includes.Count
+                            </span>
                         }
                         else
                         {
-                            <span>אין פריטים</span>
+                            <span class="text-muted">0</span>
                         }
                     </td>
-                    <td>
+                    <td class="text-center">
                         @if (tour.Excludes != null && tour.Excludes.Any())
                         {
-                            <ul class="mb-0">
-                                @foreach (var exc in tour.Excludes)
-                                {
-                                    <li>@exc.Description</li>
-                                }
-                            </ul>
+                            <span class="badge bg-info" title="@tour.Excludes.Count פריטים לא כלולים">
+                                <i class="fas fa-times"></i> @tour.Excludes.Count
+                            </span>
                         }
                         else
                         {
-                            <span>אין פריטים</span>
+                            <span class="text-success">הכל כלול</span>
                         }
                     </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@tour.TourId" class="btn btn-sm btn-info text-white mb-1">עריכה</a>
-                        <a asp-action="Delete" asp-route-id="@tour.TourId" class="btn btn-sm btn-danger mb-1">מחיקה</a>
+                    <td onclick="event.stopPropagation();">
+                        <div class="action-buttons">
+                            <a asp-action="Details" asp-route-id="@tour.TourId" class="btn btn-sm btn-primary mb-1" title="צפייה בפרטים">
+                                <i class="fas fa-eye"></i> פרטים
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@tour.TourId" class="btn btn-sm btn-info text-white mb-1" title="עריכת הסיור">
+                                <i class="fas fa-edit"></i> עריכה
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@tour.TourId" class="btn btn-sm btn-danger"
+                               onclick="return confirm('האם אתה בטוח שברצונך למחוק את הסיור?');" title="מחיקת הסיור">
+                                <i class="fas fa-trash-alt"></i> מחיקה
+                            </a>
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center mt-4">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                לא נמצאו סיורים במערכת
+            </div>
+        </div>
+    }
+
+    <!-- הודעה למשתמש -->
+    <div class="alert alert-light border mt-3">
+        <i class="fas fa-info-circle text-primary"></i>
+        <strong>טיפ:</strong> לחץ על שורה כדי לצפות בפרטים המלאים של הסיור
+    </div>
 </div>
 
 <style>
-    table th, table td {
-        vertical-align: middle !important;
-        text-align: right;
+    /* עיצוב בסיסי לטבלה */
+    .compact-table {
+        table-layout: fixed;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
-    table tbody tr:hover {
-        background-color: #cce6ff;
+        .compact-table th,
+        .compact-table td {
+            vertical-align: middle !important;
+            text-align: right;
+            padding: 10px 8px !important;
+            word-wrap: break-word;
+            border-color: #dee2e6 !important;
+        }
+
+    /* אפקט hover על השורות */
+    .tour-row:hover {
+        background-color: #b3d9ff !important;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+
+        .tour-row:hover .tour-title strong {
+            color: #0d6efd;
+        }
 
     h2, .table th {
         color: #0d6efd;
+        font-weight: 600;
     }
+
+    /* עיצוב כותרת סיור */
+    .tour-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .tour-title strong {
+            color: #2c3e50;
+            transition: color 0.2s ease;
+        }
+
+    /* עיצוב תיאור */
+    .description-preview {
+        line-height: 1.4;
+        font-size: 0.85rem;
+    }
+
+    /* עיצוב תאריך */
+    .date-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-direction: column;
+    }
+
+    /* תגיות */
+    .badge {
+        font-size: 0.7rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .badge:hover {
+            transform: scale(1.05);
+        }
+
+    /* כפתורי פעולות */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .btn-sm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+    .text-muted {
+        font-style: italic;
+        font-size: 0.75rem;
+    }
+
+    /* אנימציה לשורות */
+    .tour-row {
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+        .tour-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #0d6efd;
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+        }
+
+        .tour-row:hover::before {
+            transform: scaleY(1);
+        }
+
+    /* התאמה למובייל */
+    @@media (max-width: 768px) {
+        .container
+
+    {
+        max-width: 100% !important;
+        padding: 5px;
+    }
+
+    .compact-table {
+        font-size: 0.75rem;
+    }
+
+    .action-buttons {
+        flex-direction: row;
+        gap: 2px;
+    }
+
+    .btn-sm {
+        font-size: 0.6rem;
+        padding: 3px 6px;
+    }
+
+    }
+
+    /* סגנון מיוחד לכפתור פרטים */
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0b5ed7, #0a58ca);
+        }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // הוספת אפקט עכבר מעל השורות
+        const rows = document.querySelectorAll('.tour-row');
+
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.cursor = 'pointer';
+            });
+        });
+
+        // הוספת tooltip לתיאורים ארוכים
+        const descriptions = document.querySelectorAll('.description-preview span[title]');
+        descriptions.forEach(desc => {
+            if (desc.textContent.includes('...')) {
+                desc.style.cursor = 'help';
+            }
+        });
+    });
+</script>
