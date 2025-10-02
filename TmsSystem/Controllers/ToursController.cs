@@ -198,7 +198,26 @@ namespace TmsSystem.Controllers
         }
 
 
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var tour = await _context.Tours
+                .Include(t => t.Schedule)
+                .Include(t => t.Includes)
+                .Include(t => t.Excludes)
+                .FirstOrDefaultAsync(m => m.TourId == id);
+
+            if (tour == null)
+            {
+                return NotFound();
+            }
+
+            return View(tour);
+        }
 
         // POST: CreateTour
         [HttpPost]
