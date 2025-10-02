@@ -1,5 +1,9 @@
 ﻿@model TmsSystem.ViewModels.CreateOfferViewModel
 
+@{
+    ViewData["Title"] = "יצירת הצעת מחיר";
+}
+
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -23,9 +27,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
-@{
-    ViewData["Title"] = "יצירת הצעת מחיר";
-}
 
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -41,6 +42,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             padding: 20px 0;
+            direction: rtl;
         }
 
         .main-card {
@@ -50,6 +52,8 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             border: none;
             overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .card-header {
@@ -84,6 +88,7 @@
             color: #2c3e50;
             margin-bottom: 8px;
             font-size: 14px;
+            text-align: right;
         }
 
         .form-control, .form-select {
@@ -92,6 +97,8 @@
             padding: 12px 16px;
             transition: all 0.3s ease;
             background: rgba(255, 255, 255, 0.9);
+            text-align: right;
+            direction: rtl;
         }
 
             .form-control:focus, .form-select:focus {
@@ -123,6 +130,21 @@
                 background: linear-gradient(45deg, #5a6fd8, #6a42a0);
             }
 
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+                transform: translateY(-2px);
+            }
+
         .form-section {
             background: rgba(248, 249, 250, 0.8);
             border-radius: 15px;
@@ -139,6 +161,7 @@
             padding-bottom: 10px;
             border-bottom: 2px solid #667eea;
             display: inline-block;
+            text-align: right;
         }
 
         .row-cards {
@@ -179,19 +202,15 @@
             accent-color: #667eea;
         }
 
-        .required-field {
-            position: relative;
+        .required-field::after {
+            content: ' *';
+            color: #dc3545;
+            margin-left: 3px;
         }
-
-            .required-field::after {
-                content: '*';
-                color: #dc3545;
-                margin-right: 3px;
-            }
 
         .floating-icon {
             position: absolute;
-            left: 15px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             color: #667eea;
@@ -205,6 +224,7 @@
         .animate-in {
             animation: slideIn 0.5s ease-out;
         }
+
         @@keyframes slideIn {
             from
 
@@ -219,10 +239,21 @@
         }
 
         }
+
+        .alert {
+            text-align: right;
+            direction: rtl;
+        }
+
+        .text-danger {
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 85%;">
+    <div class="container-fluid" style="max-width: 90%;">
         <div class="card main-card animate-in">
             <div class="card-header text-center">
                 <h2 class="card-title">
@@ -231,41 +262,46 @@
                 </h2>
             </div>
             <div class="card-body p-4">
-                @* השתמש בטופס MVC מלא! *@
                 <form asp-action="Create" asp-controller="Offers" method="post">
                     @Html.AntiForgeryToken()
+
                     <!-- פרטי הלקוח והסיור -->
                     <div class="form-section">
                         <h4 class="section-title">
                             <i class="fas fa-user me-2"></i>
                             פרטי הלקוח והסיור
                         </h4>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="row-cards">
                                     <label class="form-label required-field" for="CustomerId">לקוח</label>
                                     <div class="position-relative">
                                         <i class="fas fa-user floating-icon"></i>
-                                        <select asp-for="CustomerId" class="form-select"
-                                                asp-items="@(new SelectList(Model.Customers, "CustomerId", "DisplayName"))">
+                                        <select asp-for="CustomerId" class="form-select has-icon"
+                                                asp-items="@(Model.Customers != null ? new SelectList(Model.Customers, "CustomerId", "DisplayName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
                                             <option value="">-- בחר לקוח --</option>
                                         </select>
-                                        @Html.ValidationMessageFor(m => m.CustomerId, "", new { @class = "text-danger" })
+                                        <span asp-validation-for="CustomerId" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-md-6 mb-3">
                                 <div class="row-cards">
                                     <label class="form-label required-field" for="GuideId">מדריך</label>
                                     <div class="position-relative">
                                         <i class="fas fa-user-tie floating-icon"></i>
-                                        <select asp-for="GuideId" class="form-select"
-                                                asp-items="@(new SelectList(Model.Guides, "GuideId", "GuideName"))"></select>
-                                        @Html.ValidationMessageFor(m => m.GuideId, "", new { @class = "text-danger" })
+                                        <select asp-for="GuideId" class="form-select has-icon"
+                                                asp-items="@(Model.Guides != null ? new SelectList(Model.Guides, "GuideId", "GuideName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                                            <option value="">-- בחר מדריך --</option>
+                                        </select>
+                                        <span asp-validation-for="GuideId" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <div class="row-cards">
@@ -274,20 +310,22 @@
                                         <i class="fas fa-users floating-icon"></i>
                                         <input asp-for="Participants" type="number" class="form-control has-icon"
                                                min="1" max="50" required oninput="calculateTotal()" />
-                                        @Html.ValidationMessageFor(m => m.Participants, "", new { @class = "text-danger" })
+                                        <span asp-validation-for="Participants" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-md-4 mb-3">
                                 <div class="row-cards">
                                     <label class="form-label required-field" for="TourDate">תאריך טיול</label>
                                     <div class="position-relative">
                                         <i class="fas fa-calendar floating-icon"></i>
                                         <input asp-for="TourDate" type="date" class="form-control has-icon" required />
-                                        @Html.ValidationMessageFor(m => m.TourDate, "", new { @class = "text-danger" })
+                                        <span asp-validation-for="TourDate" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-md-4 mb-3">
                                 <div class="row-cards">
                                     <label class="form-label" for="PickupLocation">נקודת איסוף</label>
@@ -300,12 +338,14 @@
                             </div>
                         </div>
                     </div>
+
                     <!-- מחירים וכלול -->
                     <div class="form-section">
                         <h4 class="section-title">
                             <i class="fas fa-money-bill-wave me-2"></i>
                             מחירים ופירוט
                         </h4>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="row-cards">
@@ -314,23 +354,26 @@
                                         <i class="fas fa-shekel-sign floating-icon"></i>
                                         <input asp-for="Price" type="number" class="form-control has-icon"
                                                min="0" step="0.01" required oninput="calculateTotal()" />
-                                        @Html.ValidationMessageFor(m => m.Price, "", new { @class = "text-danger" })
+                                        <span asp-validation-for="Price" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-md-6 mb-3">
                                 <div class="row-cards">
                                     <label class="form-label required-field" for="PaymentMethodId">אמצעי תשלום</label>
                                     <div class="position-relative">
                                         <i class="fas fa-credit-card floating-icon"></i>
                                         <select asp-for="PaymentMethodId" class="form-select has-icon"
-                                                asp-items="@(new SelectList(Model.PaymentMethods, "PaymentMethodId", "PaymentName"))">
+                                                asp-items="@(Model.PaymentMethods != null ? new SelectList(Model.PaymentMethods, "PaymentMethodId", "PaymentName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
                                             <option value="">-- בחר אמצעי תשלום --</option>
                                         </select>
-                                        @Html.ValidationMessageFor(m => m.PaymentMethodId, "", new { @class = "text-danger" })
+                                        <span asp-validation-for="PaymentMethodId" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
                         <div class="price-calculation">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -344,6 +387,7 @@
                                               placeholder="לדוגמה: ארוחות, דמי כניסה נוספים, קניות אישיות..."></textarea>
                                 </div>
                             </div>
+
                             <div class="form-check mb-3">
                                 <input asp-for="LunchIncluded" type="checkbox" class="form-check-input checkbox-custom"
                                        onchange="updateLunchStatus()" />
@@ -352,12 +396,14 @@
                                     ארוחת צהריים כלולה במחיר
                                 </label>
                             </div>
+
                             <div class="total-display">
                                 <i class="fas fa-calculator me-2"></i>
                                 סה"כ לתשלום: <span id="totalAmount">₪0</span>
                             </div>
                         </div>
                     </div>
+
                     <!-- בקשות מיוחדות -->
                     <div class="form-section">
                         <h4 class="section-title">
@@ -370,42 +416,56 @@
                                       placeholder="לדוגמה: נגישות לכיסא גלגלים, מגבלות תזונתיות, בקשות מיוחדות נוספות..."></textarea>
                         </div>
                     </div>
+
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="fas fa-file-invoice-dollar me-2"></i>
                             צור הצעת מחיר
                         </button>
+                        <a href="@Url.Action("Index", "Offers")" class="btn btn-secondary btn-lg ms-3">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            חזור לרשימה
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         // הגדרה של תאריך ברירת מחדל
         window.onload = function() {
             var tourDateInput = document.querySelector("input[name='TourDate']");
-            if (tourDateInput) tourDateInput.value = new Date().toISOString().split('T')[0];
+            if (tourDateInput && !tourDateInput.value) {
+                var today = new Date();
+                var tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tourDateInput.value = tomorrow.toISOString().split('T')[0];
+            }
+            calculateTotal();
         };
 
         function calculateTotal() {
-            var participants = parseInt(document.querySelector("input[name='Participants']").value) || 0;
-            var pricePerPerson = parseFloat(document.querySelector("input[name='Price']").value) || 0;
+            var participants = parseInt(document.querySelector("input[name='Participants']")?.value) || 0;
+            var pricePerPerson = parseFloat(document.querySelector("input[name='Price']")?.value) || 0;
             var total = participants * pricePerPerson;
-            document.getElementById('totalAmount').textContent = `₪${total.toLocaleString('he-IL')}`;
-            // שמור גם ב־TotalPayment
-            var totalInput = document.querySelector("input[name='TotalPayment']");
-            if (totalInput) totalInput.value = total;
+
+            var totalAmountElement = document.getElementById('totalAmount');
+            if (totalAmountElement) {
+                totalAmountElement.textContent = `₪${total.toLocaleString('he-IL')}`;
+            }
         }
 
         function updateLunchStatus() {
-            var lunchIncluded = document.querySelector("input[name='LunchIncluded']").checked;
+            var lunchIncluded = document.querySelector("input[name='LunchIncluded']")?.checked;
             var priceIncludesText = document.querySelector("textarea[name='PriceIncludes']");
-            if (lunchIncluded) {
+
+            if (priceIncludesText && lunchIncluded) {
                 if (!priceIncludesText.value.includes('ארוחת צהריים')) {
                     priceIncludesText.value += (priceIncludesText.value ? '\n' : '') + '• ארוחת צהריים';
                 }
-            } else {
+            } else if (priceIncludesText) {
                 priceIncludesText.value = priceIncludesText.value.replace(/\n?• ארוחת צהריים/g, '');
             }
         }

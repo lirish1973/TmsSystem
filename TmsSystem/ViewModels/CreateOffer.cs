@@ -36,6 +36,8 @@ namespace TmsSystem.ViewModels
         [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
         public int PaymentMethodId { get; set; }
 
+        public List<TourSelectViewModel> Tours { get; set; } = new List<TourSelectViewModel>();
+
         // רשימות לבחירה
         public List<CustomerSelectViewModel> Customers { get; set; } = new();
         public List<GuideSelectViewModel> Guides { get; set; } = new();
