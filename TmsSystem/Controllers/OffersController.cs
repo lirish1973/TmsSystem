@@ -40,16 +40,17 @@ namespace TmsSystem.Controllers
                     })
                     .ToListAsync(),
 
-                // תיקון כאן - PaymentMethods במקום PaymentsMethod
+                // תיקון השדות בהתאם לטבלה שלך
                 PaymentMethods = await _context.PaymentMethods
-                    .Select(pm => new PaymentMethodSelectViewModel
-                    {
-                        PaymentMethodId = pm.ID,        // שימוש ב-ID (אותיות גדולות)
-                        PaymentName = pm.METHOD         // שימוש ב-METHOD (אותיות גדולות)
-                    })
-                    .ToListAsync(),
+            .Select(pm => new PaymentMethodSelectViewModel
+            {
+                PaymentMethodId = pm.ID,        // שם השדה הראשי בטבלה
+                PaymentName = pm.METHOD      // שם השיטה
+               
+            })
+            .ToListAsync(),
 
-                       Tours = await _context.Tours
+                Tours = await _context.Tours
             .Select(t => new TourSelectViewModel
             {
                 TourId = t.TourId,
@@ -136,7 +137,9 @@ namespace TmsSystem.Controllers
                 {
                     validationErrors.Add("המחיר חייב להיות גדול מאפס");
                 }
+             
 
+              
                 // הצגת השגיאות אם יש
                 if (validationErrors.Any())
                 {
@@ -154,7 +157,7 @@ namespace TmsSystem.Controllers
                     CustomerId = model.CustomerId,
                     TourId = model.TourId, // הוסף את השורה הזו
                     GuideId = model.GuideId,
-                   // TourId = tourId,
+                    PaymentId = model.PaymentMethodId,  // ודא שהשדה הזה תואם למודל
                     Participants = model.Participants,
                     TripDate = model.TourDate, // מיפוי לשדה TripDate
                     TourDate = model.TourDate, // מיפוי לשדה TourDate
@@ -165,7 +168,7 @@ namespace TmsSystem.Controllers
                     PriceExcludes = model.PriceExcludes ?? "",
                     SpecialRequests = model.SpecialRequests ?? "",
                     LunchIncluded = model.LunchIncluded,
-                    PaymentId = model.PaymentMethodId,
+                    
                     CreatedAt = DateTime.Now
                 };
 

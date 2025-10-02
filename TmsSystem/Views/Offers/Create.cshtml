@@ -301,7 +301,26 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class="col-md-12 mb-3">
+                            <div class="row-cards">
+                                <label class="form-label required-field" for="TourId">בחירת סיור</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-route floating-icon"></i>
+                                    <select asp-for="TourId" class="form-select has-icon"
+                                            asp-items="@(Model.Tours != null ? new SelectList(Model.Tours, "TourId", "TourName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                                        <option value="">-- בחר סיור --</option>
+                                    </select>
+                                    <span asp-validation-for="TourId" class="text-danger"></span>
+                                </div>
+                                @if (Model.Tours == null || !Model.Tours.Any())
+                                {
+                                    <div class="alert alert-warning mt-2" role="alert">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        לא נמצאו סיורים במערכת. יש ליצור סיורים תחילה.
+                                    </div>
+                                }
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <div class="row-cards">
