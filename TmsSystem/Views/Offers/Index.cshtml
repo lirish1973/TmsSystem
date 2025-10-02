@@ -68,7 +68,7 @@
                                 <div class="col-lg-8">
                                     <div class="d-flex align-items-center gap-3 mb-2">
                                         <span class="badge-offer">#@offer.OfferId</span>
-                                        <h5 class="mb-0 fw-bold">@offer.Customer?.FullName ?? offer.Customer?.CustomerName</h5>
+                                        <h5 class="mb-0 fw-bold">@offer.Customer?.FullName </h5>
                                     </div>
                                     <div class="d-flex flex-wrap gap-3 mb-2 text-muted">
                                         <span><i class="fas fa-user-circle me-1"></i>@offer.Customer?.Phone</span>
@@ -109,14 +109,14 @@
                                     </div>
                                     <div class="offer-actions d-flex gap-2 w-100">
                                         <a href="@Url.Action("ShowOffers", "Offers", new { id = offer.OfferId })" class="btn btn-outline-primary flex-fill" title="צפה">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fas fa-eye"></i>צפה
                                         </a>
                                         <a href="@Url.Action("Edit", "Offers", new { id = offer.OfferId })" class="btn btn-outline-warning flex-fill" title="ערוך">
-                                            <i class="fas fa-pencil-alt"></i>
+                                            <i class="fas fa-pencil-alt"></i>ערוך
                                         </a>
                                         <a href="@Url.Action("Delete", "Offers", new { id = offer.OfferId })" class="btn btn-outline-danger flex-fill" title="מחק"
                                            onclick="return confirm('האם אתה בטוח שברצונך למחוק את ההזמנה?');">
-                                            <i class="fas fa-trash-alt"></i>
+                                            <i class="fas fa-trash-alt"></i>מחק
                                         </a>
                                     </div>
                                     <div class="text-muted text-center mt-2 w-100" style="font-size:0.95em;">
