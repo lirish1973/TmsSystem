@@ -302,25 +302,89 @@ namespace TmsSystem.Controllers
             }
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> TestData()
+        {
+            var offers = await _context.Offers.ToListAsync();
+            var customers = await _context.Customers.ToListAsync();
+            var guides = await _context.Guides.ToListAsync();
+            var tours = await _context.Tours.ToListAsync();
+
+            var result = new
+            {
+                OffersCount = offers.Count,
+                CustomersCount = customers.Count,
+                GuidesCount = guides.Count,
+                ToursCount = tours.Count,
+                Offers = offers.Select(o => new {
+                    o.OfferId,
+                    o.CustomerId,
+                    o.GuideId,
+                    o.TourId,
+                    CustomerName = customers.FirstOrDefault(c => c.CustomerId == o.CustomerId)?.FullName
+                })
+            };
+
+            return Json(result);
+        }
+
+
+
         public async Task<IActionResult> Index()
         {
             try
             {
+                Console.WriteLine("נכנס לפעולת Index");
+
+                // Debug: ספור כמה רשומות יש בכל טבלה
+                var customerCount = await _context.Customers.CountAsync();
+                var guideCount = await _context.Guides.CountAsync();
+                var tourCount = await _context.Tours.CountAsync();
+                var offerCount = await _context.Offers.CountAsync();
+
+                Console.WriteLine($"לקוחות: {customerCount}, מדריכים: {guideCount}, טיולים: {tourCount}, הצעות: {offerCount}");
+
+                if (offerCount == 0)
+                {
+                    Console.WriteLine("אין הצעות בטבלה!");
+                    return View(new List<Offer>());
+                }
+
                 var offers = await _context.Offers
-                    .Include(o => o.Customer)
-            .Include(o => o.Guide)
-            .Include(o => o.Tour)
-            .Include(o => o.PaymentMethod) // הוסף את זה
-            .OrderByDescending(o => o.CreatedAt)
-                    .ToListAsync();
+          .Include(o => o.Customer)
+          .Include(o => o.Guide)
+          .Include(o => o.Tour)
+          .OrderByDescending(o => o.CreatedAt)
+          .ToListAsync();
+
+                Console.WriteLine($"נטענו {offers.Count} הצעות");
+
+                // Debug: הדפס פרטי ההצעה הראשונה
+                if (offers.Any())
+                {
+                    var firstOffer = offers.First();
+                    Console.WriteLine($"הצעה ראשונה: ID={firstOffer.OfferId}, Customer={firstOffer.Customer?.FullName}");
+                }
+                foreach(var offer in offers)
+        {
+                    if (offer.PaymentMethodId.HasValue)
+                    {
+                        offer.PaymentMethod = await _context.PaymentMethods
+                            .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId.Value);
+                    }
+                }
 
                 return View(offers);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"שגיאה: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 TempData["ErrorMessage"] = $"שגיאה בטעינת ההצעות: {ex.Message}";
                 return View(new List<Offer>());
             }
+                  
         }
     }
 }
