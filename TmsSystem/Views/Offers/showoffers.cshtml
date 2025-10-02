@@ -3,385 +3,61 @@
     ViewData["Title"] = "פרטי הצעת מחיר";
 }
 
-<style>
-    .offer-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px 0;
-    }
-
-    .offer-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        overflow: hidden;
-        margin: 0 auto;
-        max-width: 1000px;
-    }
-
-    .offer-header {
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        color: white;
-        padding: 30px;
-        text-align: center;
-        position: relative;
-    }
-
-        .offer-header::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 20px solid #45a049;
-        }
-
-    .offer-body {
-        padding: 40px;
-    }
-
-    .section-card {
-        background: #f8f9fa;
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 25px;
-        border-right: 5px solid #4CAF50;
-        transition: transform 0.3s ease;
-    }
-
-        .section-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-    .section-title {
-        color: #2c3e50;
-        font-weight: 700;
-        margin-bottom: 20px;
-        font-size: 1.3rem;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-    .info-label {
-        font-weight: 600;
-        color: #495057;
-        flex: 1;
-    }
-
-    .info-value {
-        flex: 2;
-        text-align: right;
-        color: #212529;
-    }
-
-    .price-highlight {
-        background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin: 20px 0;
-    }
-
-    .status-badge {
-        background: #28a745;
-        color: white;
-        padding: 8px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    .btn-action {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        color: white;
-        padding: 12px 25px;
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-block;
-        margin: 5px;
-    }
-
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            color: white;
-            text-decoration: none;
-        }
-
-    .tour-details {
-        background: linear-gradient(135deg, #FFF5EE 0%, #F0F8FF 100%);
-        padding: 20px;
-        border-radius: 15px;
-        margin: 15px 0;
-    }
-
-    .icon {
-        color: #4CAF50;
-        font-size: 1.2rem;
-    }
-
-    @@media (max-width: 768px) {
-        .offer-container
-
-    {
-        padding: 10px;
-    }
-
-    .offer-body {
-        padding: 20px;
-    }
-
-    .info-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-
-    .info-value {
-        text-align: right;
-    }
-
-    }
-</style>
-
-<div class="offer-container">
-    <div class="offer-card">
-        <!-- כותרת ההצעה -->
-        <div class="offer-header">
-            <h1><i class="fas fa-file-invoice-dollar"></i> הצעת מחיר #@Model.Offer.OfferId</h1>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="fas fa-file-invoice-dollar"></i> הצעת מחיר #@Model.Offer.OfferId</h2>
             <p class="mb-0">נוצרה ב-@Model.Offer.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
         </div>
-
-        <div class="offer-body">
-            <!-- פרטי הלקוח -->
-            <div class="section-card">
-                <h3 class="section-title">
-                    <i class="fas fa-user icon"></i>
-                    פרטי הלקוח
-                </h3>
-                <div class="info-row">
-                    <span class="info-label">שם הלקוח:</span>
-                    <span class="info-value">@Model.Offer.Customer.FullName</span>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>פרטי הלקוח</h5>
+                    <p><strong>שם:</strong> @Model.Offer.Customer.FullName</p>
+                    <p><strong>טלפון:</strong> @Model.Offer.Customer.Phone</p>
+                    <p><strong>אימייל:</strong> @Model.Offer.Customer.Email</p>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">חברה:</span>
-                    <span class="info-value">@(Model.Offer.Customer.CompanyName ?? "לא צוין")</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">טלפון:</span>
-                    <span class="info-value">@Model.Offer.Customer.Phone</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">אימייל:</span>
-                    <span class="info-value">@Model.Offer.Customer.Email</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">כתובת:</span>
-                    <span class="info-value">@(Model.Offer.Customer.Address ?? "לא צוינה")</span>
+                <div class="col-md-6">
+                    <h5>פרטי הטיול</h5>
+                    <p><strong>טיול:</strong> @Model.Offer.Tour.Title</p>
+                    <p><strong>תאריך:</strong> @Model.Offer.TourDate.ToString("dd/MM/yyyy")</p>
+                    <p><strong>משתתפים:</strong> @Model.Offer.Participants</p>
                 </div>
             </div>
 
-            <!-- פרטי הטיול -->
-            <div class="section-card">
-                <h3 class="section-title">
-                    <i class="fas fa-map-marked-alt icon"></i>
-                    פרטי הטיול
-                </h3>
-                <div class="info-row">
-                    <span class="info-label">שם הטיול:</span>
-                    <span class="info-value">@Model.Offer.Tour.Title</span>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h5>מדריך</h5>
+                    <p><strong>שם:</strong> @Model.Offer.Guide.GuideName</p>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">תאריך הטיול:</span>
-                    <span class="info-value">@Model.Offer.TourDate.ToString("dddd, dd/MM/yyyy")</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">נקודת איסוף:</span>
-                    <span class="info-value">@(Model.Offer.PickupLocation ?? "לא צוינה")</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">מספר משתתפים:</span>
-                    <span class="info-value">@Model.Offer.Participants איש</span>
-                </div>
-                @if (!string.IsNullOrEmpty(Model.Offer.Tour.Description))
-                {
-                    <div class="tour-details">
-                        <strong>תיאור הטיול:</strong><br>
-                        @Model.Offer.Tour.Description
-                    </div>
-                }
-            </div>
-
-            <!-- פרטי המדריך -->
-            <div class="section-card">
-                <h3 class="section-title">
-                    <i class="fas fa-user-tie icon"></i>
-                    פרטי המדריך
-                </h3>
-                <div class="info-row">
-                    <span class="info-label">שם המדריך:</span>
-                    <span class="info-value">@Model.Offer.Guide.GuideName</span>
-                </div>
-                @if (!string.IsNullOrEmpty(Model.Offer.Guide.Description))
-                {
-                    <div class="info-row">
-                        <span class="info-label">תיאור:</span>
-                        <span class="info-value">@Model.Offer.Guide.Description</span>
-                    </div>
-                }
-            </div>
-
-            <!-- פרטי המחיר -->
-            <div class="section-card">
-                <h3 class="section-title">
-                    <i class="fas fa-calculator icon"></i>
-                    פירוט מחירים
-                </h3>
-                <div class="info-row">
-                    <span class="info-label">מחיר לאדם:</span>
-                    <span class="info-value">₪@Model.Offer.Price.ToString("N2")</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">מספר משתתפים:</span>
-                    <span class="info-value">@Model.Offer.Participants</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">ארוחת צהריים:</span>
-                    <span class="info-value">
-                        @if (Model.Offer.LunchIncluded)
-                        {
-                            <span class="status-badge">כלול במחיר</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">לא כלול</span>
-                        }
-                    </span>
-                </div>
-
-                <div class="price-highlight">
-                    <i class="fas fa-shekel-sign"></i>
-                    סך הכל לתשלום: ₪@Model.Offer.TotalPayment.ToString("N2")
+                <div class="col-md-6">
+                    <h5>מחיר</h5>
+                    <p><strong>מחיר לאדם:</strong> ₪@Model.Offer.Price.ToString("N2")</p>
+                    <p><strong>סה"כ:</strong> ₪@Model.Offer.TotalPayment.ToString("N2")</p>
                 </div>
             </div>
 
-            <!-- תנאי התשלום -->
             @if (Model.PaymentMethod != null)
             {
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <i class="fas fa-credit-card icon"></i>
-                        תנאי התשלום
-                    </h3>
-                    <div class="info-row">
-                        <span class="info-label">אמצעי תשלום:</span>
-                        <span class="info-value">@Model.PaymentMethod.METHOD</span>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>אמצעי תשלום</h5>
+                        <p>@Model.PaymentMethod.METHOD</p>
                     </div>
                 </div>
             }
 
-            <!-- הכלולים במחיר -->
-            @if (!string.IsNullOrEmpty(Model.Offer.PriceIncludes))
-            {
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <i class="fas fa-check-circle icon"></i>
-                        כלול במחיר
-                    </h3>
-                    <div class="tour-details">
-                        @Html.Raw(Model.Offer.PriceIncludes.Replace("\n", "<br>"))
-                    </div>
-                </div>
-            }
-
-            <!-- לא כלול במחיר -->
-            @if (!string.IsNullOrEmpty(Model.Offer.PriceExcludes))
-            {
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <i class="fas fa-times-circle icon" style="color: #dc3545;"></i>
-                        לא כלול במחיר
-                    </h3>
-                    <div class="tour-details">
-                        @Html.Raw(Model.Offer.PriceExcludes.Replace("\n", "<br>"))
-                    </div>
-                </div>
-            }
-
-            <!-- בקשות מיוחדות -->
-            @if (!string.IsNullOrEmpty(Model.Offer.SpecialRequests))
-            {
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <i class="fas fa-star icon" style="color: #ffc107;"></i>
-                        בקשות מיוחדות
-                    </h3>
-                    <div class="tour-details">
-                        @Html.Raw(Model.Offer.SpecialRequests.Replace("\n", "<br>"))
-                    </div>
-                </div>
-            }
-
-            <!-- כפתורי פעולה -->
-            <div class="text-center mt-4">
-                <a href="@Url.Action("Edit", "Offers", new { id = Model.Offer.OfferId })" class="btn-action">
-                    <i class="fas fa-edit"></i> עריכת הצעה
+            <div class="mt-4">
+                <a href="@Url.Action("Index", "Offers")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> חזרה לרשימה
                 </a>
-                <a href="@Url.Action("Index", "Offers")" class="btn-action">
-                    <i class="fas fa-list"></i> חזרה לרשימה
+                <a href="@Url.Action("Edit", "Offers", new { id = Model.Offer.OfferId })" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> עריכה
                 </a>
-                <a href="#" onclick="window.print()" class="btn-action">
+                <button onclick="window.print()" class="btn btn-info">
                     <i class="fas fa-print"></i> הדפסה
-                </a>
-                <a href="@Url.Action("CreateOrder", "Orders", new { offerId = Model.Offer.OfferId })" class="btn-action" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                    <i class="fas fa-handshake"></i> אישור הצעה
-                </a>
+                </button>
             </div>
         </div>
     </div>
 </div>
-
-<!-- עיצוב להדפסה -->
-<style media="print">
-    .offer-container {
-        background: white !important;
-        padding: 0 !important;
-    }
-
-    .btn-action {
-        display: none !important;
-    }
-
-    .offer-card {
-        box-shadow: none !important;
-        max-width: none !important;
-    }
-
-    .section-card:hover {
-        transform: none !important;
-    }
-</style>
