@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TmsSystem.Data;
 using TmsSystem.Models;
@@ -10,19 +11,26 @@ namespace TmsSystem.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
         // ===================== REGISTER =====================
         [HttpGet]
+        [Authorize(Roles = "Admin")] // רק מנהלים יכולים ליצור משתמשים חדשים
         public IActionResult Register() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -45,8 +53,19 @@ namespace TmsSystem.Controllers
 
             if (result.Succeeded)
             {
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Home");
+                // הוספת תפקיד למשתמש
+                var roleToAssign = !string.IsNullOrEmpty(model.Role) ? model.Role : "User";
+
+                // וידוא שהתפקיד קיים
+                if (!await _roleManager.RoleExistsAsync(roleToAssign))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(roleToAssign));
+                }
+
+                await _userManager.AddToRoleAsync(user, roleToAssign);
+
+                TempData["SuccessMessage"] = $"משתמש {user.UserName} נוצר בהצלחה עם תפקיד {roleToAssign}";
+                return RedirectToAction("Index", "Users");
             }
 
             // לוג מפורט של שגיאות
@@ -59,7 +78,7 @@ namespace TmsSystem.Controllers
             return View(model);
         }
 
-        // ===================== LOGIN =====================
+        // ===================== LOGIN ===================== (ללא שינוי)
         [HttpGet]
         public IActionResult Login() => View();
 
@@ -94,42 +113,6 @@ namespace TmsSystem.Controllers
             return View(model);
         }
 
-
-
-
-
-
-        //=========================password Reset=========================
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "משתמש לא נמצא.";
-                return RedirectToAction("Index");
-            }
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
-
-            if (result.Succeeded)
-            {
-                TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה ל- '#$TempPass123'.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = string.Join("<br>", result.Errors.Select(e => e.Description));
-            }
-
-            return RedirectToAction("Index");
-        }
-
-
-
-
         // ===================== LOGOUT =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -146,6 +129,34 @@ namespace TmsSystem.Controllers
                 return Redirect(returnUrl);
             else
                 return RedirectToAction("Index", "Home");
+        }
+
+        // ===================== Password Reset =====================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetPassword(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "משתמש לא נמצא.";
+                return RedirectToAction("Index", "Users");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה ל- '@#$TempPass123'.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = string.Join("<br>", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction("Index", "Users");
         }
     }
 }
