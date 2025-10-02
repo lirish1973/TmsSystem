@@ -63,7 +63,7 @@
                 {
                     foreach (var offer in offers)
                     {
-                        <div class="offer-card card px-4 py-3 mb-3" data-customer="@offer.Customer?.FullName @offer.Customer?.CustomerName" data-guide="@offer.GuideName?.GuideName" data-offerid="@offer.OfferId">
+                        <div class="offer-card card px-4 py-3 mb-3" data-customer="@offer.Customer?.FullName @offer.Customer?.CustomerName" data-guide="@offer.GuideId" data-offerid="@offer.OfferId">
                             <div class="row align-items-center">
                                 <div class="col-lg-8">
                                     <div class="d-flex align-items-center gap-3 mb-2">
@@ -79,7 +79,7 @@
                                         <div class="col-md-6 mb-1">
                                             <div>
                                                 <i class="fas fa-user-tie me-1 text-primary"></i>
-                                                <span class="fw-semibold">מדריך:</span> @offer.GuideName?.GuideName
+                                                <span class="fw-semibold">מדריך:</span> @offer.GuideId != null ? offer.GuideName?.GuideName : "לא הוקצה"
                                             </div>
                                             <div>
                                                 <i class="fas fa-map-marker-alt me-1 text-primary"></i>

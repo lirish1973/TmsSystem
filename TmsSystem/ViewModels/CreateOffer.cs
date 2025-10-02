@@ -12,8 +12,7 @@ namespace TmsSystem.ViewModels
         [Required(ErrorMessage = "יש לבחור מדריך")]
         public int GuideId { get; set; }
 
-        [Required(ErrorMessage = "יש לבחור סיור")]
-        public int TourId { get; set; }
+        public int TourId { get; set; } = 1; // ברירת מחדל
 
         [Required(ErrorMessage = "יש להזין מספר משתתפים")]
         [Range(1, 100, ErrorMessage = "מספר המשתתפים חייב להיות בין 1 ל-100")]
@@ -23,22 +22,15 @@ namespace TmsSystem.ViewModels
         [DataType(DataType.Date)]
         public DateTime TourDate { get; set; }
 
-        [StringLength(500)]
         public string PickupLocation { get; set; }
 
         [Required(ErrorMessage = "יש להזין מחיר")]
         [Range(0.01, double.MaxValue, ErrorMessage = "המחיר חייב להיות גדול מאפס")]
         public decimal Price { get; set; }
 
-        [StringLength(2000)]
         public string PriceIncludes { get; set; }
-
-        [StringLength(2000)]
         public string PriceExcludes { get; set; }
-
-        [StringLength(2000)]
         public string SpecialRequests { get; set; }
-
         public bool LunchIncluded { get; set; }
 
         [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
@@ -47,9 +39,10 @@ namespace TmsSystem.ViewModels
         // רשימות לבחירה
         public List<CustomerSelectViewModel> Customers { get; set; } = new();
         public List<GuideSelectViewModel> Guides { get; set; } = new();
-        public List<TourSelectViewModel> Tours { get; set; } = new();
         public List<PaymentMethodSelectViewModel> PaymentMethods { get; set; } = new();
     }
+
+
 
     public class CustomerSelectViewModel
     {
