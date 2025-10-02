@@ -47,7 +47,15 @@ namespace TmsSystem.Controllers
                         PaymentMethodId = pm.ID,        // שימוש ב-ID (אותיות גדולות)
                         PaymentName = pm.METHOD         // שימוש ב-METHOD (אותיות גדולות)
                     })
-                    .ToListAsync()
+                    .ToListAsync(),
+
+                       Tours = await _context.Tours
+            .Select(t => new TourSelectViewModel
+            {
+                TourId = t.TourId,
+                TourName = t.Title ?? string.Empty
+            })
+            .ToListAsync()
             };
 
             return View(model);
@@ -144,8 +152,9 @@ namespace TmsSystem.Controllers
                 var offer = new Offer
                 {
                     CustomerId = model.CustomerId,
+                    TourId = model.TourId, // הוסף את השורה הזו
                     GuideId = model.GuideId,
-                    TourId = tourId,
+                   // TourId = tourId,
                     Participants = model.Participants,
                     TripDate = model.TourDate, // מיפוי לשדה TripDate
                     TourDate = model.TourDate, // מיפוי לשדה TourDate
