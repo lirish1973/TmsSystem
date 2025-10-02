@@ -17,7 +17,7 @@ namespace TmsSystem.Models
         [Required]
         public int GuideId { get; set; }
         [ForeignKey("GuideId")]
-        public Guide Guide { get; set; } // שינוי מ-GuideName
+        public Guide Guide { get; set; }
 
         [Required]
         public int TourId { get; set; }
@@ -54,8 +54,16 @@ namespace TmsSystem.Models
 
         [Required]
         public int PaymentId { get; set; }
-        [ForeignKey("PaymentMethodId")]
-        public PaymentMethod PaymentMethod { get; set; }
+
+        // שינוי הקישור - הסר את ForeignKey או שנה אותו
+        // אפשרות 1: בלי navigation property
+        // אפשרות 2: עם navigation property לטבלת payments
+        [ForeignKey("PaymentId")]
+        public Payment Payment { get; set; }
+
+        // אם אתה צריך גישה ל-PaymentMethod, הוסף property נפרד:
+        [NotMapped]
+        public int PaymentMethodId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

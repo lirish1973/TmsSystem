@@ -158,6 +158,7 @@ namespace TmsSystem.Controllers
                     TourId = model.TourId, // הוסף את השורה הזו
                     GuideId = model.GuideId,
                     PaymentId = model.PaymentMethodId,  // השם בטבלה הוא PaymentId, לא PaymentMethodId
+                    PaymentMethodId = model.PaymentMethodId, // רק אם הוס
                     Participants = model.Participants,
                     TripDate = model.TourDate, // מיפוי לשדה TripDate
                     TourDate = model.TourDate, // מיפוי לשדה TourDate
@@ -264,7 +265,7 @@ namespace TmsSystem.Controllers
                     .Include(o => o.Customer)
                     .Include(o => o.Guide) // השם במודל
                     .Include(o => o.Tour)
-                    .Include(o => o.PaymentMethod) // הוספה
+                    .Include(o => o.PaymentMethodId) // הוספה
                     .ToListAsync();
 
                 return View(offers);
