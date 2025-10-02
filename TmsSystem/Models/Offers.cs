@@ -16,7 +16,7 @@ namespace TmsSystem.Models
         [Required(ErrorMessage = "יש לבחור מדריך")]
         public int GuideId { get; set; }
         [ForeignKey("GuideId")]
-        public Guide GuideName { get; set; }
+        public Guide Guide { get; set; } // שינוי מ-GuideName
 
         [Required(ErrorMessage = "יש לבחור סיור")]
         public int TourId { get; set; }
@@ -27,8 +27,12 @@ namespace TmsSystem.Models
         [Range(1, 100, ErrorMessage = "מספר המשתתפים חייב להיות בין 1 ל-100")]
         public int Participants { get; set; }
 
+        // שני השדות כמו שמוגדרים בטבלה
         [Required(ErrorMessage = "יש לבחור תאריך טיול")]
         public DateTime TripDate { get; set; }
+
+        [Required(ErrorMessage = "יש לבחור תאריך טיול")]
+        public DateTime TourDate { get; set; }
 
         [StringLength(500)]
         public string PickupLocation { get; set; }
@@ -49,8 +53,6 @@ namespace TmsSystem.Models
         public string SpecialRequests { get; set; }
 
         public bool LunchIncluded { get; set; }
-
-        public DateTime TourDate { get; set; }
 
         [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
         public int PaymentId { get; set; }

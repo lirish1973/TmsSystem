@@ -6,82 +6,73 @@ namespace TmsSystem.ViewModels
 {
     public class CreateOfferViewModel
     {
-
-        [Required]
+        [Required(ErrorMessage = "יש לבחור לקוח")]
         public int CustomerId { get; set; }
 
-        [Required]
-        public int TourId { get; set; } // הוספת שדה חסר
-
-        [Required]
+        [Required(ErrorMessage = "יש לבחור מדריך")]
         public int GuideId { get; set; }
 
-        [Required]
-        public int PaymentMethodId { get; set; } // עקביות בשמות
+        [Required(ErrorMessage = "יש לבחור סיור")]
+        public int TourId { get; set; }
 
-        public List<CustomerSelectViewModel> Customers { get; set; } = new();
-
-        [Required]
+        [Required(ErrorMessage = "יש להזין מספר משתתפים")]
+        [Range(1, 100, ErrorMessage = "מספר המשתתפים חייב להיות בין 1 ל-100")]
         public int Participants { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "יש לבחור תאריך טיול")]
         [DataType(DataType.Date)]
         public DateTime TourDate { get; set; }
 
+        [StringLength(500)]
         public string PickupLocation { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "יש להזין מחיר")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "המחיר חייב להיות גדול מאפס")]
         public decimal Price { get; set; }
 
+        [StringLength(2000)]
         public string PriceIncludes { get; set; }
+
+        [StringLength(2000)]
         public string PriceExcludes { get; set; }
 
-        
-        public List<GuideSelectViewModel> Guides { get; set; } = new();
-
-        public decimal TotalPayment { get; set; }
-
+        [StringLength(2000)]
         public string SpecialRequests { get; set; }
 
         public bool LunchIncluded { get; set; }
 
-        [Required]
-        public int PaymentId { get; set; }
-        public List<PaymentSelectViewModel> Payments { get; set; } = new();
+        [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
+        public int PaymentMethodId { get; set; }
 
-
-
-      
-       
-       
+        // רשימות לבחירה
+        public List<CustomerSelectViewModel> Customers { get; set; } = new();
+        public List<GuideSelectViewModel> Guides { get; set; } = new();
+        public List<TourSelectViewModel> Tours { get; set; } = new();
         public List<PaymentMethodSelectViewModel> PaymentMethods { get; set; } = new();
+    }
 
-        public class PaymentMethodSelectViewModel
-        {
-            public int PaymentMethodId { get; set; }  // מתאים ל-pm.id
-            public string PaymentName { get; set; }   // מתאים ל-pm.method
-        }
-        public class CustomerSelectViewModel
-        {
-            public int CustomerId { get; set; }
-            public string DisplayName { get; set; } // לדוגמה: שם + טלפון
-            public List<CustomerSelectViewModel> Customers { get; set; } = new();
-        }
+    public class CustomerSelectViewModel
+    {
+        public int CustomerId { get; set; }
+        public string DisplayName { get; set; }
+    }
 
-        public class GuideSelectViewModel
-        {
-            public int GuideId { get; set; }
-            public string GuideName { get; set; }
-        }
+    public class GuideSelectViewModel
+    {
+        public int GuideId { get; set; }
+        public string GuideName { get; set; }
+    }
 
-        public class PaymentSelectViewModel
-        {
-            public int PaymentId { get; set; }
-            public string PaymentName { get; set; }
-        }
+    public class TourSelectViewModel
+    {
+        public int TourId { get; set; }
+        public string TourName { get; set; }
+    }
 
-
-
+    public class PaymentMethodSelectViewModel
+    {
+        public int PaymentMethodId { get; set; }
+        public string PaymentName { get; set; }
     }
 } 
 

@@ -57,7 +57,7 @@ namespace TmsSystem.Controllers
         {
             var offers = await _context.Offers
                 .Include(o => o.Customer)
-                .Include(o => o.GuideName)
+                .Include(o => o.GuideId)
                 .Include(o => o.Tour)
                 .ToListAsync();
 
@@ -92,9 +92,10 @@ namespace TmsSystem.Controllers
                 {
                     CustomerId = model.CustomerId,
                     GuideId = model.GuideId,
-                    TourId = model.TourId > 0 ? model.TourId : 1, // ברירת מחדל
+                    TourId = model.TourId > 0 ? model.TourId : 1,
                     Participants = model.Participants,
-                    TourDate = model.TourDate,
+                    TripDate = model.TourDate,  // העתק לשני השדות
+                    TourDate = model.TourDate,  // כפי שמוגדר בטבלה
                     PickupLocation = model.PickupLocation ?? "",
                     Price = model.Price,
                     TotalPayment = model.Price * model.Participants,
@@ -126,7 +127,7 @@ namespace TmsSystem.Controllers
         private async Task LoadSelectLists(CreateOfferViewModel model)
         {
             model.Customers = await _context.Customers
-                .Where(c => c.CustomerId > 0) // רק לקוחות תקינים
+                .Where(c => c.CustomerId > 0)
                 .Select(c => new CustomerSelectViewModel
                 {
                     CustomerId = c.CustomerId,
@@ -145,12 +146,19 @@ namespace TmsSystem.Controllers
                 })
                 .ToListAsync();
 
-            // בהנחה שיש לך טבלת PaymentMethods עם השדות הנכונים
+            model.Tours = await _context.Tours
+                .Select(t => new TourSelectViewModel
+                {
+                    TourId = t.TourId,
+                    TourName = t.Title ?? "סיור לא מוגדר"
+                })
+                .ToListAsync();
+
             model.PaymentMethods = await _context.PaymentMethods
                 .Select(pm => new PaymentMethodSelectViewModel
                 {
-                    PaymentMethodId = pm.ID,    // השדה מהטבלה
-                    PaymentName = pm.METHOD     // השדה מהטבלה
+                    PaymentMethodId = pm.ID,
+                    PaymentName = pm.METHOD
                 })
                 .ToListAsync();
         }
