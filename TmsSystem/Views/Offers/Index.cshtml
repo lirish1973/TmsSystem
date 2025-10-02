@@ -79,7 +79,7 @@
                                         <div class="col-md-6 mb-1">
                                             <div>
                                                 <i class="fas fa-user-tie me-1 text-primary"></i>
-                                                <span class="fw-semibold">מדריך:</span> @offer.GuideId != null ? offer.GuideName?.GuideName : "לא הוקצה"
+                                                <span class="fw-semibold">מדריך:</span> @(offer.Guide?.GuideName ?? "לא הוקצה")
                                             </div>
                                             <div>
                                                 <i class="fas fa-map-marker-alt me-1 text-primary"></i>
@@ -89,7 +89,7 @@
                                         <div class="col-md-6 mb-1">
                                             <div>
                                                 <i class="fas fa-credit-card me-1 text-primary"></i>
-                                                <span class="fw-semibold">תשלום:</span> @offer.PaymentMethod
+                                                <span class="fw-semibold">תשלום:</span> @(offer.PaymentMethod?.METHOD ?? "לא נבחר")
                                             </div>
                                             <div>
                                                 <span class="lunch-badge @(offer.LunchIncluded ? "lunch-yes" : "lunch-no")">

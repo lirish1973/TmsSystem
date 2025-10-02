@@ -44,9 +44,9 @@ namespace TmsSystem.Controllers
                 PaymentMethods = await _context.PaymentMethods
             .Select(pm => new PaymentMethodSelectViewModel
             {
-                PaymentMethodId = pm.ID,        // שם השדה הראשי בטבלה
-                PaymentName = pm.METHOD      // שם השיטה
-               
+                PaymentMethodId = pm.ID,  // זה נכון
+                PaymentName = pm.METHOD   // זה נכון
+
             })
             .ToListAsync(),
 
@@ -157,7 +157,7 @@ namespace TmsSystem.Controllers
                     CustomerId = model.CustomerId,
                     TourId = model.TourId, // הוסף את השורה הזו
                     GuideId = model.GuideId,
-                    PaymentId = model.PaymentMethodId,  // השתמש ב-PaymentId במקום PaymentMethodId
+                    PaymentId = model.PaymentMethodId,  // השם בטבלה הוא PaymentId, לא PaymentMethodId
                     Participants = model.Participants,
                     TripDate = model.TourDate, // מיפוי לשדה TripDate
                     TourDate = model.TourDate, // מיפוי לשדה TourDate
@@ -262,8 +262,9 @@ namespace TmsSystem.Controllers
             {
                 var offers = await _context.Offers
                     .Include(o => o.Customer)
-                    .Include(o => o.GuideId) // השם במודל
+                    .Include(o => o.Guide) // השם במודל
                     .Include(o => o.Tour)
+                    .Include(o => o.PaymentMethod) // הוספה
                     .ToListAsync();
 
                 return View(offers);
