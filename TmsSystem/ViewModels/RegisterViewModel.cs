@@ -4,24 +4,19 @@ namespace TmsSystem.ViewModels
 {
     public class RegisterViewModel
     {
-        [Required(ErrorMessage = "שם משתמש נדרש")]
-        [Display(Name = "שם משתמש")]
+        [Required(ErrorMessage = "שם משתמש הוא שדה חובה")]
         public string Username { get; set; }
 
-        [Required(ErrorMessage = "אימייל נדרש")]
-        [EmailAddress(ErrorMessage = "אימייל לא תקין")]
-        [Display(Name = "אימייל")]
+        [Required(ErrorMessage = "אימייל הוא שדה חובה")]
+        [EmailAddress(ErrorMessage = "פורמט אימייל לא תקין")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "סיסמה נדרשת")]
-        [StringLength(100, ErrorMessage = "הסיסמה חייבת להכיל לפחות {2} תווים", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "סיסמה")]
+        [Required(ErrorMessage = "סיסמה היא שדה חובה")]
+        [StringLength(100, ErrorMessage = "הסיסמה חייבת להיות לפחות {2} תווים", MinimumLength = 6)]
         public string Password { get; set; }
 
-        [DataType(DataType.Password)]
-        [Display(Name = "אישור סיסמה")]
-        [Compare("Password", ErrorMessage = "הסיסמאות לא זהות")]
+        [Required(ErrorMessage = "אישור סיסמה הוא שדה חובה")]
+        [Compare("Password", ErrorMessage = "הסיסמאות אינן תואמות")]
         public string ConfirmPassword { get; set; }
 
         [Display(Name = "שם פרטי")]

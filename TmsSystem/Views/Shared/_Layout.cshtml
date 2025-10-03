@@ -75,7 +75,7 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar - רק למשתמשים מחוברים -->
+    <!-- Sidebar - מוצג רק למשתמשים מחוברים -->
     @if (User.Identity.IsAuthenticated)
     {
         <div id="sidebar" class="sidebar">
@@ -95,7 +95,7 @@
                     <a class="nav-link" asp-controller="Customers" asp-action="Create">הוסף לקוח</a>
                 </div>
 
-                <!-- הצגת תפריט משתמשים רק למנהלים -->
+                <!-- תפריט משתמשים - רק למנהלים -->
                 @if (User.IsInRole("Admin"))
                 {
                     <a class="nav-link" data-bs-toggle="collapse" href="#usersMenu">
@@ -103,7 +103,7 @@
                     </a>
                     <div class="collapse ps-4" id="usersMenu">
                         <a class="nav-link" asp-controller="Users" asp-action="Index">הצג משתמשים</a>
-                        <a class="nav-link" asp-controller="Account" asp-action="register">הוסף משתמש</a>
+                        <a class="nav-link" asp-controller="Account" asp-action="Register">הוסף משתמש</a>
                     </div>
                 }
 
@@ -138,6 +138,18 @@
                     <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">TmsSystem</a>
 
                     <div class="collapse navbar-collapse">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Tours" asp-action="Index">סיורים</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reports" asp-action="Index">דוחות</a>
+                                </li>
+                            }
+                        </ul>
+
                         <!-- צד שמאל -->
                         <ul class="navbar-nav ms-auto">
                             @if (User.Identity.IsAuthenticated)
@@ -147,7 +159,7 @@
                                         שלום @User.Identity.Name
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">פרופיל</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="UserProfile">פרופיל</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
