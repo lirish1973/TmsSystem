@@ -27,10 +27,8 @@ namespace TmsSystem.Controllers
         [HttpGet]
         [Authorize(Roles = "Admin")] // רק מנהלים יכולים ליצור משתמשים חדשים
         public IActionResult Register() => View();
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -54,18 +52,28 @@ namespace TmsSystem.Controllers
             if (result.Succeeded)
             {
                 // הוספת תפקיד למשתמש
-                var roleToAssign = !string.IsNullOrEmpty(model.Role) ? model.Role : "User";
+                var roleToAssign = model.Role ?? "User";
 
-                // וידוא שהתפקיד קיים
-                if (!await _roleManager.RoleExistsAsync(roleToAssign))
+                // בדיקה שרק מנהל יכול ליצור מנהל
+                if (roleToAssign == "Admin" && !User.IsInRole("Admin"))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole(roleToAssign));
+                    roleToAssign = "User";
                 }
 
                 await _userManager.AddToRoleAsync(user, roleToAssign);
 
-                TempData["SuccessMessage"] = $"משתמש {user.UserName} נוצר בהצלחה עם תפקיד {roleToAssign}";
-                return RedirectToAction("Index", "Users");
+                // אם זה מנהל שיוצר משתמש, לא מחברים אותו אוטומטית
+                if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                {
+                    TempData["SuccessMessage"] = "המשתמש נוצר בהצלחה!";
+                    return RedirectToAction("Index", "Users");
+                }
+                else
+                {
+                    // אם זה הרשמה רגילה, מחברים את המשתמש
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
             // לוג מפורט של שגיאות
@@ -77,6 +85,95 @@ namespace TmsSystem.Controllers
 
             return View(model);
         }
+
+        // הוספת פעולת Profile
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var model = new UserProfileViewModel
+            {
+                Id = user.Id,
+                Username = user.UserName,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Phone = user.PhoneNumber,
+                Address = user.Address,
+                CompanyName = user.CompanyName,
+                BirthDate = user.BirthDate,
+                RegistrationDate = user.RegistrationDate
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(UserProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return NotFound();
+
+            // עדכון פרטי המשתמש
+            user.UserName = model.Username;
+            user.Email = model.Email;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.PhoneNumber = model.Phone;
+            user.Address = model.Address;
+            user.CompanyName = model.CompanyName;
+            user.BirthDate = model.BirthDate;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                // עדכון סיסמה אם הוזנה
+                if (!string.IsNullOrEmpty(model.NewPassword))
+                {
+                    var passwordResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                    if (passwordResult.Succeeded)
+                    {
+                        TempData["SuccessMessage"] = "הפרופיל והסיסמה עודכנו בהצלחה!";
+                    }
+                    else
+                    {
+                        foreach (var error in passwordResult.Errors)
+                        {
+                            ModelState.AddModelError("", error.Description);
+                        }
+                        return View(model);
+                    }
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = "הפרופיל עודכן בהצלחה!";
+                }
+
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View(model);
+        }
+
+
 
         // ===================== LOGIN ===================== (ללא שינוי)
         [HttpGet]

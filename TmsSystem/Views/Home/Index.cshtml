@@ -7,12 +7,15 @@
     <!-- תוכן למשתמשים מחוברים -->
     <div class="row">
         <div class="col-md-12">
-            <h2>ברוכים הבאים למערכת ניהול הטיולים</h2>
-
+            <h2>  ברוך הבא למערכת ניהול הטיולים</h2>
+            <br />
             <!-- סטטיסטיקות מהירות -->
             <div class="row mt-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
+                <!-- כרטיס משתמשים - רק למנהלים -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
@@ -23,7 +26,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>}
+
                 <div class="col-md-3">
                     <div class="card bg-success text-white">
                         <div class="card-body">
