@@ -262,7 +262,134 @@ namespace TmsSystem.Controllers
         }
 
 
+        // הוסף את הפונקציות הבאות ל-OffersController הקיים:
 
+        // עריכת הצעה - GET
+        public async Task<IActionResult> Edit(int id)
+        {
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+
+            if (offer == null)
+            {
+                return NotFound();
+            }
+
+            var model = new CreateOfferViewModel
+            {
+                OfferId = offer.OfferId,
+                CustomerId = offer.CustomerId,
+                GuideId = offer.GuideId,
+                TourId = offer.TourId,
+                Participants = offer.Participants,
+                TripDate = offer.TripDate,
+                TourDate = offer.TourDate,
+                PickupLocation = offer.PickupLocation,
+                Price = offer.Price,
+                TotalPayment = offer.TotalPayment,
+                PriceIncludes = offer.PriceIncludes,
+                PriceExcludes = offer.PriceExcludes,
+                SpecialRequests = offer.SpecialRequests,
+                LunchIncluded = offer.LunchIncluded,
+                PaymentId = offer.PaymentId,
+                PaymentMethodId = offer.PaymentMethodId ?? 0
+            };
+
+            await LoadSelectLists(model);
+            return View(model);
+        }
+
+        // עריכת הצעה - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, CreateOfferViewModel model)
+        {
+            if (id != model.OfferId)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var offer = await _context.Offers.FindAsync(id);
+                if (offer == null)
+                {
+                    return NotFound();
+                }
+
+                // עדכון הפרטים
+                offer.CustomerId = model.CustomerId;
+                offer.GuideId = model.GuideId;
+                offer.TourId = model.TourId;
+                offer.Participants = model.Participants;
+                offer.TripDate = model.TripDate;
+                offer.TourDate = model.TourDate;
+                offer.PickupLocation = model.PickupLocation;
+                offer.Price = model.Price;
+                offer.TotalPayment = model.TotalPayment;
+                offer.PriceIncludes = model.PriceIncludes;
+                offer.PriceExcludes = model.PriceExcludes;
+                offer.SpecialRequests = model.SpecialRequests;
+                offer.LunchIncluded = model.LunchIncluded;
+                offer.PaymentId = model.PaymentId;
+                offer.PaymentMethodId = model.PaymentMethodId;
+
+                _context.Update(offer);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "הצעת המחיר עודכנה בהצלחה!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"שגיאה בעדכון הצעת המחיר: {ex.Message}";
+                await LoadSelectLists(model);
+                return View(model);
+            }
+        }
+
+        // מחיקת הצעה - GET
+        public async Task<IActionResult> Delete(int id)
+        {
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+
+            if (offer == null)
+            {
+                return NotFound();
+            }
+
+            return View(offer);
+        }
+
+        // מחיקת הצעה - POST
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers.FindAsync(id);
+                if (offer != null)
+                {
+                    _context.Offers.Remove(offer);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "הצעת המחיר נמחקה בהצלחה!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"שגיאה במחיקת הצעת המחיר: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
 
         private async Task LoadSelectLists(CreateOfferViewModel model)
         {
@@ -296,10 +423,20 @@ namespace TmsSystem.Controllers
                     })
                     .ToListAsync();
 
+                model.Tours = await _context.Tours
+          .Where(t => !string.IsNullOrEmpty(t.Title))
+          .Select(t => new TourSelectViewModel
+          {
+              TourId = t.TourId,
+              TourName = t.Title
+          })
+          .ToListAsync();
+
                 // לוג לבדיקה
                 Console.WriteLine($"Loaded {model.Customers.Count} customers");
                 Console.WriteLine($"Loaded {model.Guides.Count} guides");
                 Console.WriteLine($"Loaded {model.PaymentMethods.Count} payment methods");
+                Console.WriteLine($"Loaded {model.Tours.Count} tours"); // הוסף לוג לסיורים
             }
             catch (Exception ex)
             {

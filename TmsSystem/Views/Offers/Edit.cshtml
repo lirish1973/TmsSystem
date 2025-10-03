@@ -1,0 +1,333 @@
+﻿@model TmsSystem.ViewModels.CreateOfferViewModel
+
+@{
+    ViewData["Title"] = "עריכת הצעת מחיר";
+}
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px 0;
+            direction: rtl;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: none;
+            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            padding: 25px;
+        }
+
+        .card-title {
+            color: white;
+            font-weight: 600;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .section-title {
+            color: #495057;
+            font-weight: 600;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #28a745;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+
+        .floating-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #28a745;
+            z-index: 10;
+        }
+
+        .has-icon {
+            padding-right: 45px;
+        }
+
+        .required-field::after {
+            content: ' *';
+            color: #dc3545;
+            margin-left: 3px;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .text-danger {
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .alert {
+            text-align: right;
+            direction: rtl;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="max-width: 90%;">
+        <div class="card main-card">
+            <div class="card-header text-center">
+                <h2 class="card-title">
+                    <i class="fas fa-edit me-3"></i>
+                    עריכת הצעת מחיר מספר @Model.OfferId
+                </h2>
+            </div>
+            <div class="card-body p-4">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="OfferId" />
+
+                    <!-- פרטי הלקוח והסיור -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-user me-2"></i>
+                            פרטי הלקוח והסיור
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required-field" for="CustomerId">לקוח</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-user floating-icon"></i>
+                                    <select asp-for="CustomerId" class="form-select has-icon"
+                                            asp-items="@(Model.Customers != null ? new SelectList(Model.Customers, "CustomerId", "DisplayName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                                        <option value="">-- בחר לקוח --</option>
+                                    </select>
+                                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required-field" for="GuideId">מדריך</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-user-tie floating-icon"></i>
+                                    <select asp-for="GuideId" class="form-select has-icon"
+                                            asp-items="@(Model.Guides != null ? new SelectList(Model.Guides, "GuideId", "GuideName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                                        <option value="">-- בחר מדריך --</option>
+                                    </select>
+                                    <span asp-validation-for="GuideId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required-field" for="TourId">סיור</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-map-marked-alt floating-icon"></i>
+                                    <select asp-for="TourId" class="form-select has-icon"
+                                            asp-items="@(Model.Tours != null ? new SelectList(Model.Tours, "TourId", "TourName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                                        <option value="">-- בחר סיור --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required-field" for="Participants">מספר משתתפים</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-users floating-icon"></i>
+                                    <input asp-for="Participants" type="number" class="form-control has-icon"
+                                           min="1" max="100" required />
+                                    <span asp-validation-for="Participants" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- תאריכים ומיקום -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-calendar me-2"></i>
+                            תאריכים ונקודת איסוף
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label required-field" for="TripDate">תאריך הצעה</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-calendar floating-icon"></i>
+                                    <input asp-for="TripDate" type="date" class="form-control has-icon" required />
+                                    <span asp-validation-for="TripDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label required-field" for="TourDate">תאריך טיול</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-calendar floating-icon"></i>
+                                    <input asp-for="TourDate" type="date" class="form-control has-icon" required />
+                                    <span asp-validation-for="TourDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label" for="PickupLocation">נקודת איסוף</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-map-marker-alt floating-icon"></i>
+                                    <input asp-for="PickupLocation" type="text" class="form-control has-icon"
+                                           placeholder="לדוגמה: תחנת רכבת תל אביב" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- מחירים ופירוט -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            מחירים ופירוט
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required-field" for="Price">מחיר לאדם (₪)</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-shekel-sign floating-icon"></i>
+                                    <input asp-for="Price" type="number" class="form-control has-icon"
+                                           min="0" step="0.01" required />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required-field" for="PaymentMethodId">אמצעי תשלום</label>
+                                <div class="position-relative">
+                                    <i class="fas fa-credit-card floating-icon"></i>
+                                    <select asp-for="PaymentMethodId" class="form-select has-icon"
+                                            asp-items="@(Model.PaymentMethods != null ? new SelectList(Model.PaymentMethods, "PaymentMethodId", "PaymentName") : new SelectList(Enumerable.Empty<SelectListItem>()))">
+                                        <option value="">-- בחר אמצעי תשלום --</option>
+                                    </select>
+                                    <span asp-validation-for="PaymentMethodId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="PriceIncludes">מה המחיר כולל</label>
+                                <textarea asp-for="PriceIncludes" class="form-control" rows="4"
+                                          placeholder="לדוגמה: הסעה, מדריך מקצועי, כניסה לאתרים"></textarea>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="PriceExcludes">מה המחיר אינו כולל</label>
+                                <textarea asp-for="PriceExcludes" class="form-control" rows="4"
+                                          placeholder="לדוגמה: ארוחות, טיפים, ביטוח"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="SpecialRequests">בקשות מיוחדות</label>
+                                <textarea asp-for="SpecialRequests" class="form-control" rows="3"
+                                          placeholder="כל בקשה מיוחדת או הערה"></textarea>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input asp-for="LunchIncluded" class="form-check-input" type="checkbox" />
+                                    <label class="form-check-label" for="LunchIncluded">
+                                        ארוחת צהריים כלולה במחיר
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- כפתורי פעולה -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg px-5 me-3">
+                            <i class="fas fa-save me-2"></i>עדכן הצעת מחיר
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg px-5">
+                            <i class="fas fa-times me-2"></i>ביטול
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
