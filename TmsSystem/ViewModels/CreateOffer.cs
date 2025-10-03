@@ -33,6 +33,15 @@ namespace TmsSystem.ViewModels
         public string SpecialRequests { get; set; }
         public bool LunchIncluded { get; set; }
 
+
+        public int OfferId { get; set; }
+        // השדה החסר - TripDate
+        [Required(ErrorMessage = "יש לבחור תאריך הצעה")]
+        [DataType(DataType.Date)]
+        public DateTime TripDate { get; set; }
+        public decimal TotalPayment { get; set; }
+        public int PaymentId { get; set; }
+
         [Required(ErrorMessage = "יש לבחור אמצעי תשלום")]
         public int PaymentMethodId { get; set; }
 
