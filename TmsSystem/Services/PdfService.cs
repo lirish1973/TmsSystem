@@ -1,4 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using iText.Html2pdf;
+using iText.Html2pdf.Resolver.Font;
+using iText.IO.Font;
+using iText.IO.Font.Constants;
+using iText.Kernel.Geom;
+using iText.Kernel.Pdf;
+using iText.Layout.Font;
+using System.IO;
 using TmsSystem.ViewModels;
 
 namespace TmsSystem.Services
@@ -17,8 +24,38 @@ namespace TmsSystem.Services
         public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
         {
             var htmlContent = await GenerateHtmlContent(model);
-            return System.Text.Encoding.UTF8.GetBytes(htmlContent);
+
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var writer = new PdfWriter(memoryStream))
+                {
+                    using (var pdfDoc = new PdfDocument(writer))
+                    {
+                        pdfDoc.SetDefaultPageSize(PageSize.A4);
+
+                        // הגדרות תמיכה בעברית ו-RTL
+                        var props = new ConverterProperties();
+                        var fontProvider = new DefaultFontProvider(false, false, false);
+
+                        // ✅ שימוש מלא בשם System.IO.Path כדי למנוע התנגשות עם iText.Kernel.Geom.Path
+                        var fontPath = System.IO.Path.Combine(
+                            System.Environment.GetFolderPath(System.Environment.SpecialFolder.Fonts),
+                            "ARIAL.TTF"
+                        );
+
+                        fontProvider.AddFont(fontPath);
+                        props.SetFontProvider(fontProvider);
+                        props.SetCharset("UTF-8");
+
+                        // המרת HTML ל-PDF
+                        HtmlConverter.ConvertToPdf(htmlContent, pdfDoc, props);
+                    }
+                }
+
+                return memoryStream.ToArray();
+            }
         }
+
 
         private async Task<string> GenerateHtmlContent(ShowOfferViewModel model)
         {
@@ -154,10 +191,12 @@ namespace TmsSystem.Services
         {
             try
             {
-                var logoPath = Path.Combine(_environment.WebRootPath, "images", "logo.png");
-                if (File.Exists(logoPath))
+                // ✅ שימוש בשם מלא כדי למנוע התנגשות עם iText.Kernel.Geom.Path
+                var logoPath = System.IO.Path.Combine(_environment.WebRootPath, "images", "logo.png");
+
+                if (System.IO.File.Exists(logoPath))
                 {
-                    var logoBytes = await File.ReadAllBytesAsync(logoPath);
+                    var logoBytes = await System.IO.File.ReadAllBytesAsync(logoPath);
                     return Convert.ToBase64String(logoBytes);
                 }
             }
@@ -168,5 +207,6 @@ namespace TmsSystem.Services
 
             return string.Empty;
         }
+
     }
 }
