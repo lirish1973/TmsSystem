@@ -2,6 +2,15 @@
 @{
     ViewData["Title"] = "ניהול הצעות מחיר";
     var offers = Model?.ToList() ?? new List<TmsSystem.Models.Offer>();
+
+    Console.WriteLine($"מספר ההצעות בView: {Model?.Count() ?? 0}");
+    if (Model != null)
+    {
+        foreach (var offer in Model)
+        {
+            Console.WriteLine($"הצעה: ID={offer.OfferId}, לקוח={offer.CustomerId}");
+        }
+    }
 }
 
 <div class="container" style="max-width: 85%; padding-top: 35px; padding-bottom: 35px;">
@@ -63,15 +72,15 @@
                 {
                     foreach (var offer in offers)
                     {
-                        <div class="offer-card card px-4 py-3 mb-3" data-customer="@offer.Customer?.FullName @offer.Customer?.CustomerName" data-guide="@offer.GuideId" data-offerid="@offer.OfferId">
+                        <div class="offer-card card px-4 py-3 mb-3" data-customer="@(offer.Customer?.FullName ?? "ללא נתונים") @(offer.Customer?.CustomerName ?? "ללא נתונים")" data-guide="@(offer.Guide?.GuideName ?? "ללא נתונים")" data-offerid="@offer.OfferId">
                             <div class="row align-items-center">
                                 <div class="col-lg-8">
                                     <div class="d-flex align-items-center gap-3 mb-2">
                                         <span class="badge-offer">#@offer.OfferId</span>
-                                        <h5 class="mb-0 fw-bold">@offer.Customer?.FullName </h5>
+                                        <h5 class="mb-0 fw-bold">@(offer.Customer?.FullName ?? "ללא נתונים")</h5>
                                     </div>
                                     <div class="d-flex flex-wrap gap-3 mb-2 text-muted">
-                                        <span><i class="fas fa-user-circle me-1"></i>@offer.Customer?.Phone</span>
+                                        <span><i class="fas fa-user-circle me-1"></i>@(offer.Customer?.Phone ?? "ללא נתונים")</span>
                                         <span><i class="fas fa-calendar-alt me-1"></i>@offer.TourDate.ToString("dd/MM/yyyy")</span>
                                         <span><i class="fas fa-users me-1"></i>@offer.Participants משתתפים</span>
                                     </div>
@@ -79,17 +88,17 @@
                                         <div class="col-md-6 mb-1">
                                             <div>
                                                 <i class="fas fa-user-tie me-1 text-primary"></i>
-                                                <span class="fw-semibold">מדריך:</span> @(offer.Guide?.GuideName ?? "לא הוקצה")
+                                                <span class="fw-semibold">מדריך:</span> @(offer.Guide?.GuideName ?? "ללא נתונים")
                                             </div>
                                             <div>
                                                 <i class="fas fa-map-marker-alt me-1 text-primary"></i>
-                                                <span class="fw-semibold">נקודת איסוף:</span> @offer.PickupLocation
+                                                <span class="fw-semibold">נקודת איסוף:</span> @(string.IsNullOrWhiteSpace(offer.PickupLocation) ? "ללא נתונים" : offer.PickupLocation)
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-1">
                                             <div>
                                                 <i class="fas fa-credit-card me-1 text-primary"></i>
-                                                <span class="fw-semibold">תשלום:</span> @(offer.PaymentMethod?.METHOD ?? "לא צוין")
+                                                <span class="fw-semibold">תשלום:</span> @(offer.PaymentMethod?.METHOD ?? "ללא נתונים")
                                             </div>
                                             <div>
                                                 <span class="lunch-badge @(offer.LunchIncluded ? "lunch-yes" : "lunch-no")">

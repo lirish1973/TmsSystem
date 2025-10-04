@@ -10,12 +10,8 @@ namespace TmsSystem.Models
         [Key]
         public int TourId { get; set; }
 
-        [Required]
-        [StringLength(200)]
-        public string Title { get; set; }
-
-        [StringLength(2000)]
-        public string Description { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
