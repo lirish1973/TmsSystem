@@ -467,9 +467,7 @@ namespace TmsSystem.Controllers
 
         // הוסף מתודה חדשה
         // הוסף את המתודה החדשה
-        [HttpGet]
-        // הוסף את המתודה הזו
-        // המתודה
+      
         [HttpGet]
         public async Task<IActionResult> DownloadPdf(int id)
         {
@@ -501,18 +499,27 @@ namespace TmsSystem.Controllers
                     PaymentMethod = paymentMethod
                 };
 
+                // ✅ תיקון מרכזי: ודא שהמערך לא ריק ושה-Stream סגור לפני ההחזרה
                 var pdfBytes = await _pdfService.GenerateOfferPdfAsync(viewModel);
 
-                return File(pdfBytes, "application/pdf", $"הצעת_מחיר_{offer.OfferId}.pdf");
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    TempData["ErrorMessage"] = "יצירת קובץ PDF נכשלה.";
+                    return RedirectToAction(nameof(ShowOffers), new { id });
+                }
+
+                // ✅ ודא שהדפדפן יודע שזה PDF תקין עם קידוד נכון בשם הקובץ
+                var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
+                var encodedFileName = Uri.EscapeDataString(fileName);
+
+                return File(pdfBytes, "application/pdf", encodedFileName);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
                 return RedirectToAction(nameof(ShowOffers), new { id });
             }
-
         }
-
 
 
         public async Task<IActionResult> Index(string filter)
