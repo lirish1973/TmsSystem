@@ -5,7 +5,10 @@ using iText.IO.Font.Constants;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Layout.Font;
+using iText.StyledXmlParser.Jsoup.Nodes;
+
 using System.IO;
+using Microsoft.VisualBasic;
 using TmsSystem.ViewModels;
 
 namespace TmsSystem.Services
@@ -24,26 +27,60 @@ namespace TmsSystem.Services
         public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
         {
             var htmlContent = await GenerateHtmlContent(model);
-
             using (var memoryStream = new MemoryStream())
             {
                 using (var writer = new PdfWriter(memoryStream))
                 {
+                    writer.SetCloseStream(false); // Keep the stream open after writer disposal
                     using (var pdfDoc = new PdfDocument(writer))
                     {
                         pdfDoc.SetDefaultPageSize(PageSize.A4);
 
+                    
+
                         // הגדרות תמיכה בעברית ו-RTL
                         var props = new ConverterProperties();
-                        var fontProvider = new DefaultFontProvider(false, false, false);
+                    
+                        var fontProvider = new DefaultFontProvider(true, true, true);
 
-                        // ✅ שימוש מלא בשם System.IO.Path כדי למנוע התנגשות עם iText.Kernel.Geom.Path
-                        var fontPath = System.IO.Path.Combine(
-                            System.Environment.GetFolderPath(System.Environment.SpecialFolder.Fonts),
-                            "ARIAL.TTF"
-                        );
+                        // Try to add Hebrew-supporting fonts
+                        try
+                        {
+                            // Try Windows fonts first
+                            var windowsFontPath = System.IO.Path.Combine(
+                                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Fonts),
+                                "ARIAL.TTF"
+                            );
 
-                        fontProvider.AddFont(fontPath);
+                           if (System.IO.File.Exists(windowsFontPath))
+                            {
+                               
+                            }
+                            else
+                            {
+                                // Try Linux fonts
+                                var linuxFontPaths = new[]
+                                {
+                                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                                    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+                                };
+
+                                foreach (var fontPath in linuxFontPaths)
+                                {
+                                    if (System.IO.File.Exists(fontPath))
+                                    {
+                                        fontProvider.AddFont(fontPath);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // If font loading fails, continue with default fonts
+                        }
+
+                       
                         props.SetFontProvider(fontProvider);
                         props.SetCharset("UTF-8");
 
@@ -51,16 +88,16 @@ namespace TmsSystem.Services
                         HtmlConverter.ConvertToPdf(htmlContent, pdfDoc, props);
                     }
                 }
-
                 return memoryStream.ToArray();
             }
         }
 
 
+
+
         private async Task<string> GenerateHtmlContent(ShowOfferViewModel model)
         {
             var logoBase64 = await GetLogoBase64();
-
             return $@"
 <!DOCTYPE html>
 <html dir='rtl' lang='he'>
@@ -186,14 +223,12 @@ namespace TmsSystem.Services
 </body>
 </html>";
         }
-
         private async Task<string> GetLogoBase64()
         {
             try
             {
                 // ✅ שימוש בשם מלא כדי למנוע התנגשות עם iText.Kernel.Geom.Path
                 var logoPath = System.IO.Path.Combine(_environment.WebRootPath, "images", "logo.png");
-
                 if (System.IO.File.Exists(logoPath))
                 {
                     var logoBytes = await System.IO.File.ReadAllBytesAsync(logoPath);
@@ -204,9 +239,7 @@ namespace TmsSystem.Services
             {
                 // אם יש שגיאה, החזר ריק
             }
-
             return string.Empty;
         }
-
     }
-}
+    }

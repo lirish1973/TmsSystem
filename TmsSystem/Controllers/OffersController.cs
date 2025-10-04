@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using TmsSystem.Data;
 using TmsSystem.Models;
 using TmsSystem.Services;
@@ -11,7 +12,7 @@ using static TmsSystem.ViewModels.CreateOfferViewModel;
 
 namespace TmsSystem.Controllers
 {
-    public class OffersController : Controller
+    public class OffersController : Controller 
     {
         private readonly ApplicationDbContext _context;
         private readonly IPdfService _pdfService;
@@ -467,7 +468,8 @@ namespace TmsSystem.Controllers
 
         // הוסף מתודה חדשה
         // הוסף את המתודה החדשה
-      
+
+
         [HttpGet]
         public async Task<IActionResult> DownloadPdf(int id)
         {
@@ -479,6 +481,9 @@ namespace TmsSystem.Controllers
                     .Include(o => o.Tour)
                     .Include(o => o.PaymentMethod)
                     .FirstOrDefaultAsync(o => o.OfferId == id);
+
+
+               
 
                 if (offer == null)
                 {
@@ -499,7 +504,8 @@ namespace TmsSystem.Controllers
                     PaymentMethod = paymentMethod
                 };
 
-                // ✅ תיקון מרכזי: ודא שהמערך לא ריק ושה-Stream סגור לפני ההחזרה
+
+
                 var pdfBytes = await _pdfService.GenerateOfferPdfAsync(viewModel);
 
                 if (pdfBytes == null || pdfBytes.Length == 0)
@@ -508,11 +514,15 @@ namespace TmsSystem.Controllers
                     return RedirectToAction(nameof(ShowOffers), new { id });
                 }
 
-                // ✅ ודא שהדפדפן יודע שזה PDF תקין עם קידוד נכון בשם הקובץ
                 var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
-                var encodedFileName = Uri.EscapeDataString(fileName);
 
-                return File(pdfBytes, "application/pdf", encodedFileName);
+                // ✅ פתרון הבעיה - הוספת Headers שיכפו הורדה
+                Response.Headers.Add("Content-Disposition", $"attachment; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
+                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+                Response.Headers.Add("Pragma", "no-cache");
+                Response.Headers.Add("Expires", "0");
+
+                return File(pdfBytes, "application/octet-stream", fileName);
             }
             catch (Exception ex)
             {
@@ -522,11 +532,20 @@ namespace TmsSystem.Controllers
         }
 
 
+
+
+
+
+
         public async Task<IActionResult> Index(string filter)
         {
             try
             {
-                var offerCount = await _context.Offers.CountAsync();
+
+
+
+
+        var offerCount = await _context.Offers.CountAsync();
                 if (offerCount == 0)
                 {
                     ViewBag.PageTitle = filter == "near" ? "הצעות מחיר קרובות" : "ניהול הצעות מחיר";
