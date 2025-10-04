@@ -7,7 +7,7 @@ namespace TmsSystem.Models
     public class Offer
     {
         [Key]
-        public int OfferId { get; set; }
+        public int OfferId { get; set; } 
 
         [Required]
         public int CustomerId { get; set; }
@@ -34,7 +34,7 @@ namespace TmsSystem.Models
         public DateTime TourDate { get; set; }
 
         [StringLength(500)]
-        public string PickupLocation { get; set; }
+        public string PickupLocation { get; set; } = string.Empty;
 
         [Required]
         public decimal Price { get; set; }
@@ -42,13 +42,13 @@ namespace TmsSystem.Models
         public decimal TotalPayment { get; set; }
 
         [StringLength(2000)]
-        public string PriceIncludes { get; set; }
+        public string PriceIncludes { get; set; } = string.Empty;
 
         [StringLength(2000)]
-        public string PriceExcludes { get; set; }
+        public string PriceExcludes { get; set; } = string.Empty;
 
         [StringLength(2000)]
-        public string SpecialRequests { get; set; }
+        public string SpecialRequests { get; set; } = string.Empty;
 
         public bool LunchIncluded { get; set; } = false;
 
