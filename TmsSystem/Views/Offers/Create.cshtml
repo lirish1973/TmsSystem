@@ -339,7 +339,8 @@
                                     <label class="form-label required-field" for="TourDate">תאריך טיול</label>
                                     <div class="position-relative">
                                         <i class="fas fa-calendar floating-icon"></i>
-                                        <input asp-for="TourDate" type="date" class="form-control has-icon" required />
+                                        <input asp-for="TourDate" type="date" class="form-control has-icon" 
+                                               value="@DateTime.Today.ToString("dd-mm-yyyy")" required />
                                         <span asp-validation-for="TourDate" class="text-danger"></span>
                                     </div>
                                 </div>
