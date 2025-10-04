@@ -157,7 +157,8 @@ namespace TmsSystem.Controllers
                     CustomerId = model.CustomerId,
                     TourId = model.TourId, // הוסף את השורה הזו
                     GuideId = model.GuideId,
-                    PaymentId = model.PaymentMethodId,  // השם בטבלה הוא PaymentId, לא PaymentMethodId
+                    //   PaymentId = model.PaymentMethodId,  
+                   // PaymentId = null,
                     PaymentMethodId = model.PaymentMethodId, // רק אם הוס
                     Participants = model.Participants,
                     TripDate = model.TourDate, // מיפוי לשדה TripDate
@@ -294,7 +295,7 @@ namespace TmsSystem.Controllers
                 PriceExcludes = offer.PriceExcludes,
                 SpecialRequests = offer.SpecialRequests,
                 LunchIncluded = offer.LunchIncluded,
-                PaymentId = offer.PaymentId,
+             //   PaymentId = offer.PaymentId,
                 PaymentMethodId = offer.PaymentMethodId ?? 0
             };
 

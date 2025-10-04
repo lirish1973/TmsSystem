@@ -52,23 +52,21 @@ namespace TmsSystem.Models
 
         public bool LunchIncluded { get; set; } = false;
 
-        [Required]
-        public int PaymentId { get; set; }
+        // הסר את [Required] והפוך ל-nullable
+        public int? PaymentId { get; set; }
 
-        // שינוי הקישור - הסר את ForeignKey או שנה אותו
-        // אפשרות 1: בלי navigation property
-        // אפשרות 2: עם navigation property לטבלת payments
+        // הפוך ל-nullable
         [ForeignKey("PaymentId")]
-        public Payment Payment { get; set; }
+        public Payment? Payment { get; set; }
 
-        // אם אתה צריך גישה ל-PaymentMethod, הוסף property נפרד:
-        [NotMapped]
-        //public int PaymentMethodId { get; set; }
+        // PaymentMethodId כבר nullable - זה בסדר
+        public int? PaymentMethodId { get; set; }
+
 
         [ForeignKey("PaymentMethodId")]
         public PaymentMethod? PaymentMethod { get; set; }
 
-        public int? PaymentMethodId { get; set; } // וודא שזה nullable
+      
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
