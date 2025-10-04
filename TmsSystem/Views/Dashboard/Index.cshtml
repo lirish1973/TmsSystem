@@ -272,24 +272,23 @@
                 </div>
             </div>
 
-            <!-- כרטיס הצעות מחיר קרובות -->
+            <!-- הוסף את הקטע הזה לכרטיס הצעות המחיר הקרובות -->
             <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="card stats-card warning h-100">
                     <div class="card-body text-center p-4">
-                        <div class="card-icon icon-warning pulse">
-                            <i class="fas fa-clock"></i>
+                        <div class="card-icon icon-warning">
+                            <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="stats-number">@ViewBag.NearOffers</div>
                         <h5 class="stats-title">הצעות מחיר קרובות</h5>
                         <p class="stats-subtitle">טיולים בשבועיים הקרובים</p>
-                        <a asp-controller="Offers" asp-action="Index"
+                        <a asp-controller="Offers" asp-action="Index" asp-route-filter="near"
                            class="btn btn-warning-custom btn-card">
-                            <i class="fas fa-calendar-check me-2"></i>צפה ברשימה
+                            <i class="fas fa-eye me-2"></i>צפה ברשימה
                         </a>
                     </div>
                 </div>
             </div>
-        </div>
 
         <!-- שורה נוספת עם סטטיסטיקות משלימות -->
         <div class="row g-4 mt-4">

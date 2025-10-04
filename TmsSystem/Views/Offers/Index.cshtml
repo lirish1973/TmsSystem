@@ -18,11 +18,39 @@
         <div class="card-header text-center">
             <h2 class="card-title">
                 <i class="fas fa-calculator me-3"></i>
-                ניהול הצעות מחיר
+                @ViewData["Title"]
             </h2>
+
+            <!-- הוספה חדשה - הודעה והכפתורים לפילטור -->
+            @if (ViewBag.ShowNearOnly == true)
+            {
+                <div class="alert alert-info mt-3 mb-0" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    מוצגות רק הצעות מחיר עם תאריך טיול בשבועיים הקרובים
+                </div>
+            }
         </div>
         <div class="card-body p-4">
-            <!-- חיפוש + כפתור יצירה -->
+
+            <!-- הוספה חדשה - כפתורי פילטור -->
+            <div class="row mb-3">
+                <div class="col-12 d-flex justify-content-center gap-2">
+                    @if (ViewBag.ShowNearOnly == true)
+                    {
+                        <a asp-action="Index" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>הצג את כל ההצעות
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" asp-route-filter="near" class="btn btn-outline-warning">
+                            <i class="fas fa-calendar-check me-2"></i>הצעות קרובות בלבד
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- חיפוש + כפתור יצירה - הקוד הקיים שלך ממשיך כרגיל -->
             <div class="row mb-4">
                 <div class="col-md-8 position-relative mb-2 mb-md-0">
                     <input type="text" id="searchInput" class="form-control search-input" placeholder="חפש לפי שם לקוח, מדריך או מספר הזמנה..." oninput="filterOffers()" />
@@ -35,6 +63,7 @@
                     </a>
                 </div>
             </div>
+       
 
             <!-- סטטיסטיקות -->
             <div class="row mb-5">

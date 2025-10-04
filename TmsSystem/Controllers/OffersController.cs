@@ -462,17 +462,39 @@ namespace TmsSystem.Controllers
             return Json(result);
         }
 
-        public async Task<IActionResult> Index()
+        
+
+
+
+        public async Task<IActionResult> Index(string filter)
         {
             try
             {
                 var offerCount = await _context.Offers.CountAsync();
                 if (offerCount == 0)
                 {
+                    ViewBag.PageTitle = filter == "near" ? "הצעות מחיר קרובות" : "ניהול הצעות מחיר";
+                    ViewBag.ShowNearOnly = filter == "near";
                     return View(new List<Offer>());
                 }
 
-                var offers = await _context.Offers
+                var offersQuery = _context.Offers.AsQueryable();
+
+                // אם יש פילטר של "near" - מציג רק הצעות מחיר קרובות
+                if (filter == "near")
+                {
+                    var twoWeeksFromNow = DateTime.Today.AddDays(14);
+                    offersQuery = offersQuery.Where(o => o.TourDate >= DateTime.Today && o.TourDate <= twoWeeksFromNow);
+                    ViewBag.PageTitle = "הצעות מחיר קרובות";
+                    ViewBag.ShowNearOnly = true;
+                }
+                else
+                {
+                    ViewBag.PageTitle = "ניהול הצעות מחיר";
+                    ViewBag.ShowNearOnly = false;
+                }
+
+                var offers = await offersQuery
                     .OrderByDescending(o => o.CreatedAt)
                     .ToListAsync();
 
@@ -501,8 +523,14 @@ namespace TmsSystem.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"שגיאה בטעינת ההצעות: {ex.Message}";
+                ViewBag.PageTitle = filter == "near" ? "הצעות מחיר קרובות" : "ניהול הצעות מחיר";
+                ViewBag.ShowNearOnly = filter == "near";
                 return View(new List<Offer>());
             }
         }
+
+
     }
-}
+
+    }
+    
