@@ -2,7 +2,13 @@
 @{
     ViewData["Title"] = "פרטי הצעת מחיר";
 }
-
+<!-- הוסף את זה בתחילת הקובץ כדי לראות שגיאות -->
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
 <div class="container mt-4">
     <div class="card blue-theme-card">
         <div class="card-header bg-blue-primary text-white">
