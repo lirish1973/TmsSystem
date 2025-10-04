@@ -29,6 +29,7 @@ namespace TmsSystem.Services
             {
                 using (var writer = new PdfWriter(memoryStream))
                 {
+                    writer.SetCloseStream(false); // Keep the stream open after writer disposal
                     using (var pdfDoc = new PdfDocument(writer))
                     {
                         pdfDoc.SetDefaultPageSize(PageSize.A4);
