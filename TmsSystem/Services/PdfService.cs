@@ -36,15 +36,45 @@ namespace TmsSystem.Services
 
                         // הגדרות תמיכה בעברית ו-RTL
                         var props = new ConverterProperties();
-                        var fontProvider = new DefaultFontProvider(false, false, false);
+                        var fontProvider = new DefaultFontProvider(true, true, true);
 
-                        // ✅ שימוש מלא בשם System.IO.Path כדי למנוע התנגשות עם iText.Kernel.Geom.Path
-                        var fontPath = System.IO.Path.Combine(
-                            System.Environment.GetFolderPath(System.Environment.SpecialFolder.Fonts),
-                            "ARIAL.TTF"
-                        );
+                        // Try to add Hebrew-supporting fonts
+                        try
+                        {
+                            // Try Windows fonts first
+                            var windowsFontPath = System.IO.Path.Combine(
+                                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Fonts),
+                                "ARIAL.TTF"
+                            );
+                            
+                            if (System.IO.File.Exists(windowsFontPath))
+                            {
+                                fontProvider.AddFont(windowsFontPath);
+                            }
+                            else
+                            {
+                                // Try Linux fonts
+                                var linuxFontPaths = new[]
+                                {
+                                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                                    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+                                };
 
-                        fontProvider.AddFont(fontPath);
+                                foreach (var fontPath in linuxFontPaths)
+                                {
+                                    if (System.IO.File.Exists(fontPath))
+                                    {
+                                        fontProvider.AddFont(fontPath);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // If font loading fails, continue with default fonts
+                        }
+
                         props.SetFontProvider(fontProvider);
                         props.SetCharset("UTF-8");
 
