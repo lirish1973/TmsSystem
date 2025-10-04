@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TmsSystem.Data;
 using TmsSystem.Models;
+using TmsSystem.Services;
 using TmsSystem.ViewModels;
 using static TmsSystem.ViewModels.CreateOfferViewModel;
 
@@ -13,10 +14,12 @@ namespace TmsSystem.Controllers
     public class OffersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPdfService _pdfService;
 
-        public OffersController(ApplicationDbContext context)
+        public OffersController(ApplicationDbContext context, IPdfService pdfService)
         {
             _context = context;
+            _pdfService = pdfService;
         }
 
         public async Task<IActionResult> Create()
@@ -462,7 +465,53 @@ namespace TmsSystem.Controllers
             return Json(result);
         }
 
-        
+        // הוסף מתודה חדשה
+        // הוסף את המתודה החדשה
+        [HttpGet]
+        // הוסף את המתודה הזו
+        // המתודה
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers
+                    .Include(o => o.Customer)
+                    .Include(o => o.Guide)
+                    .Include(o => o.Tour)
+                    .Include(o => o.PaymentMethod)
+                    .FirstOrDefaultAsync(o => o.OfferId == id);
+
+                if (offer == null)
+                {
+                    TempData["ErrorMessage"] = "ההצעה לא נמצאה";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                PaymentMethod paymentMethod = null;
+                if (offer.PaymentMethodId.HasValue)
+                {
+                    paymentMethod = await _context.PaymentMethods
+                        .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId.Value);
+                }
+
+                var viewModel = new ShowOfferViewModel
+                {
+                    Offer = offer,
+                    PaymentMethod = paymentMethod
+                };
+
+                var pdfBytes = await _pdfService.GenerateOfferPdfAsync(viewModel);
+
+                return File(pdfBytes, "application/pdf", $"הצעת_מחיר_{offer.OfferId}.pdf");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
+                return RedirectToAction(nameof(ShowOffers), new { id });
+            }
+
+        }
 
 
 

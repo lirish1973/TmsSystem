@@ -2,11 +2,21 @@
 using Microsoft.EntityFrameworkCore;
 using TmsSystem.Data;
 using TmsSystem.Models;
+using TmsSystem.Services;
+using DinkToPdf;
+using DinkToPdf.Contracts;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<TmsSystem.Services.IPdfService, TmsSystem.Services.PdfService>();
+builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+builder.Services.AddScoped<IPdfService, PdfService>();
+
 
 // חיבור ל-MySQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
