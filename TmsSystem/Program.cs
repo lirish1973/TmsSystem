@@ -18,6 +18,7 @@ builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new 
 builder.Services.AddScoped<IPdfService, PdfService>();
 
 
+
 // חיבור ל-MySQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
