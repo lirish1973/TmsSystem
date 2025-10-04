@@ -330,8 +330,8 @@
                 <a href="@Url.Action("Edit", "Offers", new { id = Model.Offer.OfferId })" class="btn btn-blue-warning mr-2">
                     <i class="fas fa-edit"></i> עריכה
                 </a>
-                <a href="@Url.Action("DownloadPdf", "Offers", new { id = Model.Offer.OfferId })"
-                   target="_blank" class="btn btn-success btn-lg mr-2">
+                <a href="@Url.Action("DownloadPdf", "Offers", new { id = Model.Offer.OfferId })" 
+                   class="btn btn-success btn-lg">
                     <i class="fas fa-file-pdf me-2"></i>הורדת PDF
                 </a>
                 <button onclick="printPage()" class="btn btn-primary btn-lg">
