@@ -1,0 +1,242 @@
+﻿@model TmsSystem.ViewModels.ShowOfferViewModel
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 10px 0;
+        }
+
+        .offer-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .info-row {
+            margin-bottom: 8px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .price-section {
+            background-color: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .price-highlight {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .two-column {
+            width: 100%;
+        }
+
+            .two-column td {
+                width: 50%;
+                padding: 10px;
+                vertical-align: top;
+            }
+    </style>
+</head>
+<body>
+    <!-- Header עם לוגו -->
+    <div class="header">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="לוגו החברה" class="logo">
+        <div class="company-name">TMS - מערכת ניהול טיולים</div>
+        <div class="offer-title">הצעת מחיר #@Model.Offer.OfferId</div>
+        <div>נוצרה בתאריך: @Model.Offer.CreatedAt.ToString("dd/MM/yyyy")</div>
+    </div>
+
+    <!-- פרטי לקוח וטיול -->
+    <table class="two-column">
+        <tr>
+            <td>
+                <div class="section">
+                    <div class="section-title">פרטי הלקוח</div>
+                    <div class="info-row">
+                        <span class="info-label">שם מלא:</span>
+                        @Model.Offer.Customer.FullName
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">טלפון:</span>
+                        @Model.Offer.Customer.Phone
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">אימייל:</span>
+                        @Model.Offer.Customer.Email
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Offer.Customer.Address))
+                    {
+                        <div class="info-row">
+                            <span class="info-label">כתובת:</span>
+                            @Model.Offer.Customer.Address
+                        </div>
+                    }
+                </div>
+            </td>
+            <td>
+                <div class="section">
+                    <div class="section-title">פרטי הטיול</div>
+                    <div class="info-row">
+                        <span class="info-label">שם הטיול:</span>
+                        @Model.Offer.Tour.Title
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">תאריך:</span>
+                        @Model.Offer.TourDate.ToString("dd/MM/yyyy")
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">משתתפים:</span>
+                        @Model.Offer.Participants
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Offer.PickupLocation))
+                    {
+                        <div class="info-row">
+                            <span class="info-label">נקודת איסוף:</span>
+                            @Model.Offer.PickupLocation
+                        </div>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- פרטי מדריך -->
+    <div class="section">
+        <div class="section-title">פרטי המדריך</div>
+        <div class="info-row">
+            <span class="info-label">שם המדריך:</span>
+            @Model.Offer.Guide.GuideName
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Offer.Guide.Description))
+        {
+            <div class="info-row">
+                <span class="info-label">תיאור:</span>
+                @Model.Offer.Guide.Description
+            </div>
+        }
+    </div>
+
+    <!-- מחיר -->
+    <div class="section price-section">
+        <div class="section-title">פרטי מחיר</div>
+        <div class="info-row">
+            <span class="info-label">מחיר לאדם:</span>
+            <span class="price-highlight">₪@Model.Offer.Price.ToString("N2")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">סה"כ לתשלום:</span>
+            <span class="price-highlight">₪@Model.Offer.TotalPayment.ToString("N2")</span>
+        </div>
+        @if (Model.PaymentMethod != null)
+        {
+            <div class="info-row">
+                <span class="info-label">שיטת תשלום:</span>
+                @Model.PaymentMethod.METHOD
+            </div>
+        }
+        <div class="info-row">
+            <span class="info-label">ארוחת צהריים:</span>
+            @(Model.Offer.LunchIncluded ? "כלולה במחיר" : "לא כלולה")
+        </div>
+    </div>
+
+    <!-- כלול/לא כלול -->
+    @if (!string.IsNullOrEmpty(Model.Offer.PriceIncludes))
+    {
+        <div class="section">
+            <div class="section-title">המחיר כולל:</div>
+            <div>@Html.Raw(Model.Offer.PriceIncludes.Replace("\n", "<br/>"))</div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Offer.PriceExcludes))
+    {
+        <div class="section">
+            <div class="section-title">המחיר לא כולל:</div>
+            <div>@Html.Raw(Model.Offer.PriceExcludes.Replace("\n", "<br/>"))</div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Offer.SpecialRequests))
+    {
+        <div class="section">
+            <div class="section-title">בקשות מיוחדות:</div>
+            <div>@Html.Raw(Model.Offer.SpecialRequests.Replace("\n", "<br/>"))</div>
+        </div>
+    }
+
+    <!-- Footer -->
+    <div class="footer">
+        <div>מערכת ניהול טיולים - TMS</div>
+        <div>הצעת מחיר זו תקפה ל-30 יום מתאריך ההנפקה</div>
+    </div>
+</body>
+</html>
