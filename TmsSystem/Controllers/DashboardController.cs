@@ -31,6 +31,12 @@ namespace TmsSystem.Controllers
             var TotalTours = _context.Tours.Count();
             ViewBag.TotalTours = TotalTours;
 
+            // חישוב הצעות מחיר קרובות (טיולים בטווח של שבועיים מהיום)
+            var twoWeeksFromNow = DateTime.Today.AddDays(14);
+            var nearOffers = _context.Offers
+                .Where(o => o.TourDate >= DateTime.Today && o.TourDate <= twoWeeksFromNow)
+                .Count();
+            ViewBag.NearOffers = nearOffers;
 
             return View();
         }
