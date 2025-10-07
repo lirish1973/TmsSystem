@@ -1,0 +1,40 @@
+﻿@model TmsSystem.ViewModels.UserProfileViewModel
+
+<h2>עריכת פרטי משתמש</h2>
+@using (Html.BeginForm("EditProfile", "Account", FormMethod.Post))
+{
+    @Html.HiddenFor(m => m.Id)
+    <div>
+        <label>שם משתמש</label>
+        @Html.TextBoxFor(m => m.Username, new { @readonly = "readonly" })
+    </div>
+    <div>
+        <label>אימייל</label>
+        @Html.TextBoxFor(m => m.Email)
+    </div>
+    <div>
+        <label>שם פרטי</label>
+        @Html.TextBoxFor(m => m.FirstName)
+    </div>
+    <div>
+        <label>שם משפחה</label>
+        @Html.TextBoxFor(m => m.LastName)
+    </div>
+    <div>
+        <label>כתובת</label>
+        @Html.TextBoxFor(m => m.Address)
+    </div>
+    <div>
+        <label>טלפון</label>
+        @Html.TextBoxFor(m => m.Phone)
+    </div>
+    <div>
+        <label>שם החברה</label>
+        @Html.TextBoxFor(m => m.CompanyName)
+    </div>
+    <div>
+        <label>תאריך לידה</label>
+        @Html.TextBoxFor(m => m.BirthDate, new { @type = "date" })
+    </div>
+    <button type="submit">שמור</button>
+}

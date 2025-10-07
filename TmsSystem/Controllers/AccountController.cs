@@ -1,26 +1,33 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using iText.Commons.Actions.Contexts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TmsSystem.Data;
 using TmsSystem.Models;
 using TmsSystem.ViewModels;
 
 namespace TmsSystem.Controllers
 {
+   
+
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
+
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager, ApplicationDbContext dbContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _context = dbContext;
         }
 
         // ===================== REGISTER =====================
@@ -209,6 +216,74 @@ namespace TmsSystem.Controllers
 
             return View(model);
         }
+
+
+
+
+        [HttpGet]
+        public ActionResult EditProfile(int id)
+        {
+            // שליפה מה־DB
+            var user = _context.Users.FirstOrDefault(u => u.Id == id.ToString());
+            if (user == null)
+            {
+                return NotFound(); // אם המשתמש לא נמצא
+            }
+
+            // בניית המודל
+            var model = new UserProfileViewModel
+            {
+                Id = user.Id,
+                Username = user.UserName,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Address = user.Address,
+                Phone = user.PhoneNumber,
+                CompanyName = user.CompanyName,
+                BirthDate = user.BirthDate
+            };
+            return View(model); // שלח את המודל ל־View
+        }
+
+        [HttpPost]
+        public ActionResult EditProfile(UserProfileViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // שליפת המשתמש מה־DB
+                var user = _context.Users.FirstOrDefault(u => u.Id == model.Id);
+                if (user == null)
+                {
+                    return NotFound(); // אם המשתמש לא נמצא
+                }
+
+                // עדכון פרטי המשתמש
+                user.Email = model.Email;
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.Address = model.Address;
+                user.PhoneNumber = model.Phone;
+                user.CompanyName = model.CompanyName;
+                user.BirthDate = model.BirthDate;
+
+              
+
+                return RedirectToAction("ProfileUpdated");
+            }
+
+            return View(model); // החזרת המודל עם שגיאות אם יש
+        }
+
+        [HttpGet]
+        public IActionResult ProfileUpdated()
+        {
+            ViewData["Message"] = "הפרופיל עודכן בהצלחה.";
+            return View();
+        }
+
+
+
 
         // ===================== LOGOUT =====================
         [HttpPost]
