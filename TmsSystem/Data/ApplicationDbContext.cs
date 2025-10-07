@@ -22,7 +22,7 @@ namespace TmsSystem.Data
         public DbSet<ItineraryItem> ItineraryItems { get; set; }
         public DbSet<TourInclude> TourIncludes { get; set; }
         public DbSet<TourExclude> TourExcludes { get; set; }
-
+        public DbSet<ApplicationUser> Users { get; set; }
         // שינוי כאן - PaymentMethods במקום PaymentsMethod
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
 
