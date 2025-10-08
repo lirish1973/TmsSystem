@@ -9,6 +9,7 @@ using iText.IO.Font;
 using iText.Kernel.Font;
 using TmsSystem.ViewModels;
 using System.Text;
+using System.Linq;
 
 namespace TmsSystem.Services
 {
@@ -50,6 +51,7 @@ namespace TmsSystem.Services
 
                     props.SetFontProvider(fontProvider);
                     props.SetCharset("UTF-8");
+                    props.SetBaseUri("");
 
                     // המרת HTML ל-PDF
                     HtmlConverter.ConvertToPdf(htmlContent, pdfDoc, props);
@@ -88,7 +90,7 @@ namespace TmsSystem.Services
                     {
                         fontProvider.AddFont(fontPath);
                         _logger.LogInformation("Added Windows font: {FontPath}", fontPath);
-                        return; // מצאנו פונט, אפשר לצאת
+                        return;
                     }
                 }
 
@@ -98,7 +100,7 @@ namespace TmsSystem.Services
                     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
                     "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
                     "/usr/share/fonts/TTF/DejaVuSans.ttf",
-                    "/System/Library/Fonts/Arial.ttf" // macOS
+                    "/System/Library/Fonts/Arial.ttf"
                 };
 
                 foreach (var fontPath in linuxFonts)
@@ -119,6 +121,17 @@ namespace TmsSystem.Services
             }
         }
 
+        // פונקציה להיפוך טקסט עברי
+        private string ReverseHebrew(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            var chars = text.ToCharArray();
+            Array.Reverse(chars);
+            return new string(chars);
+        }
+
         private async Task<string> GenerateHtmlContent(ShowOfferViewModel model)
         {
             try
@@ -127,9 +140,9 @@ namespace TmsSystem.Services
 
                 var html = new StringBuilder();
                 html.AppendLine("<!DOCTYPE html>");
-                html.AppendLine("<html dir='rtl' lang='he' xml:lang='he'>");
+                html.AppendLine("<html dir='rtl' lang='he'>");
                 html.AppendLine("<head>");
-                html.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+                html.AppendLine("    <meta charset='UTF-8'>");
                 html.AppendLine("    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>");
                 html.AppendLine($"    <title>הצעת מחיר #{model.Offer.OfferId}</title>");
                 html.AppendLine("    <style>");
@@ -144,47 +157,47 @@ namespace TmsSystem.Services
                 {
                     html.AppendLine($"        <img src='data:image/png;base64,{logoBase64}' class='logo' alt='לוגו'>");
                 }
-                html.AppendLine("        <div class='company-name'>מערכת ניהול טיולים - TMS</div>");
-                html.AppendLine($"        <h1>הצעת מחיר #{model.Offer.OfferId}</h1>");
-                html.AppendLine($"        <p>נוצרה: {model.Offer.CreatedAt:dd/MM/yyyy HH:mm}</p>");
+                html.AppendLine($"        <div class='company-name'>{ReverseHebrew("מערכת ניהול טיולים - TMS")}</div>");
+                html.AppendLine($"        <h1>{ReverseHebrew($"הצעת מחיר #{model.Offer.OfferId}")}</h1>");
+                html.AppendLine($"        <p>{ReverseHebrew($"נוצרה: {model.Offer.CreatedAt:dd/MM/yyyy HH:mm}")}</p>");
                 html.AppendLine("    </div>");
 
                 // פרטי הלקוח
                 html.AppendLine("    <div class='section'>");
-                html.AppendLine("        <div class='section-title'>פרטי הלקוח</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label' dir='rtl'>שם מלא:</span> <span dir='auto'>{System.Web.HttpUtility.HtmlEncode(model.Offer.Customer.FullName ?? "")}</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label'>טלפון:</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.Customer.Phone ?? "")}</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label'>אימייל:</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.Customer.Email ?? "")}</div>");
+                html.AppendLine($"        <div class='section-title'>{ReverseHebrew("פרטי הלקוח")}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("שם מלא:")}</span> {ReverseHebrew(System.Web.HttpUtility.HtmlEncode(model.Offer.Customer.FullName ?? ""))}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("טלפון:")}</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.Customer.Phone ?? "")}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("אימייל:")}</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.Customer.Email ?? "")}</div>");
                 html.AppendLine("    </div>");
 
                 // פרטי הטיול
                 html.AppendLine("    <div class='section'>");
-                html.AppendLine("        <div class='section-title'>פרטי הטיול</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label'>טיול:</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.Tour.Title ?? "")}</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label'>תאריך:</span> {model.Offer.TourDate:dd/MM/yyyy}</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label'>משתתפים:</span> {model.Offer.Participants}</div>");
+                html.AppendLine($"        <div class='section-title'>{ReverseHebrew("פרטי הטיול")}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("טיול:")}</span> {ReverseHebrew(System.Web.HttpUtility.HtmlEncode(model.Offer.Tour.Title ?? ""))}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("תאריך:")}</span> {model.Offer.TourDate:dd/MM/yyyy}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("משתתפים:")}</span> {model.Offer.Participants}</div>");
                 if (!string.IsNullOrEmpty(model.Offer.PickupLocation))
                 {
-                    html.AppendLine($"        <div class='info-row'><span class='info-label'>נקודת איסוף:</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.PickupLocation)}</div>");
+                    html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("נקודת איסוף:")}</span> {ReverseHebrew(System.Web.HttpUtility.HtmlEncode(model.Offer.PickupLocation))}</div>");
                 }
                 html.AppendLine("    </div>");
 
                 // פרטי המדריך
                 html.AppendLine("    <div class='section'>");
-                html.AppendLine("        <div class='section-title'>פרטי המדריך</div>");
-                html.AppendLine($"        <div class='info-row'><span class='info-label'>מדריך:</span> {System.Web.HttpUtility.HtmlEncode(model.Offer.Guide.GuideName ?? "")}</div>");
+                html.AppendLine($"        <div class='section-title'>{ReverseHebrew("פרטי המדריך")}</div>");
+                html.AppendLine($"        <div class='info-row'><span class='info-label'>{ReverseHebrew("מדריך:")}</span> {ReverseHebrew(System.Web.HttpUtility.HtmlEncode(model.Offer.Guide.GuideName ?? ""))}</div>");
                 html.AppendLine("    </div>");
 
                 // מחיר
                 html.AppendLine("    <div class='price-box'>");
-                html.AppendLine($"        <div>מחיר לאדם: <span class='price-highlight'>₪{model.Offer.Price:N2}</span></div>");
-                html.AppendLine($"        <div>סה\"כ: <span class='price-highlight'>₪{model.Offer.TotalPayment:N2}</span></div>");
+                html.AppendLine($"        <div>{ReverseHebrew("מחיר לאדם:")} <span class='price-highlight'>₪{model.Offer.Price:N2}</span></div>");
+                html.AppendLine($"        <div>{ReverseHebrew("סה\"כ:")} <span class='price-highlight'>₪{model.Offer.TotalPayment:N2}</span></div>");
                 html.AppendLine("    </div>");
 
                 // Footer
                 html.AppendLine("    <div class='footer'>");
-                html.AppendLine("        <p><strong>תודה שבחרתם בנו!</strong></p>");
-                html.AppendLine("        <p>הצעה תקפה ל-30 יום</p>");
+                html.AppendLine($"        <p><strong>{ReverseHebrew("תודה שבחרתם בנו!")}</strong></p>");
+                html.AppendLine($"        <p>{ReverseHebrew("הצעה תקפה ל-30 יום")}</p>");
                 html.AppendLine("    </div>");
 
                 html.AppendLine("</body>");
@@ -199,25 +212,25 @@ namespace TmsSystem.Services
             }
         }
 
-
         private string GetCssStyles()
         {
             return @"
+        * {
+            font-family: 'Arial', sans-serif;
+        }
         body { 
-            font-family: 'Arial Unicode MS', Arial, sans-serif; 
-            direction: rtl; 
-            text-align: right;
+            font-family: 'Arial', sans-serif; 
+            direction: ltr; 
+            text-align: left;
             margin: 20px; 
             font-size: 14px;
             background: white;
-            unicode-bidi: bidi-override;
         }
         .header { 
             text-align: center; 
             border-bottom: 3px solid #007bff; 
             padding-bottom: 20px; 
             margin-bottom: 30px; 
-            direction: ltr; /* כותרות באנגלית יהיו LTR */
         }
         .logo { 
             max-width: 200px; 
@@ -229,7 +242,6 @@ namespace TmsSystem.Services
             font-weight: bold; 
             color: #007bff; 
             margin: 10px 0; 
-            direction: rtl;
         }
         .section { 
             margin-bottom: 20px; 
@@ -237,19 +249,16 @@ namespace TmsSystem.Services
             border: 1px solid #ddd; 
             border-radius: 5px; 
             background: #f8f9fa;
-            direction: rtl;
-            text-align: right;
+            text-align: left;
         }
         .section-title { 
             font-weight: bold; 
             color: #007bff; 
             margin-bottom: 10px; 
-            direction: rtl;
             text-align: right;
         }
         .info-row { 
             margin-bottom: 8px; 
-            direction: rtl;
             text-align: right;
         }
         .info-label { 
@@ -257,7 +266,6 @@ namespace TmsSystem.Services
             display: inline-block; 
             width: 120px; 
             text-align: right;
-            direction: rtl;
         }
         .price-box { 
             background: linear-gradient(135deg, #28a745, #20c997); 
@@ -267,7 +275,6 @@ namespace TmsSystem.Services
             border-radius: 10px; 
             font-size: 18px; 
             margin: 20px 0;
-            direction: rtl;
         }
         .price-highlight {
             font-size: 24px;
@@ -278,7 +285,6 @@ namespace TmsSystem.Services
             margin-top: 40px; 
             border-top: 2px solid #007bff; 
             padding-top: 20px;
-            direction: rtl;
         }";
         }
 
