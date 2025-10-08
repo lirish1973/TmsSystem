@@ -22,7 +22,7 @@ namespace TmsSystem.ViewModels
         public string LastName { get; set; }
 
         [Display(Name = "כתובת")]
-        public string Address { get; set; }
+        public string address { get; set; }
 
         [Phone(ErrorMessage = "מספר טלפון לא תקין")]
         [Display(Name = "טלפון")]
