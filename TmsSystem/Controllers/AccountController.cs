@@ -118,7 +118,7 @@ namespace TmsSystem.Controllers
                 RegistrationDate = user.RegistrationDate
             };
 
-            return View(model);
+            return View("UserProfile", model);
         }
 
         [Authorize]
@@ -127,7 +127,7 @@ namespace TmsSystem.Controllers
         public async Task<IActionResult> Profile(UserProfileViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+                return View("UserProfile", model);
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -161,7 +161,7 @@ namespace TmsSystem.Controllers
                         {
                             ModelState.AddModelError("", error.Description);
                         }
-                        return View(model);
+                        return View("UserProfile", model);
                     }
                 }
                 else
@@ -177,7 +177,7 @@ namespace TmsSystem.Controllers
                 ModelState.AddModelError("", error.Description);
             }
 
-            return View(model);
+            return View("UserProfile", model);
         }
 
 
@@ -219,18 +219,16 @@ namespace TmsSystem.Controllers
 
 
 
-
+        [Authorize]
         [HttpGet]
-        public ActionResult EditProfile(int id)
+        public async Task<IActionResult> UserProfile()  // שינוי מ-Profile ל-UserProfile
         {
-            // שליפה מה־DB
-            var user = _context.Users.FirstOrDefault(u => u.Id == id.ToString());
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound(); // אם המשתמש לא נמצא
+                return NotFound();
             }
 
-            // בניית המודל
             var model = new UserProfileViewModel
             {
                 Id = user.Id,
@@ -238,16 +236,23 @@ namespace TmsSystem.Controllers
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Address = user.Address,
                 Phone = user.PhoneNumber,
+                Address = user.Address,
                 CompanyName = user.CompanyName,
-                BirthDate = user.BirthDate
+                BirthDate = user.BirthDate,
+                RegistrationDate = user.RegistrationDate
             };
-            return View(model); // שלח את המודל ל־View
+
+            return View(model);
         }
 
+
+
+
+        [Authorize]
         [HttpPost]
-        public ActionResult EditProfile(UserProfileViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UserProfile(UserProfileViewModel model)  // גם כאן
         {
             if (ModelState.IsValid)
             {
