@@ -101,25 +101,26 @@ namespace TmsSystem.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound();
+                return NotFound("לא נמצא משתמש מחובר.");
             }
 
             var model = new UserProfileViewModel
             {
-                Id = user.Id,
-                Username = user.UserName,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Phone = user.PhoneNumber,
-                Address = user.Address,
-                CompanyName = user.CompanyName,
-                BirthDate = user.BirthDate,
+                Id = user.Id ?? string.Empty,
+                Username = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
+                Address = user.Address ?? string.Empty,
+                CompanyName = user.CompanyName ?? string.Empty,
+                BirthDate = user.BirthDate ?? DateTime.MinValue,
                 RegistrationDate = user.RegistrationDate
             };
 
             return View("UserProfile", model);
         }
+
 
         [Authorize]
         [HttpPost]
@@ -231,15 +232,15 @@ namespace TmsSystem.Controllers
 
             var model = new UserProfileViewModel
             {
-                Id = user.Id,
-                Username = user.UserName,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Phone = user.PhoneNumber,
-                Address = user.Address,
-                CompanyName = user.CompanyName,
-                BirthDate = user.BirthDate,
+                Id = user.Id ?? string.Empty,
+                Username = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
+                Address = user.Address ?? string.Empty,
+                CompanyName = user.CompanyName ?? string.Empty,
+                BirthDate = user.BirthDate ?? DateTime.MinValue,
                 RegistrationDate = user.RegistrationDate
             };
 
