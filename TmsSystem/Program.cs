@@ -16,7 +16,18 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<TmsSystem.Services.IPdfService, TmsSystem.Services.PdfService>();
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
+// שירותי הדוא"ל והשליחה
+builder.Services.AddSingleton<IEmailService, GmailSmtpEmailService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<OfferEmailSender>();
+
+// PdfService כבר אמור להיות רשום; אם לא:
+builder.Services.AddScoped<PdfService>();
+
+// שאר הרישומים וה־MVC
+builder.Services.AddControllersWithViews();
 
 
 // חיבור ל-MySQL

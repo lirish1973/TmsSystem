@@ -9,6 +9,34 @@
         @TempData["ErrorMessage"]
     </div>
 }
+
+<form asp-controller="Offers"
+      asp-action="SendEmail"
+      asp-route-id="@Model.Offer.OfferId"
+      method="post"
+      class="d-flex gap-2 align-items-end mt-3">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-2">
+        <label class="form-label">שלח אל</label>
+        <input type="email"
+               name="toEmail"
+               value="@(Model?.Offer?.Customer?.Email ?? "")"
+               class="form-control"
+               dir="ltr"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn-primary mb-2">
+        שלח במייל
+    </button>
+
+    <a class="btn btn-outline-secondary mb-2"
+       href="/offers/@Model.Offer.OfferId/preview-html"
+       target="_blank">
+        תצוגת HTML
+    </a>
+</form>
 <div class="container mt-4">
     <div class="card blue-theme-card">
         <div class="card-header bg-blue-primary text-white">

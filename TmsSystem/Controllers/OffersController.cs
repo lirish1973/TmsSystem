@@ -12,15 +12,20 @@ using static TmsSystem.ViewModels.CreateOfferViewModel;
 
 namespace TmsSystem.Controllers
 {
-    public class OffersController : Controller 
+    public partial class OffersController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        // הכרזת השדות — זה מה שהיה חסר
         private readonly IPdfService _pdfService;
+        private readonly OfferEmailSender _offerEmailSender;
+        private readonly ApplicationDbContext _context;
 
-        public OffersController(ApplicationDbContext context, IPdfService pdfService)
+
+
+        public OffersController(ApplicationDbContext context, IPdfService pdfService, OfferEmailSender offerEmailSender)
         {
             _context = context;
             _pdfService = pdfService;
+            _offerEmailSender = offerEmailSender;
         }
 
         public async Task<IActionResult> Create()
@@ -62,6 +67,42 @@ namespace TmsSystem.Controllers
 
             return View(model);
         }
+
+
+
+
+        [HttpGet("/offers/{id}/preview-html")]
+        public async Task<IActionResult> PreviewHtml(int id)
+        {
+            var model = await LoadOfferViewModelAsync(id); // תממש אצלך
+            var html = await _pdfService.GenerateOfferHtmlAsync(model);
+            return Content(html, "text/html; charset=utf-8");
+        }
+
+        [HttpPost("/offers/{id}/send-email")]
+        public async Task<IActionResult> SendEmail(int id)
+        {
+            var model = await LoadOfferViewModelAsync(id);
+            var toEmail = model.Offer?.Customer?.Email;
+            if (string.IsNullOrWhiteSpace(toEmail))
+                return BadRequest("לא נמצא אימייל ללקוח.");
+
+            await _offerEmailSender.SendOfferEmailAsync(model, toEmail);
+            return Ok(new { ok = true, sentTo = toEmail });
+        }
+
+
+        private Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
+        {
+            // מממש אצלך בהתאם למבנה המערכת
+            throw new System.NotImplementedException();
+        }
+
+
+
+
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
