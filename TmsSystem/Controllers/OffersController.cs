@@ -80,10 +80,21 @@ namespace TmsSystem.Controllers
         }
 
         [HttpPost("/offers/{id}/send-email")]
-        public async Task<IActionResult> SendEmail(int id)
+        public async Task<IActionResult> SendEmail(int id, [FromForm] string toEmail = null)
         {
             var model = await LoadOfferViewModelAsync(id);
-            var toEmail = model.Offer?.Customer?.Email;
+            
+            if (model == null)
+            {
+                return NotFound("ההצעה לא נמצאה.");
+            }
+
+            // If toEmail is not provided in form, use customer email
+            if (string.IsNullOrWhiteSpace(toEmail))
+            {
+                toEmail = model.Offer?.Customer?.Email;
+            }
+
             if (string.IsNullOrWhiteSpace(toEmail))
                 return BadRequest("לא נמצא אימייל ללקוח.");
 
@@ -92,10 +103,36 @@ namespace TmsSystem.Controllers
         }
 
 
-        private Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
+        private async Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
         {
-            // מממש אצלך בהתאם למבנה המערכת
-            throw new System.NotImplementedException();
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour)
+                .ThenInclude(t => t.Schedule)
+                .Include(o => o.Tour)
+                .ThenInclude(t => t.Includes)
+                .Include(o => o.Tour)
+                .ThenInclude(t => t.Excludes)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+
+            if (offer == null)
+            {
+                return null;
+            }
+
+            PaymentMethod paymentMethod = null;
+            if (offer.PaymentMethodId != null && offer.PaymentMethodId > 0)
+            {
+                paymentMethod = await _context.PaymentMethods
+                    .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId);
+            }
+
+            return new ShowOfferViewModel
+            {
+                Offer = offer,
+                PaymentMethod = paymentMethod
+            };
         }
 
 
