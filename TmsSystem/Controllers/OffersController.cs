@@ -233,8 +233,16 @@ namespace TmsSystem.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ShowOffers(int id)
+
+
+
+
+
+
+        // הוסף לקונטרולר OffersController את המתודה הבאה:
+
+        [HttpPost]
+        public async Task<IActionResult> SendOfferEmail(int id, string email)
         {
             try
             {
@@ -242,40 +250,78 @@ namespace TmsSystem.Controllers
                     .Include(o => o.Customer)
                     .Include(o => o.Guide)
                     .Include(o => o.Tour)
-                    .ThenInclude(t => t.Schedule)
-                    .Include(o => o.Tour)
-                    .ThenInclude(t => t.Includes)
-                    .Include(o => o.Tour)
-                    .ThenInclude(t => t.Excludes)
+                    .Include(o => o.PaymentMethod)
                     .FirstOrDefaultAsync(o => o.OfferId == id);
 
                 if (offer == null)
                 {
-                    TempData["ErrorMessage"] = "ההצעה לא נמצאה";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "הצעת המחיר לא נמצאה" });
                 }
 
-                PaymentMethod paymentMethod = null;
-                if (offer.PaymentMethodId != null && offer.PaymentMethodId > 0)
+                if (string.IsNullOrWhiteSpace(email))
                 {
-                    paymentMethod = await _context.PaymentMethods
-                        .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId);
+                    return Json(new { success = false, message = "כתובת אימייל נדרשת" });
                 }
 
-                var viewModel = new ShowOfferViewModel
+                var model = new ShowOfferViewModel
                 {
                     Offer = offer,
-                    PaymentMethod = paymentMethod
+                    PaymentMethod = offer.PaymentMethod
                 };
 
-                return View(viewModel);
+                // שליחת המייל
+                var offerEmailSender = HttpContext.RequestServices.GetRequiredService<OfferEmailSender>();
+                await offerEmailSender.SendOfferEmailAsync(model, email);
+
+                return Json(new { success = true, message = "הצעת המחיר נשלחה בהצלחה למייל" });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"שגיאה בטעינת ההצעה: {ex.Message}";
-                return RedirectToAction(nameof(Index));
+                _logger?.LogError(ex, "Error sending offer email for offer {OfferId} to {Email}", id, email);
+                return Json(new { success = false, message = $"שגיאה בשליחת המייל: {ex.Message}" });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ShowOfferHtml(int id)
+        {
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour)
+                .Include(o => o.PaymentMethod)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+
+            if (offer == null)
+            {
+                return NotFound();
+            }
+
+            var model = new ShowOfferViewModel
+            {
+                Offer = offer,
+                PaymentMethod = offer.PaymentMethod
+            };
+
+            var pdfService = HttpContext.RequestServices.GetRequiredService<IPdfService>();
+            var html = await pdfService.GenerateOfferHtmlAsync(model);
+
+            return Content(html, "text/html; charset=utf-8");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public async Task<IActionResult> Edit(int id)
         {
