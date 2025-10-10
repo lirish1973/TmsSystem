@@ -92,10 +92,36 @@ namespace TmsSystem.Controllers
         }
 
 
-        private Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
+        private async Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
         {
-            // מממש אצלך בהתאם למבנה המערכת
-            throw new System.NotImplementedException();
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour)
+                .ThenInclude(t => t.Schedule)
+                .Include(o => o.Tour)
+                .ThenInclude(t => t.Includes)
+                .Include(o => o.Tour)
+                .ThenInclude(t => t.Excludes)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+
+            if (offer == null)
+            {
+                throw new InvalidOperationException($"הצעה עם ID {id} לא נמצאה");
+            }
+
+            PaymentMethod paymentMethod = null;
+            if (offer.PaymentMethodId != null && offer.PaymentMethodId > 0)
+            {
+                paymentMethod = await _context.PaymentMethods
+                    .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId);
+            }
+
+            return new ShowOfferViewModel
+            {
+                Offer = offer,
+                PaymentMethod = paymentMethod
+            };
         }
 
 
