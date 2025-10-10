@@ -1,0 +1,140 @@
+﻿@model TmsSystem.ViewModels.CreateTourViewModel
+
+@{
+    ViewData["Title"] = "עריכת סיור";
+}
+
+<div class="container mt-4" dir="rtl" style="max-width:80%">
+    <h2 class="mb-4">עריכת סיור</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <form asp-action="EditTour" method="post">
+        <input type="hidden" asp-for="TourId" />
+
+        <div class="card p-4 mb-4">
+            <h5>פרטי סיור</h5>
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">שם הסיור</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">תיאור</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- שאר הקוד זהה לדף המקורי שלך -->
+        <div class="card p-4 mb-4">
+            <h5>לוח זמנים</h5>
+            <div id="schedule-items">
+                @if (Model.Schedule != null && Model.Schedule.Any())
+                {
+                    for (int i = 0; i < Model.Schedule.Count; i++)
+                    {
+                        <div class="row mb-3">
+                            <div class="col">
+                                <input type="time" name="Schedule[@i].StartTime" class="form-control" value="@Model.Schedule[i].StartTime.ToString(@"hh\:mm")" placeholder="שעת התחלה" />
+                            </div>
+                            <div class="col">
+                                <input type="time" name="Schedule[@i].EndTime" class="form-control" value="@Model.Schedule[i].EndTime?.ToString(@"hh\:mm")" placeholder="שעת סיום" />
+                            </div>
+                            <div class="col">
+                                <input type="text" name="Schedule[@i].Location" class="form-control" value="@Model.Schedule[i].Location" placeholder="מיקום" />
+                            </div>
+                            <div class="col">
+                                <textarea name="Schedule[@i].Description" class="form-control" placeholder="תיאור">@Model.Schedule[i].Description</textarea>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeScheduleItem(this)">הסר</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addScheduleItem()">הוסף שלב</button>
+        </div>
+
+        <!-- שאר הקוד... -->
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">עדכן סיור</button>
+            <a asp-action="Details" asp-route-id="@Model.TourId" class="btn btn-secondary">ביטול</a>
+        </div>
+    </form>
+</div>
+
+
+        
+@section Scripts {
+    <script>
+        let scheduleIndex = @Model.Schedule?.Count ?? 1;
+        function addScheduleItem() {
+            const container = document.getElementById("schedule-items");
+            const row = document.createElement("div");
+            row.classList.add("row", "mb-3");
+
+               row.innerHTML = `
+            <div class="col">
+                <input type="time" name="Schedule[${scheduleIndex}].StartTime" class="form-control" placeholder="שעת התחלה" />
+            </div>
+            <div class="col">
+                <input type="time" name="Schedule[${scheduleIndex}].EndTime" class="form-control" placeholder="שעת סיום" />
+            </div>
+            <div class="col">
+                <input type="text" name="Schedule[${scheduleIndex}].Location" class="form-control" placeholder="מיקום" />
+            </div>
+            <div class="col">
+                <textarea name="Schedule[${scheduleIndex}].Description" class="form-control" placeholder="תיאור"></textarea>
+            </div>
+        `;
+
+            container.appendChild(row);
+            scheduleIndex++;
+        }
+
+        let includeIndex = @Model.Includes?.Count ?? 1;
+        let excludeIndex = @Model.Excludes?.Count ?? 1;
+
+        function addInclude() {
+            const container = document.getElementById("includes");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.name = `Includes[${includeIndex}]`;
+            input.classList.add("form-control", "mb-2");
+            input.placeholder = "עוד פריט כולל";
+            container.appendChild(input);
+            includeIndex++;
+        }
+
+        function addExclude() {
+            const container = document.getElementById("excludes");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.name = `Excludes[${excludeIndex}]`;
+            input.classList.add("form-control", "mb-2");
+            input.placeholder = "עוד פריט לא כולל";
+            container.appendChild(input);
+            excludeIndex++;
+        }
+    </script>
+}
+
+
+        function removeScheduleItem(button) {
+            button.closest('.row').remove();
+        }
+
+        
+    </script>
+}

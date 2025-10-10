@@ -46,6 +46,193 @@ namespace TmsSystem.Controllers
         /// <summary>
         /// //
         /// ==========================================EDIT ==========================================
+        ///
+        ///
+        ///
+        ///
+
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> EditTour(CreateTourViewModel model)
+        {
+            // הוסף debug כדי לראות מה מתקבל
+            System.Diagnostics.Debug.WriteLine($"EditTour POST - TourId: {model.TourId}");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // הוסף debug נוסף
+                System.Diagnostics.Debug.WriteLine($"Looking for tour with ID: {model.TourId}");
+
+                // מצא את הסיור הקיים
+                var existingTour = await _context.Tours
+                    .Include(t => t.Schedule)
+                    .Include(t => t.Includes)
+                    .Include(t => t.Excludes)
+                    .FirstOrDefaultAsync(t => t.TourId == model.TourId);
+
+                if (existingTour == null)
+                {
+                    // הוסף debug למה הסיור לא נמצא
+                    System.Diagnostics.Debug.WriteLine($"Tour with ID {model.TourId} not found in database");
+
+                    // בדוק כמה סיורים יש בכלל
+                    var totalTours = await _context.Tours.CountAsync();
+                    System.Diagnostics.Debug.WriteLine($"Total tours in database: {totalTours}");
+
+                    // הצג את כל ה-IDs הקיימים
+                    var existingIds = await _context.Tours.Select(t => t.TourId).ToListAsync();
+                    System.Diagnostics.Debug.WriteLine($"Existing tour IDs: {string.Join(", ", existingIds)}");
+
+                    ModelState.AddModelError("", $"הסיור עם מזהה {model.TourId} לא נמצא במערכת");
+                    return View(model);
+                }
+
+                // עדכן פרטי הסיור הבסיסיים
+                existingTour.Title = model.Title;
+                existingTour.Description = model.Description;
+
+                // עדכן לוח זמנים (ItineraryItems)
+                if (existingTour.Schedule != null && existingTour.Schedule.Any())
+                {
+                    _context.ItineraryItems.RemoveRange(existingTour.Schedule);
+                }
+
+                if (model.Schedule != null && model.Schedule.Any())
+                {
+                    var scheduleItems = model.Schedule.Select(s => new ItineraryItem
+                    {
+                        TourId = existingTour.TourId,
+                        StartTime = s.StartTime,
+                        EndTime = s.EndTime,
+                        Location = s.Location,
+                        Description = s.Description
+                    }).ToList();
+
+                    await _context.ItineraryItems.AddRangeAsync(scheduleItems);
+                }
+
+                // עדכן פריטים כלולים
+                if (existingTour.Includes != null && existingTour.Includes.Any())
+                {
+                    _context.TourIncludes.RemoveRange(existingTour.Includes);
+                }
+
+                if (model.Includes != null && model.Includes.Any(i => !string.IsNullOrWhiteSpace(i)))
+                {
+                    var includeItems = model.Includes
+                        .Where(i => !string.IsNullOrWhiteSpace(i))
+                        .Select(i => new TourInclude
+                        {
+                            TourId = existingTour.TourId,
+                            Text = i,
+                            Description = i
+                        }).ToList();
+
+                    await _context.TourIncludes.AddRangeAsync(includeItems);
+                }
+
+                // עדכן פריטים לא כלולים
+                if (existingTour.Excludes != null && existingTour.Excludes.Any())
+                {
+                    _context.TourExcludes.RemoveRange(existingTour.Excludes);
+                }
+
+                if (model.Excludes != null && model.Excludes.Any(e => !string.IsNullOrWhiteSpace(e)))
+                {
+                    var excludeItems = model.Excludes
+                        .Where(e => !string.IsNullOrWhiteSpace(e))
+                        .Select(e => new TourExclude
+                        {
+                            TourId = existingTour.TourId,
+                            Text = e,
+                            Description = e
+                        }).ToList();
+
+                    await _context.TourExcludes.AddRangeAsync(excludeItems);
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "הסיור עודכן בהצלחה";
+                return RedirectToAction("Details", new { id = existingTour.TourId });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in EditTour: {ex.Message}");
+                ModelState.AddModelError("", "אירעה שגיאה בעדכון הסיור. אנא נסה שוב.");
+                return View(model);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditTour(int id)
+        {
+            System.Diagnostics.Debug.WriteLine($"EditTour GET - ID: {id}");
+
+            var tour = await _context.Tours
+                .Include(t => t.Schedule)
+                .Include(t => t.Includes)
+                .Include(t => t.Excludes)
+                .FirstOrDefaultAsync(t => t.TourId == id);
+
+            if (tour == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Tour with ID {id} not found for editing");
+                return NotFound("הסיור לא נמצא");
+            }
+
+            var model = new CreateTourViewModel
+            {
+                TourId = tour.TourId,
+                Title = tour.Title,
+                Description = tour.Description,
+                Schedule = tour.Schedule?.Select(s => new ScheduleItemViewModel
+                {
+                    StartTime = s.StartTime,
+                    EndTime = s.EndTime,
+                    Location = s.Location,
+                    Description = s.Description
+                }).ToList() ?? new List<ScheduleItemViewModel>(),
+                Includes = tour.Includes?.Select(i => i.Text).ToList() ?? new List<string>(),
+                Excludes = tour.Excludes?.Select(e => e.Text).ToList() ?? new List<string>()
+            };
+
+            System.Diagnostics.Debug.WriteLine($"Loaded tour for editing - ID: {model.TourId}, Title: {model.Title}");
+
+            return View(model);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // ==========================================EDIT ==========================================
 
         // GET: Tours/Edit/5
