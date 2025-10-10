@@ -10,12 +10,6 @@ using System.Web;
 
 namespace TmsSystem.Services
 {
-    public interface IPdfService
-    {
-        Task<byte[]> GeneratePdfAsync(ShowOfferViewModel model);
-        Task<string> GenerateOfferHtmlAsync(ShowOfferViewModel model);
-    }
-
     public class PdfService : IPdfService
     {
         private readonly IConverter _converter;
@@ -25,7 +19,7 @@ namespace TmsSystem.Services
             _converter = converter;
         }
 
-        public async Task<byte[]> GeneratePdfAsync(ShowOfferViewModel model)
+        public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
         {
             var html = await GenerateOfferHtmlAsync(model);
 
