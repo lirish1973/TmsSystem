@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -12,12 +11,10 @@ namespace TmsSystem.Services
     public class GmailSmtpEmailService : IEmailService
     {
         private readonly SmtpOptions _options;
-        private readonly ILogger<GmailSmtpEmailService> _logger;
 
-        public GmailSmtpEmailService(IOptions<SmtpOptions> options, ILogger<GmailSmtpEmailService> logger)
+        public GmailSmtpEmailService(IOptions<SmtpOptions> options)
         {
             _options = options.Value;
-            _logger = logger;
         }
 
         public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, CancellationToken ct = default)
@@ -40,14 +37,14 @@ namespace TmsSystem.Services
             using var client = new SmtpClient();
             try
             {
-                _logger.LogInformation("Connecting to SMTP {Host}:{Port}", _options.Host, _options.Port);
+                Console.WriteLine($"Connecting to SMTP {_options.Host}:{_options.Port}");
 
                 await client.ConnectAsync(_options.Host, _options.Port,
                     _options.UseStartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto, ct);
 
                 await client.AuthenticateAsync(_options.Username, _options.Password, ct);
 
-                _logger.LogInformation("Sending email to {To}", toEmail);
+                Console.WriteLine($"Sending email to {toEmail}");
                 await client.SendAsync(message, ct);
             }
             finally

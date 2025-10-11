@@ -1,8 +1,8 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace TmsSystem.Services
@@ -10,12 +10,10 @@ namespace TmsSystem.Services
     public class GmailNetSmtpEmailService : IEmailService
     {
         private readonly SmtpOptions _options;
-        private readonly ILogger<GmailNetSmtpEmailService> _logger;
 
-        public GmailNetSmtpEmailService(IOptions<SmtpOptions> options, ILogger<GmailNetSmtpEmailService> logger)
+        public GmailNetSmtpEmailService(IOptions<SmtpOptions> options)
         {
             _options = options.Value;
-            _logger = logger;
         }
 
         public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, CancellationToken ct = default)
@@ -35,7 +33,7 @@ namespace TmsSystem.Services
                 Credentials = new NetworkCredential(_options.Username, _options.Password)
             };
 
-            _logger.LogInformation("Sending email to {To} via System.Net.Mail", toEmail);
+            Console.WriteLine($"Sending email to {toEmail} via System.Net.Mail");
             await smtp.SendMailAsync(msg);
         }
     }
