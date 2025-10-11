@@ -18,14 +18,16 @@ namespace TmsSystem.Controllers
         private readonly IPdfService _pdfService;
         private readonly OfferEmailSender _offerEmailSender;
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<OffersController> _logger;
 
 
 
-        public OffersController(ApplicationDbContext context, IPdfService pdfService, OfferEmailSender offerEmailSender)
+        public OffersController(ApplicationDbContext context, IPdfService pdfService, OfferEmailSender offerEmailSender, ILogger<OffersController> logger)
         {
             _context = context;
             _pdfService = pdfService;
             _offerEmailSender = offerEmailSender;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Create()
@@ -609,7 +611,7 @@ namespace TmsSystem.Controllers
                 if (pdfBytes == null || pdfBytes.Length == 0)
                 {
                     TempData["ErrorMessage"] = "יצירת קובץ PDF נכשלה.";
-                    return RedirectToAction(nameof(ShowOffers), new { id });
+                    return RedirectToAction(nameof(ShowOfferHtml), new { id });
                 }
 
                 var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
@@ -625,7 +627,7 @@ namespace TmsSystem.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
-                return RedirectToAction(nameof(ShowOffers), new { id });
+                return RedirectToAction(nameof(ShowOfferHtml), new { id });
             }
         }
 
