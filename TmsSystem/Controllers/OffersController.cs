@@ -92,10 +92,21 @@ namespace TmsSystem.Controllers
         }
 
 
-        private Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
+        private async Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
         {
-            // מממש אצלך בהתאם למבנה המערכת
-            throw new System.NotImplementedException();
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour)
+                .Include(o => o.PaymentMethod)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+            if (offer == null)
+                throw new Exception($"Offer {id} not found");
+            return new ShowOfferViewModel
+            {
+                Offer = offer,
+                PaymentMethod = offer.PaymentMethod
+            };
         }
 
 
