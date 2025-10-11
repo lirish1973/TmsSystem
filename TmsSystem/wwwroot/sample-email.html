@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html dir='rtl' lang='he'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>דוגמה - הצעת מחיר HTML Email</title>
+    <style>
+        /* Reset for email clients */
+        body, table, td, p, a, li {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+        
+        body {
+            font-family: Arial, Tahoma, sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            direction: rtl;
+            background-color: #f0f0f0;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1a365d 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .logo {
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 15px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .header h1 {
+            margin: 10px 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .header p {
+            margin: 5px 0;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-right: 4px solid #2c5aa0;
+            border-radius: 5px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c5aa0;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .info-row {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            display: inline-block;
+            min-width: 120px;
+        }
+        
+        .info-value {
+            color: #333333;
+        }
+        
+        .price-section {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 100%);
+            border-right-color: #17a2b8;
+        }
+        
+        .price-highlight {
+            font-size: 22px;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+        
+        .includes-excludes {
+            margin-top: 15px;
+        }
+        
+        .includes, .excludes {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .includes {
+            background-color: #d4edda;
+            border-right: 4px solid #28a745;
+        }
+        
+        .excludes {
+            background-color: #f8d7da;
+            border-right: 4px solid #dc3545;
+        }
+        
+        .includes h4, .excludes h4 {
+            margin: 0 0 10px 0;
+            color: #333333;
+            font-size: 16px;
+        }
+        
+        ul {
+            margin: 0;
+            padding-right: 20px;
+        }
+        
+        li {
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        /* Mobile responsiveness */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            .content {
+                padding: 15px !important;
+            }
+            .header h1 {
+                font-size: 24px !important;
+            }
+            .price-highlight {
+                font-size: 18px !important;
+            }
+        }
+        
+        .demo-note {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 600px;
+            border-radius: 8px;
+            text-align: center;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-note">
+        <strong>⚠️ זוהי דוגמה להמחשה בלבד</strong><br>
+        המייל האמיתי ישלח עם לוגו מוטמע וכל הנתונים מהמערכת
+    </div>
+    
+    <table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0'>
+        <tr>
+            <td align='center' style='padding: 20px 0;'>
+                <table class='email-container' role='presentation' cellspacing='0' cellpadding='0' border='0'>
+                    <!-- Header -->
+                    <tr>
+                        <td class='header'>
+                            <div class='logo' style='display: inline-block;'>TMS LOGO</div>
+                            <h1>הצעת מחיר</h1>
+                            <p>מספר הצעה: #123</p>
+                            <p>תאריך יצירה: 11/10/2025 10:30</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td class='content'>
+                            <!-- פרטי הלקוח -->
+                            <div class='section'>
+                                <div class='section-title'>פרטי הלקוח</div>
+                                <div class='info-row'>
+                                    <span class='info-label'>שם מלא:</span>
+                                    <span class='info-value'>ישראל ישראלי</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>טלפון:</span>
+                                    <span class='info-value'>050-1234567</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>אימייל:</span>
+                                    <span class='info-value'>customer@example.com</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>כתובת:</span>
+                                    <span class='info-value'>רחוב הדוגמה 1, תל אביב</span>
+                                </div>
+                            </div>
+
+                            <!-- פרטי הטיול -->
+                            <div class='section'>
+                                <div class='section-title'>פרטי הטיול</div>
+                                <div class='info-row'>
+                                    <span class='info-label'>שם הטיול:</span>
+                                    <span class='info-value'>טיול מאורגן בגליל</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>תאריך הטיול:</span>
+                                    <span class='info-value'>15/11/2025</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>מספר משתתפים:</span>
+                                    <span class='info-value'>25</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>נקודת איסוף:</span>
+                                    <span class='info-value'>תחנה מרכזית תל אביב</span>
+                                </div>
+                            </div>
+
+                            <!-- פרטי המדריך -->
+                            <div class='section'>
+                                <div class='section-title'>פרטי המדריך</div>
+                                <div class='info-row'>
+                                    <span class='info-label'>שם המדריך:</span>
+                                    <span class='info-value'>דני כהן</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>תיאור:</span>
+                                    <span class='info-value'>מדריך טיולים מוסמך עם 15 שנות ניסיון</span>
+                                </div>
+                            </div>
+
+                            <!-- תיאור הטיול -->
+                            <div class='section'>
+                                <div class='section-title'>תיאור הטיול</div>
+                                <div style='line-height: 1.6; color: #333;'>
+                                    טיול יום מרתק בגליל העליון הכולל ביקור באתרים היסטוריים,<br>
+                                    טיול רגלי קצר בטבע, וסיור מודרך במקומות מיוחדים.<br>
+                                    הטיול מתאים לכל המשפחה ולכל הגילאים.
+                                </div>
+                            </div>
+
+                            <!-- מחירים -->
+                            <div class='section price-section'>
+                                <div class='section-title'>פרטי מחיר</div>
+                                <div class='info-row'>
+                                    <span class='info-label'>מחיר לאדם:</span>
+                                    <span class='info-value price-highlight'>₪250.00</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>סה״כ לתשלום:</span>
+                                    <span class='info-value price-highlight'>₪6,250.00</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>שיטת תשלום:</span>
+                                    <span class='info-value'>העברה בנקאית</span>
+                                </div>
+                                <div class='info-row'>
+                                    <span class='info-label'>ארוחת צהריים:</span>
+                                    <span class='info-value'>כלולה במחיר</span>
+                                </div>
+                            </div>
+
+                            <!-- כולל/לא כולל -->
+                            <div class='includes-excludes'>
+                                <div class='includes'>
+                                    <h4>✓ כלול במחיר</h4>
+                                    <ul>
+                                        <li>הסעה באוטובוס מפואר וממוזג</li>
+                                        <li>שירותי מדריך טיולים מוסמך</li>
+                                        <li>ארוחת צהריים במסעדה</li>
+                                        <li>דמי כניסה לאתרים</li>
+                                        <li>ביטוח נסיעות</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class='excludes'>
+                                    <h4>✗ לא כלול במחיר</h4>
+                                    <ul>
+                                        <li>הוצאות אישיות</li>
+                                        <li>משקאות בארוחות</li>
+                                        <li>טיפים למדריך ולנהג</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- בקשות מיוחדות -->
+                            <div class='section'>
+                                <div class='section-title'>בקשות מיוחדות</div>
+                                <div style='line-height: 1.6; color: #333;'>
+                                    ארוחה כשרה למהדרין<br>
+                                    עגלת תינוק באוטובוס
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class='footer'>
+                            <p><strong>מערכת ניהול טיולים - TMS System</strong></p>
+                            <p>הצעת מחיר זו תקפה למשך 30 יום מתאריך ההנפקה</p>
+                            <p>לפרטים נוספים ניתן ליצור קשר בטלפון או באימייל</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    
+    <div class="demo-note" style="margin-top: 20px;">
+        <strong>📧 תכונות המייל:</strong><br>
+        ✅ עיצוב רספונסיבי למובייל<br>
+        ✅ לוגו מוטמע (CID)<br>
+        ✅ תאימות ללקוחות דוא"ל שונים<br>
+        ✅ תמיכה בעברית (RTL)
+    </div>
+</body>
+</html>
