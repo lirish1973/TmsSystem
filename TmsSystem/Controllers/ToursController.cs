@@ -191,17 +191,17 @@ namespace TmsSystem.Controllers
             var model = new CreateTourViewModel
             {
                 TourId = tour.TourId,
-                Title = tour.Title,
-                Description = tour.Description,
+                Title = tour.Title ?? string.Empty,
+                Description = tour.Description ?? string.Empty,
                 Schedule = tour.Schedule?.Select(s => new ScheduleItemViewModel
                 {
                     StartTime = s.StartTime,
                     EndTime = s.EndTime,
-                    Location = s.Location,
-                    Description = s.Description
+                    Location = s.Location ?? string.Empty,
+                    Description = s.Description ?? string.Empty
                 }).ToList() ?? new List<ScheduleItemViewModel>(),
-                Includes = tour.Includes?.Select(i => i.Text).ToList() ?? new List<string>(),
-                Excludes = tour.Excludes?.Select(e => e.Text).ToList() ?? new List<string>()
+                Includes = tour.Includes?.Select(i => i.Text ?? string.Empty).ToList() ?? new List<string>(),
+                Excludes = tour.Excludes?.Select(e => e.Text ?? string.Empty).ToList() ?? new List<string>()
             };
 
             System.Diagnostics.Debug.WriteLine($"Loaded tour for editing - ID: {model.TourId}, Title: {model.Title}");

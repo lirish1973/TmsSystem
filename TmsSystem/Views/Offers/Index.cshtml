@@ -156,6 +156,12 @@
                                            onclick="return confirm('האם אתה בטוח שברצונך למחוק את ההזמנה?');">
                                             <i class="fas fa-trash-alt"></i>מחק
                                         </a>
+                                        <a href="/offers/@offer.OfferId/preview-html" class="btn btn-outline-info flex-fill btn-sm" title="הצג HTML" target="_blank">
+                                            <i class="fas fa-file-code"></i>HTML
+                                        </a>
+                                        <button class="btn btn-outline-success flex-fill btn-sm" title="שלח במייל" onclick="sendOfferEmail(@offer.OfferId, this)">
+                                            <i class="fas fa-envelope"></i>שלח במייל
+                                        </button>
                                     </div>
                                     <div class="text-muted text-center w-100" style="font-size:0.8em;">
                                         נוצר ב: @offer.CreatedAt.ToString("dd/MM/yyyy")
@@ -164,6 +170,33 @@
                             </div>
                         </div>
                     }
+<script>
+    function sendOfferEmail(offerId, btn) {
+        if (!confirm('האם לשלוח את ההצעה במייל ללקוח?')) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+        fetch(`/offers/${offerId}/send-email`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    btn.innerHTML = '<i class="fas fa-check"></i> נשלח!';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                    alert(data.message || 'שגיאה בשליחה');
+                }
+            })
+            .catch(() => {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                alert('שגיאה בשליחה');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-envelope"></i>שלח במייל';
+                    btn.disabled = false;
+                }, 3000);
+            });
+    }
+</script>
                 }
             </div>
         </div>
