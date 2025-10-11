@@ -288,7 +288,7 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error sending offer email for offer {OfferId} to {Email}", id, email);
+                Console.WriteLine($"Error sending offer email for offer {id} to {email}: {ex.Message}");
                 return Json(new { success = false, message = $"שגיאה בשליחת המייל: {ex.Message}" });
             }
         }
