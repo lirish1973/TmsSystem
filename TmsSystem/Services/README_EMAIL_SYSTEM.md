@@ -96,11 +96,18 @@ public class OfferEmailSender
 ```
 
 ### הגדרות Gmail:
-1. יצירת **App Password** (לא סיסמת החשבון הרגילה):
+1. **הפעלת אימות דו-שלבי** (חובה):
    - כניסה לחשבון Google
    - Security → 2-Step Verification
-   - App passwords → יצירת סיסמה חדשה
-2. שימוש ב-App Password בשדה `Password`
+   - הפעלת האימות הדו-שלבי אם עדיין לא פעיל
+   
+2. **יצירת App Password** (לא סיסמת החשבון הרגילה):
+   - באותו עמוד Security
+   - גלילה ל-App passwords
+   - יצירת סיסמה חדשה עבור "Mail" או "Other (Custom name)"
+   - העתקת הסיסמה שנוצרה
+   
+3. **שימוש ב-App Password** בשדה `Password` בקובץ ההגדרות
 
 ## רישום שירותים ב-Program.cs
 
