@@ -19,7 +19,8 @@ builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
 // שירותי הדוא"ל והשליחה
-builder.Services.AddSingleton<IEmailService, GmailSmtpEmailService>();
+//builder.Services.AddSingleton<IEmailService, GmailSmtpEmailService>();
+builder.Services.AddScoped<IEmailService, SendGridEmailService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<OfferEmailSender>();
 

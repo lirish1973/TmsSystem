@@ -47,7 +47,7 @@ namespace TmsSystem.Services
         {
             var html = new StringBuilder();
 
-            // HTML Header with improved styling
+            // HTML Header with RTL support
             html.AppendLine(@"
 <!DOCTYPE html>
 <html dir='rtl' lang='he'>
@@ -56,14 +56,18 @@ namespace TmsSystem.Services
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>הצעת מחיר - TMS System</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Arial', 'Tahoma', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
             line-height: 1.6;
             color: #333;
             background: #f8f9fa;
             margin: 0;
             padding: 20px;
             direction: rtl;
+            text-align: right;
         }
         .container {
             max-width: 800px;
@@ -74,7 +78,7 @@ namespace TmsSystem.Services
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #2c5aa0 0%, #1a365d 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -91,26 +95,21 @@ namespace TmsSystem.Services
         }
         .content {
             padding: 30px;
+            direction: rtl;
         }
         .section {
             margin-bottom: 25px;
             padding: 20px;
             background: #f8f9fa;
             border-radius: 8px;
-            border-right: 4px solid #2c5aa0;
+            border-right: 4px solid #1e3a8a;
         }
         .section-title {
             font-size: 1.4em;
             font-weight: bold;
-            color: #2c5aa0;
+            color: #1e3a8a;
             margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-        .section-title::before {
-            content: '●';
-            margin-left: 10px;
-            color: #2c5aa0;
+            text-align: right;
         }
         .info-row {
             margin-bottom: 12px;
@@ -119,109 +118,176 @@ namespace TmsSystem.Services
             display: flex;
             justify-content: space-between;
             align-items: center;
+            direction: rtl;
+        }
+        .info-row:last-child {
+            border-bottom: none;
         }
         .info-label {
             font-weight: bold;
             color: #495057;
             min-width: 120px;
-        }
-        .info-value {
-            color: #333;
-            flex: 1;
             text-align: right;
         }
+        .info-value {
+            color: #212529;
+            text-align: right;
+            flex: 1;
+        }
         .price-section {
-            background: linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 100%);
-            border-right: 4px solid #17a2b8;
-        }
-        .price-highlight {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #17a2b8;
-        }
-        .includes-excludes {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .includes, .excludes {
-            padding: 20px;
-            border-radius: 8px;
-        }
-        .includes {
-            background: #d4edda;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
             border-right: 4px solid #28a745;
         }
-        .excludes {
-            background: #f8d7da;
-            border-right: 4px solid #dc3545;
+        .price-section .section-title {
+            color: white;
         }
-        .includes h4, .excludes h4 {
-            margin-top: 0;
-            color: #333;
+        .price-section .info-label {
+            color: rgba(255,255,255,0.9);
         }
-        .includes h4::before {
-            content: '✓ ';
-            color: #28a745;
+        .price-section .info-value {
+            color: white;
+            font-weight: bold;
         }
-        .excludes h4::before {
-            content: '✗ ';
-            color: #dc3545;
-        }
-        ul {
-            margin: 0;
-            padding-right: 20px;
-        }
-        li {
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .itinerary-section {
-            background: #fff3cd;
-            border-right: 4px solid #ffc107;
+        .price-highlight {
+            font-size: 24px;
+            font-weight: bold;
         }
         .schedule-item {
             background: white;
             padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-right: 3px solid #1e3a8a;
+            direction: rtl;
         }
         .schedule-time {
             font-weight: bold;
-            color: #2c5aa0;
-            font-size: 1.1em;
+            color: #1e3a8a;
+            font-size: 16px;
+            margin-bottom: 8px;
+            text-align: right;
         }
         .schedule-location {
             font-weight: bold;
             color: #495057;
-            margin: 5px 0;
+            margin-bottom: 5px;
+            text-align: right;
         }
         .schedule-description {
-            color: #666;
-            line-height: 1.5;
-        }
-        .footer {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #dee2e6;
             color: #6c757d;
-            font-size: 0.9em;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: right;
         }
-        @media print {
-            body { background: white; }
-            .container { box-shadow: none; }
+        .includes-list, .excludes-list {
+            list-style: none;
+            padding: 0;
+            direction: rtl;
+        }
+        .includes-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+            padding-right: 25px;
+            text-align: right;
+        }
+        .includes-list li:before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .excludes-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+            padding-right: 25px;
+            text-align: right;
+        }
+        .excludes-list li:before {
+            content: '✗';
+            position: absolute;
+            right: 0;
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .terms-section {
+            background: #e3f2fd;
+            border-right: 4px solid #2196f3;
+        }
+        .term-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-right: 3px solid #1e3a8a;
+            line-height: 1.6;
+        }
+        .term-item strong {
+            color: #1e3a8a;
+        }
+        .bank-details {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-right: 4px solid #0ea5e9;
+            margin-top: 15px;
+        }
+        .bank-details .section-title {
+            color: #212529 !important;
+        }
+        .bank-details .info-label {
+            color: #212529 !important;
+        }
+        .bank-details .info-value {
+            color: #212529 !important;
+        }
+        .bank-details .price-highlight {
+            color: #28a745 !important;
+            font-weight: bold;
+        }
+        .contact-info {
+            background: #f3e5f5;
+            border-right: 4px solid #9c27b0;
+            text-align: center;
+            color: #212529 !important;
+        }
+        .contact-info .section-title {
+            color: #212529 !important;
+        }
+        .contact-info .info-label {
+            color: #212529 !important;
+        }
+        .contact-info .info-value {
+            color: #212529 !important;
+        }
+        .logo-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .company-logo {
+            max-width: 150px;
+            max-height: 80px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
         }
     </style>
 </head>
-<body>
+<body>");
+
+            // בניית התוכן
+            html.AppendLine(@"
     <div class='container'>
         <div class='header'>
-            <h1>הצעת מחיר</h1>
-            <p>מספר הצעה: #" + model.Offer.OfferId + @"</p>
-            <p>תאריך יצירה: " + model.Offer.CreatedAt.ToString("dd/MM/yyyy HH:mm") + @"</p>
+            <div class='logo-container'>
+                <img alt='לוגו TMS' class='company-logo' src='../.././images/logo.png' />
+            </div>
+            <h1>מערכת ניהול הצעות מחיר - TMS</h1>
+            <p>הצעת מחיר מספר " + model.Offer.OfferId + @"</p>
+            <p>נוצרה: " + model.Offer.CreatedAt.ToString("dd/MM/yyyy HH:mm") + @"</p>
         </div>
         
         <div class='content'>");
@@ -259,15 +325,15 @@ namespace TmsSystem.Services
             <div class='section'>
                 <div class='section-title'>פרטי הטיול</div>
                 <div class='info-row'>
-                    <span class='info-label'>שם הטיול:</span>
+                    <span class='info-label'>טיול:</span>
                     <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Tour?.Title ?? "לא צוין") + @"</span>
                 </div>
                 <div class='info-row'>
-                    <span class='info-label'>תאריך הטיול:</span>
+                    <span class='info-label'>תאריך:</span>
                     <span class='info-value'>" + model.Offer.TourDate.ToString("dd/MM/yyyy") + @"</span>
                 </div>
                 <div class='info-row'>
-                    <span class='info-label'>מספר משתתפים:</span>
+                    <span class='info-label'>משתתפים:</span>
                     <span class='info-value'>" + model.Offer.Participants + @"</span>
                 </div>");
 
@@ -307,24 +373,161 @@ namespace TmsSystem.Services
             {
                 html.AppendLine(@"
             <div class='section'>
-                <div class='section-title'>תיאור הטיול</div>
-                <div style='line-height: 1.6; color: #333;'>" +
-                    HttpUtility.HtmlEncode(model.Offer.Tour.Description).Replace("\n", "<br>") + @"
-                </div>
+                <div class='section-title'>אודות הסיור - " + HttpUtility.HtmlEncode(model.Offer.Tour.Title) + @"</div>
+                <p>" + HttpUtility.HtmlEncode(model.Offer.Tour.Description).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</p>
             </div>");
             }
 
-            // מחירים
+            // לוח זמנים מפורט
+            if (model.Offer.Tour?.Schedule != null && model.Offer.Tour.Schedule.Any())
+            {
+                html.AppendLine(@"
+            <div class='section'>
+                <div class='section-title'>לוח זמנים מפורט</div>");
+
+                foreach (var item in model.Offer.Tour.Schedule.OrderBy(s => s.StartTime))
+                {
+                    html.AppendLine(@"
+                <div class='schedule-item'>
+                    <div class='schedule-time'>" + item.StartTime.ToString(@"hh\:mm"));
+
+                    if (item.EndTime.HasValue)
+                    {
+                        html.AppendLine(@" - " + item.EndTime.Value.ToString(@"hh\:mm"));
+                    }
+
+                    html.AppendLine(@"</div>
+                    <div class='schedule-location'>" + HttpUtility.HtmlEncode(item.Location ?? "") + @"</div>
+                    <div class='schedule-description'>" + HttpUtility.HtmlEncode(item.Description ?? "").Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
+                </div>");
+                }
+
+                html.AppendLine("            </div>");
+            }
+
+            // מה כלול בסיור
+            if (model.Offer.Tour?.Includes != null && model.Offer.Tour.Includes.Any())
+            {
+                html.AppendLine(@"
+            <div class='section'>
+                <div class='section-title'>הסיור כולל</div>
+                <ul class='includes-list'>");
+
+                foreach (var include in model.Offer.Tour.Includes)
+                {
+                    html.AppendLine(@"
+                    <li>" + HttpUtility.HtmlEncode(include.Description ?? include.Text ?? "") + "</li>");
+                }
+
+                html.AppendLine(@"
+                </ul>
+            </div>");
+            }
+
+            // מה לא כלול בסיור
+            if (model.Offer.Tour?.Excludes != null && model.Offer.Tour.Excludes.Any())
+            {
+                html.AppendLine(@"
+            <div class='section'>
+                <div class='section-title'>הסיור לא כולל</div>
+                <ul class='excludes-list'>");
+
+                foreach (var exclude in model.Offer.Tour.Excludes)
+                {
+                    html.AppendLine(@"
+                    <li>" + HttpUtility.HtmlEncode(exclude.Description ?? exclude.Text ?? "") + "</li>");
+                }
+
+                html.AppendLine(@"
+                </ul>
+            </div>");
+            }
+
+            // מה כלול במחיר
+            if (!string.IsNullOrEmpty(model.Offer.PriceIncludes))
+            {
+                html.AppendLine(@"
+            <div class='section'>
+                <div class='section-title'>המחיר כולל</div>
+                <ul class='includes-list'>");
+
+                var priceIncludes = model.Offer.PriceIncludes.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var item in priceIncludes)
+                {
+                    html.AppendLine(@"
+                    <li>" + HttpUtility.HtmlEncode(item.Trim()) + "</li>");
+                }
+
+                html.AppendLine(@"
+                </ul>
+            </div>");
+            }
+
+            // מה לא כלול במחיר
+            if (!string.IsNullOrEmpty(model.Offer.PriceExcludes))
+            {
+                html.AppendLine(@"
+            <div class='section'>
+                <div class='section-title'>המחיר אינו כולל</div>
+                <ul class='excludes-list'>");
+
+                var priceExcludes = model.Offer.PriceExcludes.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var item in priceExcludes)
+                {
+                    html.AppendLine(@"
+                    <li>" + HttpUtility.HtmlEncode(item.Trim()) + "</li>");
+                }
+
+                html.AppendLine(@"
+                </ul>
+            </div>");
+            }
+
+            // בקשות מיוחדות
+            if (!string.IsNullOrEmpty(model.Offer.SpecialRequests))
+            {
+                html.AppendLine(@"
+            <div class='section'>
+                <div class='section-title'>בקשות מיוחדות וטקסים</div>
+                <div>" + HttpUtility.HtmlEncode(model.Offer.SpecialRequests).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
+            </div>");
+            }
+
+            // תנאי ביטול ותשלום
+            html.AppendLine(@"
+            <div class='section terms-section'>
+                <div class='section-title'>תנאי ביטול ותשלום</div>
+                <div class='term-item'>
+                    <strong>תשלום מקדמה:</strong> על מנת לשריין את הטיול יש להעביר מקדמה של 50% עם אישור ההזמנה. יש לסיים את כל התשלום עד 7 ימים עסקים מיום יציאת הטיול.
+                </div>
+                <div class='term-item'>
+                    <strong>דחיית תאריך:</strong> במידה ותרצו לדחות את התאריך עד 14 יום לפני הסיור ניתן לעשות זאת ללא עלות.
+                </div>
+                <div class='term-item'>
+                    <strong>ביטול עד 30 יום:</strong> במידה ותרצו לבטל את הסיור עד 30 יום לפני הסיור, תקבלו החזר פחות 300ש״ח דמי טיפול.
+                </div>
+                <div class='term-item'>
+                    <strong>ביטול 30-14 ימים:</strong> ביטול שיתקיים בין 30 יום ל 14 יום לפני מועד הסיור - יגבו דמי ביטול של 50% מהמחיר.
+                </div>
+                <div class='term-item'>
+                    <strong>ביטול עד 14 ימים:</strong> ביטול שיתקיים בין 14 יום ליום הסיור - יגבו דמי ביטול מלאים.
+                </div>
+                <div class='term-item'>
+                    <strong>ביטול מטעמנו:</strong> במידה ולא ניתן לקיים את הסיור, ואנו נבטל אותו בשל תנאים ביטחוניים או תנאי מזג אויר, ולא תרצו מועד חלופי - תשלום מלא יוחזר.
+                </div>
+            </div>");
+
+            // פרטי מחיר
             html.AppendLine(@"
             <div class='section price-section'>
                 <div class='section-title'>פרטי מחיר</div>
                 <div class='info-row'>
                     <span class='info-label'>מחיר לאדם:</span>
-                    <span class='info-value price-highlight'>₪" + model.Offer.Price.ToString("N2") + @"</span>
+                    <span class='info-value price-highlight'>₪" + model.Offer.Price.ToString("N0") + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>סה״כ לתשלום:</span>
-                    <span class='info-value price-highlight'>₪" + model.Offer.TotalPayment.ToString("N2") + @"</span>
+                    <span class='info-value price-highlight'>₪" + model.Offer.TotalPayment.ToString("N0") + @"</span>
                 </div>");
 
             if (model.PaymentMethod != null)
@@ -340,78 +543,129 @@ namespace TmsSystem.Services
                 <div class='info-row'>
                     <span class='info-label'>ארוחת צהריים:</span>
                     <span class='info-value'>" + (model.Offer.LunchIncluded ? "כלולה במחיר" : "לא כלולה") + @"</span>
+                </div>");
+
+            // פרטי העברה בנקאית
+            html.AppendLine(@"
+                <div class='bank-details'>
+                    <div class='section-title' style='color: #212529;'>פרטי העברה בנקאית</div>
+                    <div class='info-row'>
+                        <span class='info-label' style='color: #212529;'>שם הבנק:</span>
+                        <span class='info-value' style='color: #212529;'>בנק לאומי</span>
+                    </div>
+                    <div class='info-row'>
+                        <span class='info-label' style='color: #212529;'>מספר סניף:</span>
+                        <span class='info-value' style='color: #212529;'>805</span>
+                    </div>
+                    <div class='info-row'>
+                        <span class='info-label' style='color: #212529;'>מספר חשבון:</span>
+                        <span class='info-value' style='color: #212529;'>39820047</span>
+                    </div>
+                    <div class='info-row'>
+                        <span class='info-label' style='color: #212529;'>שם בעל החשבון:</span>
+                        <span class='info-value' style='color: #212529;'>ספארי אפריקה בע״מ</span>
+                    </div>
+                    <div class='info-row'>
+                        <span class='info-label' style='color: #212529;'>ח.פ:</span>
+                        <span class='info-value' style='color: #212529;'>515323970</span>
+                    </div>
+                    <div class='info-row'>
+                        <span class='info-label' style='color: #212529;'>סכום להעברה:</span>
+                        <span class='info-value price-highlight' style='color: #28a745; font-weight: bold;'>₪" + model.Offer.TotalPayment.ToString("N0") + @"</span>
+                    </div>
+                </div>");
+
+            // פרטי קשר
+            html.AppendLine(@"
+            <div class='section contact-info'>
+                <div class='section-title' style='color: #212529;'>פרטי קשר</div>
+                <div class='info-row'>
+                    <span class='info-label' style='color: #212529;'>טלפון: 📞</span>
+                    <span class='info-value' style='color: #212529;'>058-7818560</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label' style='color: #212529;'>אימייל: 📧</span>
+                    <span class='info-value' style='color: #212529;'>info@tryit.co.il</span>
+                </div>
+                <div style='margin-top: 20px; font-weight: bold; color: #212529;'>
+                    תודה שבחרתם בנו!
                 </div>
             </div>");
 
-            // כולל/לא כולל
+            // הודעה על תוקף ההצעה
             html.AppendLine(@"
-            <div class='includes-excludes'>
-                <div class='includes'>
-                    <h4>כלול במחיר</h4>
-                    <ul>");
-
-            if (!string.IsNullOrEmpty(model.Offer.PriceIncludes))
-            {
-                var includes = model.Offer.PriceIncludes.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                foreach (var include in includes)
-                {
-                    html.AppendLine("                        <li>" + HttpUtility.HtmlEncode(include.Trim()) + "</li>");
-                }
-            }
-            else
-            {
-                html.AppendLine("                        <li>לא צוינו פרטים</li>");
-            }
-
-            html.AppendLine(@"
-                    </ul>
+            <div style='text-align: center; margin-top: 30px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;'>
+                <div class='logo-container'>
+                    <img alt='לוגו TMS' class='company-logo' src='../.././images/logo.png' />
                 </div>
-                <div class='excludes'>
-                    <h4>לא כלול במחיר</h4>
-                    <ul>");
-
-            if (!string.IsNullOrEmpty(model.Offer.PriceExcludes))
-            {
-                var excludes = model.Offer.PriceExcludes.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                foreach (var exclude in excludes)
-                {
-                    html.AppendLine("                        <li>" + HttpUtility.HtmlEncode(exclude.Trim()) + "</li>");
-                }
-            }
-            else
-            {
-                html.AppendLine("                        <li>לא צוינו פרטים</li>");
-            }
-
-            html.AppendLine(@"
-                    </ul>
-                </div>
+                <strong style='color: #856404;'>הצעה תקפה ל-30 יום</strong>
             </div>");
 
-            // בקשות מיוחדות
-            if (!string.IsNullOrEmpty(model.Offer.SpecialRequests))
-            {
-                html.AppendLine(@"
-            <div class='section'>
-                <div class='section-title'>בקשות מיוחדות</div>
-                <div style='line-height: 1.6; color: #333;'>" +
-                    HttpUtility.HtmlEncode(model.Offer.SpecialRequests).Replace("\n", "<br>") + @"
-                </div>
-            </div>");
-            }
-
-            // Footer
+            // סיום
             html.AppendLine(@"
-        </div>
-        <div class='footer'>
-            <p>הצעה זו תקפה למשך 30 יום מתאריך ההנפקה</p>
-            <p>מערכת ניהול טיולים - TMS System</p>
         </div>
     </div>
 </body>
 </html>");
 
             return html.ToString();
+        }
+
+        // פונקציות עזר
+        private string ReverseHebrewSafely(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            bool hasHebrew = text.Any(c => c >= '\u0590' && c <= '\u05FF');
+            if (!hasHebrew)
+                return text;
+
+            var parts = text.Split(' ');
+            var processedParts = new List<string>();
+
+            foreach (var part in parts)
+            {
+                bool partHasHebrew = part.Any(c => c >= '\u0590' && c <= '\u05FF');
+
+                if (partHasHebrew)
+                {
+                    var chars = part.ToCharArray();
+                    Array.Reverse(chars);
+                    processedParts.Add(new string(chars));
+                }
+                else
+                {
+                    processedParts.Add(part);
+                }
+            }
+
+            processedParts.Reverse();
+            return string.Join(" ", processedParts);
+        }
+
+        private string ReverseHebrewCharsOnly(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            var chars = text.ToCharArray();
+            Array.Reverse(chars);
+            return new string(chars);
+        }
+
+        private async Task<string> GetLogoBase64()
+        {
+            try
+            {
+                // החזר בסיס64 של הלוגו או string ריק
+                return "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] {DateTime.Now:yyyy-MM-dd HH:mm:ss} - Error loading logo: {ex.Message}");
+                return "";
+            }
         }
     }
 }

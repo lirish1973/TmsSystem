@@ -288,10 +288,46 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error sending offer email for offer {OfferId} to {Email}", id, email);
+                //  _logger?.LogError(ex, "Error sending offer email for offer {OfferId} to {Email}", id, email);
+                Console.WriteLine($"Error sending offer email for offer {id} to {email}: {ex}");
+
                 return Json(new { success = false, message = $"שגיאה בשליחת המייל: {ex.Message}" });
             }
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ShowOffers(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers
+                    .Include(o => o.Customer)
+                    .Include(o => o.Guide)
+                    .Include(o => o.Tour)
+                    .Include(o => o.PaymentMethod)
+                    .FirstOrDefaultAsync(o => o.OfferId == id);
+
+                if (offer == null)
+                {
+                    return NotFound("הצעת המחיר לא נמצאה");
+                }
+
+                var model = new ShowOfferViewModel
+                {
+                    Offer = offer,
+                    PaymentMethod = offer.PaymentMethod
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] {DateTime.Now:yyyy-MM-dd HH:mm:ss} - Error displaying offer {id}: {ex.Message}");
+                return StatusCode(500, "אירעה שגיאה בעת הצגת הצעת המחיר");
+            }
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> ShowOfferHtml(int id)
@@ -609,7 +645,7 @@ namespace TmsSystem.Controllers
                 if (pdfBytes == null || pdfBytes.Length == 0)
                 {
                     TempData["ErrorMessage"] = "יצירת קובץ PDF נכשלה.";
-                    return RedirectToAction(nameof(ShowOffers), new { id });
+                    return RedirectToAction(nameof(ShowOfferHtml), new { id });
                 }
 
                 var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
@@ -625,7 +661,7 @@ namespace TmsSystem.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
-                return RedirectToAction(nameof(ShowOffers), new { id });
+                return RedirectToAction(nameof(ShowOfferHtml), new { id });
             }
         }
 
