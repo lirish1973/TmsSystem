@@ -1,0 +1,144 @@
+@model TmsSystem.ViewModels.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "עריכת פרופיל";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i> עריכת פרופיל משתמש
+                    </h3>
+                </div>
+                <div class="card-body">
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="EditProfile" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="RegistrationDate" />
+
+                        <!-- פרטים אישיים -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-secondary border-bottom pb-2 mb-3">פרטים אישיים</h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Username" class="form-label">שם משתמש *</label>
+                                <input asp-for="Username" class="form-control" readonly />
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                                <small class="text-muted">שם המשתמש אינו ניתן לשינוי</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">אימייל *</label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label">שם פרטי</label>
+                                <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label">שם משפחה</label>
+                                <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Phone" class="form-label">טלפון</label>
+                                <input asp-for="Phone" class="form-control" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="BirthDate" class="form-label">תאריך לידה</label>
+                                <input asp-for="BirthDate" type="date" class="form-control" />
+                                <span asp-validation-for="BirthDate" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label asp-for="Address" class="form-label">כתובת</label>
+                                <input asp-for="Address" class="form-control" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label asp-for="CompanyName" class="form-label">שם חברה</label>
+                                <input asp-for="CompanyName" class="form-control" />
+                                <span asp-validation-for="CompanyName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- שינוי סיסמה -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-secondary border-bottom pb-2 mb-3">שינוי סיסמה (אופציונלי)</h5>
+                                <p class="text-muted small">השאר ריק אם אינך רוצה לשנות את הסיסמה</p>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="CurrentPassword" class="form-label">סיסמה נוכחית</label>
+                                <input asp-for="CurrentPassword" type="password" class="form-control" />
+                                <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="NewPassword" class="form-label">סיסמה חדשה</label>
+                                <input asp-for="NewPassword" type="password" class="form-control" />
+                                <span asp-validation-for="NewPassword" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ConfirmPassword" class="form-label">אישור סיסמה חדשה</label>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- מידע נוסף -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-secondary border-bottom pb-2 mb-3">מידע נוסף</h5>
+                            </div>
+                            <div class="col-12">
+                                <p class="text-muted">
+                                    <strong>תאריך הרשמה:</strong> @Model.RegistrationDate.ToString("dd/MM/yyyy HH:mm")
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- כפתורים -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="bi bi-check-circle"></i> שמור שינויים
+                                </button>
+                                <a asp-controller="Account" asp-action="ViewProfile" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> ביטול
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

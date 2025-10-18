@@ -164,11 +164,12 @@
                                         שלום @User.Identity.Name
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="Users" asp-action="userProfile">פרופיל</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ViewProfile"><i class="bi bi-person"></i> צפה בפרופיל</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="EditProfile"><i class="bi bi-pencil"></i> ערוך פרופיל</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                                <button class="dropdown-item" type="submit">התנתקות</button>
+                                                <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> התנתקות</button>
                                             </form>
                                         </li>
                                     </ul>
@@ -193,7 +194,7 @@
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Login">כניסה</a>
+                                    <a class="nav-link" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> כניסה</a>
                                 </li>
                             }
                         </ul>

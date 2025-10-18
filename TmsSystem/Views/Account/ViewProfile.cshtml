@@ -1,0 +1,100 @@
+@model TmsSystem.ViewModels.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "פרופיל משתמש";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-person-circle"></i> פרופיל משתמש
+                    </h3>
+                </div>
+                <div class="card-body">
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- פרטים אישיים -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-secondary border-bottom pb-2 mb-3">פרטים אישיים</h5>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">שם משתמש</label>
+                            <p class="form-control-plaintext">@Model.Username</p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">אימייל</label>
+                            <p class="form-control-plaintext">@Model.Email</p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">שם פרטי</label>
+                            <p class="form-control-plaintext">@(Model.FirstName ?? "-")</p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">שם משפחה</label>
+                            <p class="form-control-plaintext">@(Model.LastName ?? "-")</p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">טלפון</label>
+                            <p class="form-control-plaintext">@(Model.Phone ?? "-")</p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">תאריך לידה</label>
+                            <p class="form-control-plaintext">@(Model.BirthDate?.ToString("dd/MM/yyyy") ?? "-")</p>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">כתובת</label>
+                            <p class="form-control-plaintext">@(Model.Address ?? "-")</p>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">שם חברה</label>
+                            <p class="form-control-plaintext">@(Model.CompanyName ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <!-- מידע נוסף -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-secondary border-bottom pb-2 mb-3">מידע נוסף</h5>
+                        </div>
+                        <div class="col-12">
+                            <p class="text-muted">
+                                <strong>תאריך הרשמה:</strong> @Model.RegistrationDate.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- כפתורים -->
+                    <div class="row">
+                        <div class="col-12">
+                            <a asp-controller="Account" asp-action="EditProfile" class="btn btn-primary me-2">
+                                <i class="bi bi-pencil"></i> ערוך פרופיל
+                            </a>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-right"></i> חזור לדף הבית
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
