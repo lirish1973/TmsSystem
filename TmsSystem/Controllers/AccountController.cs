@@ -114,7 +114,7 @@ namespace TmsSystem.Controllers
                 Phone = user.PhoneNumber ?? string.Empty,
                 Address = user.Address ?? string.Empty,
                 CompanyName = user.CompanyName ?? string.Empty,
-                BirthDate = user.BirthDate ?? DateTime.MinValue,
+                BirthDate = user.BirthDate,
                 RegistrationDate = user.RegistrationDate
             };
 
@@ -142,7 +142,7 @@ namespace TmsSystem.Controllers
                 Phone = user.PhoneNumber ?? string.Empty,
                 Address = user.Address ?? string.Empty,
                 CompanyName = user.CompanyName ?? string.Empty,
-                BirthDate = user.BirthDate ?? DateTime.MinValue,
+                BirthDate = user.BirthDate,
                 RegistrationDate = user.RegistrationDate
             };
 

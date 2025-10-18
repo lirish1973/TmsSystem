@@ -35,9 +35,9 @@
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Username" class="form-label">שם משתמש *</label>
-                                <input asp-for="Username" class="form-control" readonly />
+                                <input asp-for="Username" class="form-control" readonly aria-describedby="usernameHelp" />
                                 <span asp-validation-for="Username" class="text-danger"></span>
-                                <small class="text-muted">שם המשתמש אינו ניתן לשינוי</small>
+                                <small id="usernameHelp" class="text-muted">שם המשתמש אינו ניתן לשינוי</small>
                             </div>
 
                             <div class="col-md-6 mb-3">
