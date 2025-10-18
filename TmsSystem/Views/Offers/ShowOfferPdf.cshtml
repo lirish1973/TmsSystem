@@ -109,7 +109,7 @@
     <!-- Header עם לוגו -->
     <div class="header">
         <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="לוגו החברה" class="logo">
-        <div class="company-name">TMS - מערכת ניהול טיולים</div>
+        <div class="company-name">TMS - מערכת יצירת הצעות מחיר</div>
         <div class="offer-title">הצעת מחיר #@Model.Offer.OfferId</div>
         <div>נוצרה בתאריך: @Model.Offer.CreatedAt.ToString("dd/MM/yyyy")</div>
     </div>
@@ -183,6 +183,35 @@
             </div>
         }
     </div>
+    
+    <!-- לוח זמנים מפורט -->
+    @if (Model.Offer.Tour?.Schedule != null && Model.Offer.Tour.Schedule.Any())
+    {
+        <div class="section">
+            <div class="section-title">לוח זמנים מפורט</div>
+            <table style="width:100%; border: 1px solid #ddd;">
+                <thead>
+                <tr style="background:#f1f1f1; text-align:right;">
+                    <th style="padding:8px; border-bottom:1px solid #eee;">זמן התחלה</th>
+                    <th style="padding:8px; border-bottom:1px solid #eee;">זמן סיום</th>
+                    <th style="padding:8px; border-bottom:1px solid #eee;">מיקום</th>
+                    <th style="padding:8px; border-bottom:1px solid #eee;">תיאור</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Offer.Tour.Schedule.OrderBy(s => s.StartTime))
+                {
+                    <tr>
+                        <td style="padding:8px; vertical-align:top;">@item.StartTime.ToString(@"hh\:mm")</td>
+                        <td style="padding:8px; vertical-align:top;">@(item.EndTime.HasValue ? item.EndTime.Value.ToString(@"hh\:mm") : "-")</td>
+                        <td style="padding:8px; vertical-align:top;">@item.Location</td>
+                        <td style="padding:8px; vertical-align:top;">@item.Description</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
 
     <!-- מחיר -->
     <div class="section price-section">
@@ -235,7 +264,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        <div>מערכת ניהול טיולים - TMS</div>
+        <div>מערכת יצירת הצעות מחיר - TMS</div>
         <div>הצעת מחיר זו תקפה ל-30 יום מתאריך ההנפקה</div>
     </div>
 </body>

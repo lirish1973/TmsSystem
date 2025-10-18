@@ -36,6 +36,9 @@
        target="_blank">
         תצוגת HTML
     </a>
+    <a href="@Url.Action("Index", "Offers")" class="btn btn-blue-secondary mr-2">
+        <i class="fas fa-arrow-left"></i> חזרה לרשימה
+    </a>
 </form>
 <div class="container mt-4">
     <div class="card blue-theme-card">
@@ -114,39 +117,35 @@
             }
 
             <!-- לוח זמנים מפורט של הסיור -->
-            @if (Model.Offer.Tour.Schedule != null && Model.Offer.Tour.Schedule.Any())
+            <!-- לוח זמנים מפורט -->
+            @if (Model.Offer.Tour?.Schedule != null && Model.Offer.Tour.Schedule.Any())
             {
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card border-blue-primary">
-                            <div class="card-header bg-blue-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-clock"></i> לוח זמנים מפורט</h5>
-                            </div>
-                            <div class="card-body bg-white">
-                                <div class="schedule-timeline">
-                                    @foreach (var item in Model.Offer.Tour.Schedule.OrderBy(s => s.StartTime))
-                                    {
-                                        <div class="schedule-item">
-                                            <div class="schedule-time">
-                                                <span class="time-badge">@item.StartTime.ToString(@"hh\:mm")</span>
-                                                @if (item.EndTime.HasValue)
-                                                {
-                                                    <span class="time-separator">-</span>
-                                                    <span class="time-badge">@item.EndTime.Value.ToString(@"hh\:mm")</span>
-                                                }
-                                            </div>
-                                            <div class="schedule-content">
-                                                <h6 class="location-title text-blue-primary">@item.Location</h6>
-                                                <p class="description-text">@item.Description</p>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="section">
+                    <div class="section-title">לוח זמנים מפורט</div>
+                    <table style="width:100%; border: 1px solid #ddd;">
+                        <thead>
+                        <tr style="background:#f1f1f1; text-align:right;">
+                            <th style="padding:8px; border-bottom:1px solid #eee;">זמן התחלה</th>
+                            <th style="padding:8px; border-bottom:1px solid #eee;">זמן סיום</th>
+                            <th style="padding:8px; border-bottom:1px solid #eee;">מיקום</th>
+                            <th style="padding:8px; border-bottom:1px solid #eee;">תיאור</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in Model.Offer.Tour.Schedule.OrderBy(s => s.StartTime))
+                        {
+                            <tr>
+                                <td style="padding:8px; vertical-align:top;">@item.StartTime.ToString(@"hh\:mm")</td>
+                                <td style="padding:8px; vertical-align:top;">@(item.EndTime.HasValue ? item.EndTime.Value.ToString(@"hh\:mm") : "-")</td>
+                                <td style="padding:8px; vertical-align:top;">@item.Location</td>
+                                <td style="padding:8px; vertical-align:top;">@item.Description</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
                 </div>
             }
+
 
             <!-- מה כולל ולא כולל בסיור -->
             @if ((Model.Offer.Tour.Includes != null && Model.Offer.Tour.Includes.Any()) ||

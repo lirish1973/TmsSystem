@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using TmsSystem.Data;
 using TmsSystem.Models;
 using TmsSystem.Services;
@@ -79,25 +81,286 @@ namespace TmsSystem.Controllers
             return Content(html, "text/html; charset=utf-8");
         }
 
-        [HttpPost("/offers/{id}/send-email")]
-        public async Task<IActionResult> SendEmail(int id)
-        {
-            var model = await LoadOfferViewModelAsync(id);
-            var toEmail = model.Offer?.Customer?.Email;
-            if (string.IsNullOrWhiteSpace(toEmail))
-                return BadRequest("לא נמצא אימייל ללקוח.");
-
-            await _offerEmailSender.SendOfferEmailAsync(model, toEmail);
-            return Ok(new { ok = true, sentTo = toEmail });
-        }
 
 
-        private async Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
+
+
+
+[HttpPost("/offers/{id}/send-email")]
+    public async Task<IActionResult> SendEmail(int id)
+    {
+        try
         {
             var offer = await _context.Offers
                 .Include(o => o.Customer)
                 .Include(o => o.Guide)
                 .Include(o => o.Tour)
+                .Include(o => o.PaymentMethod)
+                .FirstOrDefaultAsync(o => o.OfferId == id);
+
+            if (offer == null)
+                return Content(MakeEmailSuccessHtml(new { success = false, message = "הצעת המחיר לא נמצאה" }), "text/html; charset=utf-8");
+
+            var toEmail = offer.Customer?.Email;
+            if (string.IsNullOrWhiteSpace(toEmail))
+                return Content(MakeEmailSuccessHtml(new { success = false, message = "לא נמצא אימייל ללקוח" }), "text/html; charset=utf-8");
+
+            var model = new ShowOfferViewModel
+            {
+                Offer = offer,
+                PaymentMethod = offer.PaymentMethod
+            };
+
+            await _offerEmailSender.SendOfferEmailAsync(model, toEmail);
+
+            var responseObj = new
+            {
+                success = true,
+                ok = true,
+                sentTo = toEmail,
+                subject = $"הצעת מחיר #{id} - TMS",
+                sentAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                provider = "SendGrid",
+                offerId = id,
+                customerName = offer.Customer?.FullName ?? offer.Customer?.CustomerName,
+                message = "הצעת המחיר נשלחה בהצלחה למייל"
+            };
+
+            return Content(MakeEmailSuccessHtml(responseObj), "text/html; charset=utf-8");
+        }
+        catch (Exception ex)
+        {
+            var errObj = new
+            {
+                success = false,
+                ok = false,
+                message = $"שגיאה בשליחת המייל: {ex.Message}"
+            };
+            return Content(MakeEmailSuccessHtml(errObj), "text/html; charset=utf-8");
+        }
+    }
+
+    private string MakeEmailSuccessHtml(object data)
+    {
+        bool isSuccess = data.GetType().GetProperty("success")?.GetValue(data)?.ToString()?.ToLower() == "true";
+        string title = isSuccess ? "המייל נשלח בהצלחה!" : "שליחת המייל נכשלה";
+        string icon = isSuccess ? "✅" : "❌";
+        string color = isSuccess ? "#28a745" : "#dc3545";
+
+        string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        string encodedJson = WebUtility.HtmlEncode(json);
+
+        return $@"<!DOCTYPE html>
+<html lang='he' dir='rtl'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>תוצאת שליחה</title>
+<style>
+{GetEmailSuccessCss()}
+</style>
+</head>
+<body>
+<div class='email-success-overlay'>
+    <div class='email-success-card'>
+        <div class='success-icon' style='color:{color};'>{icon}</div>
+        <div class='success-title'>{title}</div>
+        <div class='email-details'>
+            <div class='detail-row'>
+                <div class='detail-label'>תאריך שליחה</div>
+                <div class='detail-value'>{DateTime.Now:dd/MM/yyyy HH:mm:ss}</div>
+            </div>
+            <div class='detail-row'>
+                <div class='detail-label'>לנמען</div>
+                <div class='detail-value'>{data.GetType().GetProperty("sentTo")?.GetValue(data) ?? "-"}</div>
+            </div>
+            <div class='detail-row'>
+                <div class='detail-label'>נושא</div>
+                <div class='detail-value'>{data.GetType().GetProperty("subject")?.GetValue(data) ?? "-"}</div>
+            </div>
+            <div class='detail-row'>
+                <div class='detail-label'>מספר הצעה</div>
+                <div class='detail-value'>{data.GetType().GetProperty("offerId")?.GetValue(data) ?? "-"}</div>
+            </div>
+            <div class='detail-row'>
+                <div class='detail-label'>שם לקוח</div>
+                <div class='detail-value'>{data.GetType().GetProperty("customerName")?.GetValue(data) ?? "-"}</div>
+            </div>
+            <div class='detail-row'>
+                <div class='detail-label'>הודעה</div>
+                <div class='detail-value'>{data.GetType().GetProperty("message")?.GetValue(data) ?? "-"}</div>
+            </div>
+        </div>
+        
+ <button class='close-btn' onclick=""window.location.href='/offers'"">חזור</button>
+
+    </div>
+</div>
+</body>
+</html>";
+    }
+
+    private string GetEmailSuccessCss()
+    {
+        return @"
+.email-success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.email-success-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    direction: rtl;
+    text-align: center;
+    animation: slideIn 0.4s ease-out;
+    transform: scale(1);
+    transition: all 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.success-icon {
+    font-size: 80px;
+    margin-bottom: 25px;
+    animation: bounce 1s ease;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.success-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.email-details {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 25px 0;
+    text-align: right;
+    border: 1px solid #dee2e6;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 15px;
+}
+
+.detail-value {
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 15px;
+    word-break: break-all;
+    max-width: 60%;
+}
+
+.close-btn {
+    background: linear-gradient(145deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .email-success-card {
+        padding: 25px;
+        margin: 20px;
+        width: calc(100% - 40px);
+    }
+    
+    .success-icon {
+        font-size: 60px;
+    }
+    
+    .success-title {
+        font-size: 22px;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: right;
+    }
+    
+    .detail-value {
+        max-width: 100%;
+        margin-top: 5px;
+        font-size: 14px;
+    }
+}";
+    }
+
+
+
+
+
+
+
+
+    private async Task<ShowOfferViewModel> LoadOfferViewModelAsync(int id)
+        {
+            var offer = await _context.Offers
+                .Include(o => o.Customer)
+                .Include(o => o.Guide)
+                .Include(o => o.Tour).ThenInclude(t => t.Schedule)
+              //  .Include(o => o.Tour)
                 .Include(o => o.PaymentMethod)
                 .FirstOrDefaultAsync(o => o.OfferId == id);
             if (offer == null)
@@ -246,7 +509,7 @@ namespace TmsSystem.Controllers
 
 
 
-
+        
 
 
 
@@ -280,20 +543,45 @@ namespace TmsSystem.Controllers
                     PaymentMethod = offer.PaymentMethod
                 };
 
-                // שליחת המייל
+                // שליחת המייל עם הפונקציה החדשה שמחזירה EmailResponse
                 var offerEmailSender = HttpContext.RequestServices.GetRequiredService<OfferEmailSender>();
-                await offerEmailSender.SendOfferEmailAsync(model, email);
+                var result = await offerEmailSender.SendOfferEmailWithResponseAsync(model, email);
 
-                return Json(new { success = true, message = "הצעת המחיר נשלחה בהצלחה למייל" });
+                if (result.Success)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        sentTo = result.SentTo,
+                        subject = result.Subject,
+                        sentAt = result.SentAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        provider = result.Provider,
+                        offerId = result.OfferId,
+                        customerName = result.CustomerName,
+                        messageId = result.MessageId
+                    });
+                }
+                else
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = result.ErrorMessage
+                    });
+                }
             }
             catch (Exception ex)
             {
-                //  _logger?.LogError(ex, "Error sending offer email for offer {OfferId} to {Email}", id, email);
                 Console.WriteLine($"Error sending offer email for offer {id} to {email}: {ex}");
-
                 return Json(new { success = false, message = $"שגיאה בשליחת המייל: {ex.Message}" });
             }
         }
+
+
+
+
+
+
 
 
         [HttpGet]
@@ -304,7 +592,8 @@ namespace TmsSystem.Controllers
                 var offer = await _context.Offers
                     .Include(o => o.Customer)
                     .Include(o => o.Guide)
-                    .Include(o => o.Tour)
+                     // .Include(o => o.Tour)
+                    .Include(o => o.Tour).ThenInclude(t => t.Schedule)
                     .Include(o => o.PaymentMethod)
                     .FirstOrDefaultAsync(o => o.OfferId == id);
 
@@ -475,6 +764,9 @@ namespace TmsSystem.Controllers
 
             return View(offer);
         }
+
+
+
 
         // POST: Offers/Delete/5 - גרסה מתוקנת עם טיפול בשגיאות
         [HttpPost, ActionName("Delete")]
@@ -667,6 +959,7 @@ namespace TmsSystem.Controllers
 
 
 
+     
 
 
 

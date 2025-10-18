@@ -13,7 +13,7 @@ public class SendGridEmailService : IEmailService
         _config = config;
     }
 
-    public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string plainTextBody, CancellationToken ct)
+    public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, CancellationToken ct = default)
     {
         var apiKey = _config["SendGrid:ApiKey"];
         var client = new SendGridClient(apiKey);

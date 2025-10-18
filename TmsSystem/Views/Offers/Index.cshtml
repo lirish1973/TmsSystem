@@ -159,8 +159,11 @@
                                         <a href="/offers/@offer.OfferId/preview-html" class="btn btn-outline-info flex-fill btn-sm" title="הצג HTML" target="_blank">
                                             <i class="fas fa-file-code"></i>HTML
                                         </a>
-                                        <button class="btn btn-outline-success flex-fill btn-sm" title="שלח במייל" onclick="sendOfferEmail(@offer.OfferId, this)">
-                                            <i class="fas fa-envelope"></i>שלח במייל
+                                        <button class="btn btn-primary send-offer-btn"
+                                                data-offer-id="@offer.OfferId"
+                                                data-email="@(offer.Customer?.Email ?? "")"
+                                                onclick="sendOfferEmail(this)">
+                                            <i class="fas fa-envelope"></i> שלח במייל
                                         </button>
                                     </div>
                                     <div class="text-muted text-center w-100" style="font-size:0.8em;">
@@ -170,33 +173,55 @@
                             </div>
                         </div>
                     }
-<script>
-    function sendOfferEmail(offerId, btn) {
-        if (!confirm('האם לשלוח את ההצעה במייל ללקוח?')) return;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
-        fetch(`/offers/${offerId}/send-email`, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.ok) {
-                    btn.innerHTML = '<i class="fas fa-check"></i> נשלח!';
-                } else {
-                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
-                    alert(data.message || 'שגיאה בשליחה');
-                }
-            })
-            .catch(() => {
-                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
-                alert('שגיאה בשליחה');
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    btn.innerHTML = '<i class="fas fa-envelope"></i>שלח במייל';
-                    btn.disabled = false;
-                }, 3000);
-            });
-    }
-</script>
+
+                           <script>
+                             function sendOfferEmail(btn) {
+                            const offerId = btn.dataset.offerId;
+                            const email = btn.dataset.email;
+
+                            if (!email) {
+                                alert('לא נמצאה כתובת מייל ללקוח.');
+                                return;
+                            }
+
+                            if (!confirm(`האם לשלוח את ההצעה במייל לכתובת:\n${email}?`)) return;
+
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+
+                            const formData = new FormData();
+                            formData.append('toEmail', email);
+                            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value || '');
+
+                            fetch(`/offers/${offerId}/send-email`, {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.ok) {
+                                    btn.innerHTML = '<i class="fas fa-check"></i> נשלח!';
+                                } else {
+                                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                                    alert(data.message || 'שגיאה בשליחה');
+                                }
+                            })
+                            .catch(() => {
+                                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                                alert('שגיאה בשליחה');
+                            })
+                            .finally(() => {
+                                setTimeout(() => {
+                                    btn.innerHTML = '<i class="fas fa-envelope"></i> שלח במייל';
+                                    btn.disabled = false;
+                                }, 3000);
+                            });
+                        }
+
+
+                    </script>
+
+
                 }
             </div>
         </div>
@@ -327,6 +352,217 @@
         padding: 50px 0;
         color: #aaa;
     }
+
+    .email-success-card {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        z-index: 1000;
+        direction: rtl;
+        text-align: center;
+    }
+
+    .email-success-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+
+    .success-icon {
+        font-size: 60px;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+
+    .success-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+
+    .email-details {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: right;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 5px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+    .detail-label {
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .detail-value {
+        color: #6c757d;
+    }
+
+    .close-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+        .close-btn:hover {
+            background: #218838;
+        }
+    /* כרטיסיית הצלחה */
+    .email-success-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(8px);
+    }
+
+    .email-success-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        direction: rtl;
+        text-align: center;
+        animation: slideIn 0.4s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from
+
+    {
+        opacity: 0;
+        transform: scale(0.8) translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    }
+
+    .success-icon {
+        font-size: 80px;
+        color: #28a745;
+        margin-bottom: 25px;
+        animation: bounce 1s ease;
+    }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100%
+
+    {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-10px);
+    }
+
+    60% {
+        transform: translateY(-5px);
+    }
+
+    }
+
+    .success-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #28a745;
+        margin-bottom: 25px;
+    }
+
+    .email-details {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 25px 0;
+        text-align: right;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .detail-value {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .detail-icon {
+        margin-left: 8px;
+        color: #28a745;
+    }
+
+    .close-btn {
+        background: linear-gradient(145deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 15px 35px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+    }
+
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+        }
 </style>
 
 <script>
@@ -354,4 +590,280 @@
         var noResults = document.querySelector(".no-results");
         if (noResults) noResults.style.display = shown === 0 ? "" : "none";
     }
+
+
+        function sendOfferEmail(offerId) {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+
+        fetch(`/Offers/SendOfferEmail`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: `id=${offerId}&email=${encodeURIComponent(document.querySelector(`#email-${offerId}`).value)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showSuccessCard(data);
+                btn.innerHTML = '<i class="fas fa-check"></i> נשלח!';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-success');
+            } else {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                btn.classList.add('btn-danger');
+                alert(data.message || 'שגיאה בשליחה');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+            btn.classList.add('btn-danger');
+            alert('שגיאה בשליחה');
+        })
+        .finally(() => {
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('btn-success', 'btn-danger');
+                btn.classList.add('btn-primary');
+            }, 3000);
+        });
+    }
+
+    function showSuccessCard(data) {
+        // יצירת הכרטיסיה
+        const overlay = document.createElement('div');
+        overlay.className = 'email-success-overlay';
+
+        const card = document.createElement('div');
+        card.className = 'email-success-card';
+
+        card.innerHTML = `
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="success-title">המייל נשלח בהצלחה!</div>
+
+            <div class="email-details">
+                <div class="detail-row">
+                    <span class="detail-label">נשלח אל:</span>
+                    <span class="detail-value" dir="ltr">${data.sentTo}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">נושא:</span>
+                    <span class="detail-value">${data.subject}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">זמן שליחה:</span>
+                    <span class="detail-value">${data.sentAt}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">ספק שליחה:</span>
+                    <span class="detail-value">${data.provider}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">הצעה מספר:</span>
+                    <span class="detail-value">#${data.offerId}</span>
+                </div>
+                ${data.customerName ? `
+                <div class="detail-row">
+                    <span class="detail-label">לקוח:</span>
+                    <span class="detail-value">${data.customerName}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <button class="close-btn" onclick="closeSuccessCard()">
+                <i class="fas fa-times"></i> סגור
+            </button>
+        `;
+
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        // אנימציה של כניסה
+        setTimeout(() => {
+            card.style.transform = 'translate(-50%, -50%) scale(1)';
+            card.style.opacity = '1';
+        }, 10);
+
+        // סגירה אוטומטית לאחר 10 שניות
+        setTimeout(() => {
+            closeSuccessCard();
+        }, 10000);
+
+        // סגירה בלחיצה על הרקע
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeSuccessCard();
+            }
+        });
+    }
+
+    function closeSuccessCard() {
+        const overlay = document.querySelector('.email-success-overlay');
+        if (overlay) {
+            const card = overlay.querySelector('.email-success-card');
+            card.style.transform = 'translate(-50%, -50%) scale(0.8)';
+            card.style.opacity = '0';
+
+            setTimeout(() => {
+                overlay.remove();
+            }, 300);
+        }
+    }
+
+    // ESC key לסגירה
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSuccessCard();
+        }
+    });
+
+    <script>
+    // הקוד JavaScript שלך כאן...
+    function sendOfferEmail(offerId) {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+
+        fetch(`/offers/${offerId}/send-email`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                console.log('Response:', data); // להוסיף לבדיקה
+                if (data.success || data.ok) {
+                    showSuccessCard(data);
+                    btn.innerHTML = '<i class="fas fa-check"></i> נשלח!';
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-success');
+                } else {
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                    btn.classList.add('btn-danger');
+                    alert(data.message || 'שגיאה בשליחה');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> שגיאה';
+                btn.classList.add('btn-danger');
+                alert('שגיאה בשליחה');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('btn-success', 'btn-danger');
+                    btn.classList.add('btn-primary');
+                }, 3000);
+            });
+    }
+
+    function showSuccessCard(data) {
+        console.log('showSuccessCard called with:', data); // להוסיף לבדיקה
+
+        // הסרת כרטיסיה קיימת
+        const existingOverlay = document.querySelector('.email-success-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+
+        // יצירת הכרטיסיה
+        const overlay = document.createElement('div');
+        overlay.className = 'email-success-overlay';
+
+        overlay.innerHTML = `
+            <div class="email-success-card">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="success-title">המייל נשלח בהצלחה! 🎉</div>
+
+                <div class="email-details">
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-envelope detail-icon"></i>נשלח אל:
+                        </span>
+                        <span class="detail-value" dir="ltr">${data.sentTo}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-tag detail-icon"></i>נושא:
+                        </span>
+                        <span class="detail-value">${data.subject || 'הצעת מחיר - TMS'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-clock detail-icon"></i>זמן שליחה:
+                        </span>
+                        <span class="detail-value">${data.sentAt || new Date().toLocaleString('he-IL')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-server detail-icon"></i>ספק שליחה:
+                        </span>
+                        <span class="detail-value">${data.provider || 'SendGrid'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-hashtag detail-icon"></i>הצעה מספר:
+                        </span>
+                        <span class="detail-value">#${data.offerId}</span>
+                    </div>
+                    ${data.customerName ? `
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-user detail-icon"></i>לקוח:
+                        </span>
+                        <span class="detail-value">${data.customerName}</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <button class="close-btn" onclick="closeSuccessCard()">
+                    <i class="fas fa-check"></i> מעולה!
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        console.log('Card added to DOM'); // להוסיף לבדיקה
+
+        // סגירה אוטומטית לאחר 8 שניות
+        setTimeout(() => {
+            closeSuccessCard();
+        }, 8000);
+
+        // סגירה בלחיצה על הרקע
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeSuccessCard();
+            }
+        });
+    }
+
+    function closeSuccessCard() {
+        const overlay = document.querySelector('.email-success-overlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            overlay.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                overlay.remove();
+            }, 300);
+        }
+    }
+
+    // סגירה במקש ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSuccessCard();
+        }
+    });
 </script>
