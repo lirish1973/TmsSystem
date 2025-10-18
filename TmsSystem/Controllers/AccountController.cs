@@ -93,10 +93,10 @@ namespace TmsSystem.Controllers
             return View(model);
         }
 
-        // הוספת פעולת Profile
+        // ===================== VIEW PROFILE (Read-Only) =====================
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Profile()
+        public async Task<IActionResult> ViewProfile()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -118,17 +118,44 @@ namespace TmsSystem.Controllers
                 RegistrationDate = user.RegistrationDate
             };
 
-            return View("UserProfile", model);
+            return View("ViewProfile", model);
         }
 
+        // ===================== EDIT PROFILE =====================
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("לא נמצא משתמש מחובר.");
+            }
+
+            var model = new UserProfileViewModel
+            {
+                Id = user.Id ?? string.Empty,
+                Username = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
+                Address = user.Address ?? string.Empty,
+                CompanyName = user.CompanyName ?? string.Empty,
+                BirthDate = user.BirthDate ?? DateTime.MinValue,
+                RegistrationDate = user.RegistrationDate
+            };
+
+            return View("EditProfile", model);
+        }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Profile(UserProfileViewModel model)
+        public async Task<IActionResult> EditProfile(UserProfileViewModel model)
         {
             if (!ModelState.IsValid)
-                return View("UserProfile", model);
+                return View(model);
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -162,7 +189,7 @@ namespace TmsSystem.Controllers
                         {
                             ModelState.AddModelError("", error.Description);
                         }
-                        return View("UserProfile", model);
+                        return View(model);
                     }
                 }
                 else
@@ -170,7 +197,7 @@ namespace TmsSystem.Controllers
                     TempData["SuccessMessage"] = "הפרופיל עודכן בהצלחה!";
                 }
 
-                return RedirectToAction("Profile");
+                return RedirectToAction("ViewProfile");
             }
 
             foreach (var error in result.Errors)
@@ -178,10 +205,8 @@ namespace TmsSystem.Controllers
                 ModelState.AddModelError("", error.Description);
             }
 
-            return View("UserProfile", model);
+            return View(model);
         }
-
-
 
         // ===================== LOGIN ===================== (ללא שינוי)
         [HttpGet]
@@ -220,73 +245,7 @@ namespace TmsSystem.Controllers
 
 
 
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> UserProfile()  // שינוי מ-Profile ל-UserProfile
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound();
-            }
 
-            var model = new UserProfileViewModel
-            {
-                Id = user.Id ?? string.Empty,
-                Username = user.UserName ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                FirstName = user.FirstName ?? string.Empty,
-                LastName = user.LastName ?? string.Empty,
-                Phone = user.PhoneNumber ?? string.Empty,
-                Address = user.Address ?? string.Empty,
-                CompanyName = user.CompanyName ?? string.Empty,
-                BirthDate = user.BirthDate ?? DateTime.MinValue,
-                RegistrationDate = user.RegistrationDate
-            };
-
-            return View(model);
-        }
-
-
-
-
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UserProfile(UserProfileViewModel model)  // גם כאן
-        {
-            if (ModelState.IsValid)
-            {
-                // שליפת המשתמש מה־DB
-                var user = _context.Users.FirstOrDefault(u => u.Id == model.Id);
-                if (user == null)
-                {
-                    return NotFound(); // אם המשתמש לא נמצא
-                }
-
-                // עדכון פרטי המשתמש
-                user.Email = model.Email;
-                user.FirstName = model.FirstName;
-                user.LastName = model.LastName;
-                user.Address = model.Address;
-                user.PhoneNumber = model.Phone;
-                user.CompanyName = model.CompanyName;
-                user.BirthDate = model.BirthDate;
-
-              
-
-                return RedirectToAction("ProfileUpdated");
-            }
-
-            return View(model); // החזרת המודל עם שגיאות אם יש
-        }
-
-        [HttpGet]
-        public IActionResult ProfileUpdated()
-        {
-            ViewData["Message"] = "הפרופיל עודכן בהצלחה.";
-            return View();
-        }
 
 
 
