@@ -54,7 +54,7 @@ namespace TmsSystem.Services
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>הצעת מחיר - TMS System</title>
+    <title>הצעת מחיר - TRYIT System</title>
     <style>
         * {
             box-sizing: border-box;
@@ -283,9 +283,9 @@ namespace TmsSystem.Services
     <div class='container'>
         <div class='header'>
             <div class='logo-container'>
-                <img alt='לוגו TMS' class='company-logo' src='../.././images/logo.png' />
+                <img alt='לוגו TRYIT' class='company-logo' src='https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png' />
             </div>
-            <h1>מערכת ניהול הצעות מחיר - TMS</h1>
+            <h1>מערכת ניהול הצעות מחיר - TRYIT</h1>
             <p>הצעת מחיר מספר " + model.Offer.OfferId + @"</p>
             <p>נוצרה: " + model.Offer.CreatedAt.ToString("dd/MM/yyyy HH:mm") + @"</p>
         </div>
@@ -596,7 +596,7 @@ namespace TmsSystem.Services
             html.AppendLine(@"
             <div style='text-align: center; margin-top: 30px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;'>
                 <div class='logo-container'>
-                    <img alt='לוגו TMS' class='company-logo' src='../.././images/logo.png' />
+                    <img alt='לוגו TRYIT' class='company-logo' src='https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png' />
                 </div>
                 <strong style='color: #856404;'>הצעה תקפה ל-30 יום</strong>
             </div>");

@@ -26,7 +26,7 @@ namespace TmsSystem.Services
                 throw new ArgumentException("Destination email address is required", nameof(toEmail));
 
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(_options.FromName ?? "TMS", _options.FromEmail));
+            message.From.Add(new MailboxAddress(_options.FromName ?? "TRYIT", _options.FromEmail));
             message.To.Add(MailboxAddress.Parse(toEmail));
             message.Subject = subject;
 

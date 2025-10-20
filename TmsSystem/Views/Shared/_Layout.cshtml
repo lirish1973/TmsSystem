@@ -94,6 +94,7 @@
     @if (User.Identity.IsAuthenticated)
     {
         <div id="sidebar" class="sidebar">
+            <img src="https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png" style="width:100px;" />
             <nav class="nav flex-column">
                 <a class="nav-link" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-house"></i> <span>בית</span>
@@ -151,7 +152,9 @@
         <header>
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
-                    <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">מערכת הצעות מחיר TRYIT</a>
+                    <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">מערכת הצעות מחיר
+                        <img src="https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png" style="width:70px;" />
+                    </a>
 
                     <!-- כפתור Hamburger למסכים קטנים -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -176,7 +179,12 @@
                             {
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-person-circle"></i> שלום @User.Identity.Name
+                                        <i class="bi bi-person-circle"></i>
+                                        שלום @User.Identity.Name
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            @: ADMIN
+                                        }
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                         <li><a class="dropdown-item" asp-controller="Account" asp-action="ViewProfile"><i class="bi bi-person"></i> צפה בפרופיל</a></li>

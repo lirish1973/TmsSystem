@@ -24,7 +24,7 @@ namespace TmsSystem.Services
         public async Task<EmailResponse> SendOfferEmailWithResponseAsync(ShowOfferViewModel model, string toEmail, CancellationToken ct = default)
         {
             var offerId = model?.Offer?.OfferId ?? 0;
-            var subject = $"הצעת מחיר #{offerId} - TMS";
+            var subject = $"הצעת מחיר מספר {offerId} - TRYIT";
             var customerName = model?.Offer?.Customer?.FullName ?? model?.Offer?.Customer?.CustomerName ?? "";
 
             _logger.LogInformation("Preparing HTML for offer #{OfferId} to send to {ToEmail}", offerId, toEmail);
@@ -73,12 +73,12 @@ namespace TmsSystem.Services
         public async Task SendOfferEmailAsync(ShowOfferViewModel model, string toEmail, CancellationToken ct = default)
         {
             var offerId = model?.Offer?.OfferId ?? 0;
-            _logger.LogInformation("Preparing HTML for offer #{OfferId} to send to {ToEmail}", offerId, toEmail);
+            _logger.LogInformation("Preparing HTML for offer מספר {OfferId} to send to {ToEmail}", offerId, toEmail);
 
             var html = await _pdfService.GenerateOfferHtmlAsync(model);
-            await _emailService.SendHtmlAsync(toEmail, $"הצעת מחיר #{offerId} - TMS", html, ct: ct);
+            await _emailService.SendHtmlAsync(toEmail, $" הצעת מחיר מספר {offerId} - TRYIT", html, ct: ct);
 
-            _logger.LogInformation("Offer #{OfferId} sent to {ToEmail}", offerId, toEmail);
+            _logger.LogInformation("Offer מספר{OfferId} sent to {ToEmail}", offerId, toEmail);
         }
     }
 }

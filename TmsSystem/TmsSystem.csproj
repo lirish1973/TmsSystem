@@ -4,9 +4,16 @@
   <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>0e4b9999-027e-4c53-af8c-8a19d8c7089e</UserSecretsId>
   </PropertyGroup>
 
-
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-TmsSystem-12345678-9abc-def0-1234-56789abcdef0</UserSecretsId>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="DinkToPdf" Version="1.0.8" />
     <PackageReference Include="itext7" Version="8.0.5" />

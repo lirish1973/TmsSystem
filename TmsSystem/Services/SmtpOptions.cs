@@ -11,6 +11,6 @@
         public string Username { get; set; } = ""; // כתובת Gmail המלאה
         public string Password { get; set; } = ""; // App Password (לא סיסמת חשבון רגילה)
         public string FromEmail { get; set; } = ""; // בד"כ זהה ל-Username
-        public string FromName { get; set; } = "TMS";
+        public string FromName { get; set; } = "TRYIT";
     }
 }
