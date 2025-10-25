@@ -5,7 +5,7 @@ using TmsSystem.Models;
 using TmsSystem.Services;
 using DinkToPdf;
 using DinkToPdf.Contracts;
-
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +46,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddTransient<IEmailSender, SendGridEmailSender>();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -56,6 +59,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
+
 
 // יצירת תפקידים ברירת מחדל
 using (var scope = app.Services.CreateScope())
@@ -90,5 +94,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.Urls.Add("http://0.0.0.0:5000");
+//app.Urls.Add("http://0.0.0.0:5000");
 app.Run();
