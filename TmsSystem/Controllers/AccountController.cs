@@ -50,8 +50,9 @@ namespace TmsSystem.Controllers
 
         // ===================== REGISTER =====================
         [HttpGet]
-        [Authorize(Roles = "Admin")] // רק מנהלים יכולים ליצור משתמשים חדשים
+       // [Authorize(Roles = "Admin")] // רק מנהלים יכולים ליצור משתמשים חדשים
         public IActionResult Register() => View();
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -309,9 +310,9 @@ namespace TmsSystem.Controllers
                                $"אם לא ביקשת לאפס את הסיסמה, התעלם מהודעה זו.\n\n" +
                                $"בברכה,\nצוות TMS System";
 
+            // ← הוסף את השורות האלה! ←
             try
             {
-                // שליחת מייל דרך IEmailService (SendGrid)
                 await _emailService.SendHtmlAsync(
                     toEmail: model.Email,
                     subject: "איפוס סיסמה - מערכת TMS",
@@ -319,29 +320,20 @@ namespace TmsSystem.Controllers
                     plainTextBody: plainTextBody
                 );
 
-                ViewData["SuccessMessage"] = "קישור לאיפוס סיסמה נשלח לאימייל שלך.";
+                ViewData["SuccessMessage"] = "אם כתובת האימייל קיימת במערכת, נשלח אליך קישור לאיפוס סיסמה.";
             }
             catch (Exception ex)
             {
-                // במקרה של שגיאה, נסה עם IEmailSender (גיבוי)
-                try
-                {
-                    await _emailSender.SendEmailAsync(
-                        model.Email,
-                        "איפוס סיסמה - מערכת TMS",
-                        $"אנא אפס את הסיסמה שלך על ידי <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>לחיצה כאן</a>.");
-
-                    ViewData["SuccessMessage"] = "אם כתובת האימייל קיימת במערכת, נשלח אליך קישור לאיפוס סיסמה.";
-                }
-                catch
-                {
-                    ViewData["ErrorMessage"] = "אירעה שגיאה בשליחת האימייל. אנא נסה שוב מאוחר יותר.";
-                    Console.WriteLine($"Error sending reset password email: {ex.Message}");
-                }
+                // רישום שגיאה
+                ViewData["ErrorMessage"] = "אירעה שגיאה בשליחת האימייל. אנא נסה שוב מאוחר יותר.";
+                Console.WriteLine($"Email Error: {ex.Message}");
             }
 
             return View();
         }
+
+
+
 
 
         // פונקציה ליצירת HTML לאימייל

@@ -27,6 +27,7 @@ builder.Services.AddScoped<OfferEmailSender>();
 // PdfService כבר אמור להיות רשום; אם לא:
 builder.Services.AddScoped<PdfService>();
 
+
 // שאר הרישומים וה־MVC
 builder.Services.AddControllersWithViews();
 
