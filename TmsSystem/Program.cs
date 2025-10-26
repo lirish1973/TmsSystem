@@ -42,7 +42,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(10),
             errorNumbersToAdd: null)
     ));
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -63,20 +62,21 @@ var app = builder.Build();
 
 
 // יצירת תפקידים ברירת מחדל
-using (var scope = app.Services.CreateScope())
+app.Lifetime.ApplicationStarted.Register(async () =>
 {
+    using var scope = app.Services.CreateScope();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
     string[] roles = { "Admin", "User" };
 
-    foreach (string role in roles)
+    foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole(role));
         }
     }
-}
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -95,5 +95,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-//app.Urls.Add("http://0.0.0.0:5000");
+
+app.Urls.Clear();
+app.Urls.Add("http://0.0.0.0:5000");
 app.Run();
