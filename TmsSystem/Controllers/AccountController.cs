@@ -11,11 +11,12 @@ using TmsSystem.Data;
 using TmsSystem.Models;
 using TmsSystem.Services;
 using TmsSystem.ViewModels;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace TmsSystem.Controllers
 {
-   
-
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -26,31 +27,27 @@ namespace TmsSystem.Controllers
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
 
-
-
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext dbContext,
             IEmailSender emailSender,
-            IEmailService emailService,      // ← הוסף
-            IConfiguration config)            // ← הוסף
+            IEmailService emailService,
+            IConfiguration config)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _context = dbContext;
             _emailSender = emailSender;
-            _emailService = emailService;     // ← הוסף
-            _config = config;                 // ← הוסף
+            _emailService = emailService;
+            _config = config;
         }
-
-
 
         // ===================== REGISTER =====================
         [HttpGet]
-       // [Authorize(Roles = "Admin")] // רק מנהלים יכולים ליצור משתמשים חדשים
+        // [Authorize(Roles = "Admin")] // רק מנהלים יכולים ליצור משתמשים חדשים
         public IActionResult Register() => View();
 
         [HttpPost]
@@ -96,8 +93,8 @@ namespace TmsSystem.Controllers
                 }
                 else
                 {
-                    // אם זה הרשמה רגילה, מחברים את המשתמש
-                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    // אם זה הרשמה רגילה, מחברים את המשתמש עם Session
+                    await SignInUserWithSession(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
             }
@@ -227,14 +224,26 @@ namespace TmsSystem.Controllers
             return View(model);
         }
 
-        // ===================== LOGIN ===================== (ללא שינוי)
+        // ===================== LOGIN - מעודכן עם Session =====================
         [HttpGet]
-        public IActionResult Login() => View();
+        public IActionResult Login(string? returnUrl = null)
+        {
+            // בדיקה אם יש timeout query parameter
+            if (Request.Query.ContainsKey("timeout"))
+            {
+                TempData["TimeoutMessage"] = "נותקת מהמערכת בעקבות חוסר פעילות למשך 15 דקות.";
+            }
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
+
             if (!ModelState.IsValid)
                 return View(model);
 
@@ -246,32 +255,101 @@ namespace TmsSystem.Controllers
                 return View(model);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(
-                user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+            // בדיקת סיסמה
+            var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: false);
 
-            if (result.Succeeded)
-                return RedirectToLocal(returnUrl);
+            if (!passwordCheck.Succeeded)
+            {
+                if (passwordCheck.IsLockedOut)
+                    ModelState.AddModelError("", "החשבון נעול. צור קשר עם המנהל.");
+                else if (passwordCheck.IsNotAllowed)
+                    ModelState.AddModelError("", "כניסה לא אפשרית. אנא אמת את החשבון.");
+                else
+                    ModelState.AddModelError("", "סיסמה שגויה.");
 
-            if (result.IsLockedOut)
-                ModelState.AddModelError("", "החשבון נעול. צור קשר עם המנהל.");
-            else if (result.IsNotAllowed)
-                ModelState.AddModelError("", "כניסה לא אפשרית. אנא אמת את החשבון.");
-            else
-                ModelState.AddModelError("", "כניסה נכשלה. בדוק את הפרטים.");
+                return View(model);
+            }
 
-            return View(model);
+            // 🔑 התחברות עם Session - 15 דקות
+            await SignInUserWithSession(user, model.RememberMe);
+
+            // שמירת מידע נוסף ב-Session
+            HttpContext.Session.SetString("Username", user.UserName ?? user.Email ?? "User");
+            HttpContext.Session.SetString("LoginTime", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+            HttpContext.Session.SetString("LastActivity", DateTime.Now.ToString("O")); // ISO 8601 format
+
+            TempData["SuccessMessage"] = $"שלום {user.FirstName ?? user.UserName}, התחברת בהצלחה!";
+
+            return RedirectToLocal(returnUrl);
         }
 
+        // ===================== פונקציה פרטית - התחברות עם Session =====================
+        private async Task SignInUserWithSession(ApplicationUser user, bool isPersistent)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
 
+            // יצירת Claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id ?? string.Empty),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("FullName", $"{user.FirstName} {user.LastName}".Trim()),
+            };
 
-        // GET: ForgotPassword
+            // הוספת תפקידים
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var claimsIdentity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var authProperties = new AuthenticationProperties
+            {
+                // ⏱️ תוקף 15 דקות
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(15),
+
+                // 🔄 Sliding - מתחדש בכל פעולה
+                AllowRefresh = true,
+
+                // 🚫 Session Cookie - לא נשמר אחרי סגירת דפדפן
+                IsPersistent = isPersistent, // false = Session Cookie
+
+                IssuedUtc = DateTimeOffset.UtcNow
+            };
+
+            // התחבר
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+        }
+
+        // ===================== KEEP ALIVE - מאריך Session =====================
+        [Authorize]
+        [HttpPost]
+        public IActionResult KeepAlive()
+        {
+            // עדכון זמן פעילות אחרון
+            HttpContext.Session.SetString("LastActivity", DateTime.Now.ToString("O"));
+            return Ok(new
+            {
+                success = true,
+                message = "Session extended",
+                expiresIn = "15 minutes"
+            });
+        }
+
+        // ===================== FORGOT PASSWORD =====================
         [HttpGet]
         public IActionResult ForgotPassword()
         {
             return View();
         }
 
-        // POST: ForgotPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
@@ -310,7 +388,6 @@ namespace TmsSystem.Controllers
                                $"אם לא ביקשת לאפס את הסיסמה, התעלם מהודעה זו.\n\n" +
                                $"בברכה,\nצוות TMS System";
 
-            // ← הוסף את השורות האלה! ←
             try
             {
                 await _emailService.SendHtmlAsync(
@@ -324,7 +401,6 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                // רישום שגיאה
                 ViewData["ErrorMessage"] = "אירעה שגיאה בשליחת האימייל. אנא נסה שוב מאוחר יותר.";
                 Console.WriteLine($"Email Error: {ex.Message}");
             }
@@ -332,11 +408,61 @@ namespace TmsSystem.Controllers
             return View();
         }
 
+        // ===================== LOGOUT - מעודכן עם ניקוי Session =====================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            // נקה Session
+            HttpContext.Session.Clear();
 
+            // התנתק
+            await _signInManager.SignOutAsync();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
+            TempData["SuccessMessage"] = "התנתקת בהצלחה מהמערכת.";
 
+            return RedirectToAction("Index", "Home");
+        }
 
-        // פונקציה ליצירת HTML לאימייל
+        // ===================== PASSWORD RESET (Admin) =====================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetPassword(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "משתמש לא נמצא.";
+                return RedirectToAction("Index", "Users");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה ל- '@#$TempPass123'.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = string.Join("<br>", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction("Index", "Users");
+        }
+
+        // ===================== עזר פרטי =====================
+        private IActionResult RedirectToLocal(string? returnUrl)
+        {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+            else
+                return RedirectToAction("Index", "Home");
+        }
+
+        // ===================== יצירת HTML לאימייל =====================
         private string GenerateResetPasswordEmailHtml(string userName, string resetLink)
         {
             return $@"
@@ -428,53 +554,6 @@ namespace TmsSystem.Controllers
     </div>
 </body>
 </html>";
-        }
-
-
-        // ===================== LOGOUT =====================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
-        }
-
-        // ===================== עזר פרטי =====================
-        private IActionResult RedirectToLocal(string? returnUrl)
-        {
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-            else
-                return RedirectToAction("Index", "Home");
-        }
-
-        // ===================== Password Reset =====================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ResetPassword(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "משתמש לא נמצא.";
-                return RedirectToAction("Index", "Users");
-            }
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
-
-            if (result.Succeeded)
-            {
-                TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה ל- '@#$TempPass123'.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = string.Join("<br>", result.Errors.Select(e => e.Description));
-            }
-
-            return RedirectToAction("Index", "Users");
         }
     }
 }
