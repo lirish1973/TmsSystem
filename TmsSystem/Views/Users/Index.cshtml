@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<TmsSystem.Models.ApplicationUser>
+@inject Microsoft.AspNetCore.Identity.UserManager<TmsSystem.Models.ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "רשימת משתמשים";
@@ -16,6 +17,7 @@
         <thead class="table-primary">
             <tr>
                 <th>שם משתמש</th>
+                <th>תפקיד</th>
                 <th>אימייל</th>
                 <th>טלפון</th>
                 <th>שם פרטי</th>
@@ -29,8 +31,19 @@
         <tbody>
             @foreach (var user in Model)
             {
+                var isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
                 <tr>
                     <td>@user.UserName</td>
+                    <td>
+                        @if (isAdmin)
+                        {
+                            <span class="badge bg-success">מנהל</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">משתמש</span>
+                        }
+                    </td>
                     <td>@user.Email</td>
                     <td>@user.PhoneNumber</td>
                     <td>@user.FirstName</td>
@@ -40,8 +53,6 @@
                     <td>@user.BirthDate?.ToString("yyyy-MM-dd")</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-primary">עריכה</a>
-
-                     
 
                         <!-- כפתור איפוס סיסמה -->
                         <form asp-action="ResetPassword" asp-route-id="@user.Id" method="post" style="display:inline-block"
@@ -54,7 +65,6 @@
                             <button type="submit" class="btn btn-sm btn-danger">מחק</button>
                         </form>
                     </td>
-
                 </tr>
             }
         </tbody>

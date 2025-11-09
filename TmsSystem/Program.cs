@@ -20,10 +20,10 @@ builder.Services.AddRazorPages();
 builder.Services.AddDistributedMemoryCache(); // שמירה בזיכרון (לפרודקשן: Redis)
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(15); // ⏱️ 15 דקות חוסר פעילות
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // ⏱️ 60 דקות חוסר פעילות
     options.Cookie.HttpOnly = true; // 🔒 אבטחה - מניעת גישת JavaScript
     options.Cookie.IsEssential = true; // ✅ חיוני לעבודת המערכת
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // 🔐 רק HTTPS
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // 🔓 גם HTTP (לפיתוח)
     options.Cookie.Name = ".TmsSystem.Session"; // שם ייחודי
 });
 
@@ -33,40 +33,24 @@ builder.Services.AddSession(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login"; // 🔐 נתיב התחברות
-        options.LogoutPath = "/Account/Logout"; // 🚪 נתיב ניתוק
-        options.AccessDeniedPath = "/Account/AccessDenied"; // ⛔ גישה נדחתה
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
 
-        // ⏱️ תוקף Cookie - 15 דקות
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+        // ⏱️ תוקף Cookie - 60 דקות
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 
         // 🔄 Sliding Expiration - מתחדש בכל בקשה
         options.SlidingExpiration = true;
 
-        // 🚫 Cookie נמחק כשהדפדפן נסגר
+        // Cookie settings
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None; // 🔓 גם HTTP
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.MaxAge = null; // ⚠️ Session Cookie - לא נשמר אחרי סגירה
         options.Cookie.Name = ".TmsSystem.Auth";
-
-        // 📊 אירועים - בדיקת תוקף
-        options.Events = new CookieAuthenticationEvents
-        {
-            OnValidatePrincipal = async context =>
-            {
-                var issued = context.Properties.IssuedUtc;
-                if (issued.HasValue &&
-                    DateTimeOffset.UtcNow.Subtract(issued.Value) > TimeSpan.FromMinutes(15))
-                {
-                    // ⏰ פג תוקף - ניתוק אוטומטי
-                    context.RejectPrincipal();
-                    await context.HttpContext.SignOutAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme);
-                }
-            }
-        };
+        options.Cookie.IsEssential = true; // ✅ חיוני!
     });
+
 
 // ========================================
 // 🗄️ Database - MySQL
@@ -97,6 +81,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.AllowedForNewUsers = true;
+
+
+    options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
@@ -108,10 +95,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
 
-    // ⏱️ תוקף - 15 דקות (מסונכרן עם Cookie Authentication)
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+    // ⏱️ תוקף - 60 דקות
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.SlidingExpiration = true;
-    options.Cookie.MaxAge = null; // Session Cookie
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    options.Cookie.IsEssential = true;
 });
 
 // ========================================

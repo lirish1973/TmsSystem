@@ -94,7 +94,14 @@ namespace TmsSystem.Controllers
                 else
                 {
                     // אם זה הרשמה רגילה, מחברים את המשתמש עם Session
-                    await SignInUserWithSession(user, isPersistent: false);
+                    // התחברות פשוטה בעזרת SignInManager (Identity)
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    // שמירת נתונים ב־Session במידת הצורך
+                    HttpContext.Session.SetString("Username", user.UserName ?? user.Email ?? "User");
+                    HttpContext.Session.SetString("LoginTime", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+                    HttpContext.Session.SetString("LastActivity", DateTime.Now.ToString("O"));
+
                     return RedirectToAction("Index", "Home");
                 }
             }
@@ -225,10 +232,10 @@ namespace TmsSystem.Controllers
         }
 
         // ===================== LOGIN - מעודכן עם Session =====================
+        // GET: /Account/Login
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public IActionResult Login(string returnUrl = null)
         {
-            // בדיקה אם יש timeout query parameter
             if (Request.Query.ContainsKey("timeout"))
             {
                 TempData["TimeoutMessage"] = "נותקת מהמערכת בעקבות חוסר פעילות למשך 15 דקות.";
@@ -238,95 +245,50 @@ namespace TmsSystem.Controllers
             return View();
         }
 
+        // POST: /Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        public async Task<IActionResult> Login(TmsSystem.ViewModels.LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
 
             if (!ModelState.IsValid)
                 return View(model);
 
-            // חיפוש המשתמש לפי Email
+            // חיפוש לפי אימייל; במקרה שלא נמצא - ננסה גם לפי שם משתמש (תאימות)
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                ModelState.AddModelError("", "משתמש לא נמצא");
+                user = await _userManager.FindByNameAsync(model.Email);
+            }
+
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "שם משתמש/אימייל או סיסמה לא נכונים");
                 return View(model);
             }
 
-            // בדיקת סיסמה
-            var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: false);
+            // חשוב: משתמשים ב-UserName כאשר קוראים ל-PasswordSignInAsync
+            var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
 
-            if (!passwordCheck.Succeeded)
+            if (result.Succeeded)
             {
-                if (passwordCheck.IsLockedOut)
-                    ModelState.AddModelError("", "החשבון נעול. צור קשר עם המנהל.");
-                else if (passwordCheck.IsNotAllowed)
-                    ModelState.AddModelError("", "כניסה לא אפשרית. אנא אמת את החשבון.");
-                else
-                    ModelState.AddModelError("", "סיסמה שגויה.");
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
 
-                return View(model);
+                return RedirectToAction("Index", "Home");
             }
 
-            // 🔑 התחברות עם Session - 15 דקות
-            await SignInUserWithSession(user, model.RememberMe);
-
-            // שמירת מידע נוסף ב-Session
-            HttpContext.Session.SetString("Username", user.UserName ?? user.Email ?? "User");
-            HttpContext.Session.SetString("LoginTime", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
-            HttpContext.Session.SetString("LastActivity", DateTime.Now.ToString("O")); // ISO 8601 format
-
-            TempData["SuccessMessage"] = $"שלום {user.FirstName ?? user.UserName}, התחברת בהצלחה!";
-
-            return RedirectToLocal(returnUrl);
-        }
-
-        // ===================== פונקציה פרטית - התחברות עם Session =====================
-        private async Task SignInUserWithSession(ApplicationUser user, bool isPersistent)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-
-            // יצירת Claims
-            var claims = new List<Claim>
+            if (result.IsLockedOut)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id ?? string.Empty),
-                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                new Claim("FullName", $"{user.FirstName} {user.LastName}".Trim()),
-            };
-
-            // הוספת תפקידים
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                return View("Lockout");
             }
 
-            var claimsIdentity = new ClaimsIdentity(
-                claims,
-                CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var authProperties = new AuthenticationProperties
-            {
-                // ⏱️ תוקף 15 דקות
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(15),
-
-                // 🔄 Sliding - מתחדש בכל פעולה
-                AllowRefresh = true,
-
-                // 🚫 Session Cookie - לא נשמר אחרי סגירת דפדפן
-                IsPersistent = isPersistent, // false = Session Cookie
-
-                IssuedUtc = DateTimeOffset.UtcNow
-            };
-
-            // התחבר
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
+            ModelState.AddModelError(string.Empty, "שם משתמש/אימייל או סיסמה לא נכונים");
+            return View(model);
         }
+
+
 
         // ===================== KEEP ALIVE - מאריך Session =====================
         [Authorize]
