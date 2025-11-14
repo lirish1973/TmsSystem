@@ -9,7 +9,7 @@ namespace TmsSystem.ViewModels
         public string Email { get; set; }
 
         [Required(ErrorMessage = "נא להזין סיסמה חדשה")]
-        [StringLength(100, ErrorMessage = "הסיסמה חייבת להיות לפחות {2} תווים", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "הסיסמה חייבת להכיל לפחות {2} תווים", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "סיסמה חדשה")]
         public string Password { get; set; }

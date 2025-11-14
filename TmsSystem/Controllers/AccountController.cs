@@ -321,37 +321,39 @@ namespace TmsSystem.Controllers
                 return View(model);
             }
 
+            // בדיקה פשוטה במסד הנתונים - טבלת aspnetusers
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            // לא מגלים אם המשתמש קיים או לא - מסיבות אבטחה
-            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            // אם המשתמש לא קיים - עדיין נציג הודעת הצלחה (אבטחה)
+            if (user == null)
             {
                 ViewData["SuccessMessage"] = "אם כתובת האימייל קיימת במערכת, נשלח אליך קישור לאיפוס סיסמה.";
                 return View();
             }
 
-            // יצירת טוקן לאיפוס סיסמה
-            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-            // יצירת קישור לאיפוס סיסמה
-            var callbackUrl = Url.Action(
-                "ResetPassword",
-                "Account",
-                new { code = code, email = model.Email },
-                protocol: Request.Scheme);
-
-            // יצירת תוכן HTML לאימייל
-            var htmlBody = GenerateResetPasswordEmailHtml(user.UserName ?? user.Email, callbackUrl);
-            var plainTextBody = $"שלום {user.UserName ?? user.Email},\n\n" +
-                               $"קיבלנו בקשה לאיפוס הסיסמה שלך.\n\n" +
-                               $"לחץ על הקישור הבא לאיפוס הסיסמה:\n{callbackUrl}\n\n" +
-                               $"הקישור תקף ל-24 שעות.\n\n" +
-                               $"אם לא ביקשת לאפס את הסיסמה, התעלם מהודעה זו.\n\n" +
-                               $"בברכה,\nצוות TMS System";
-
             try
             {
+                // יצירת טוקן לאיפוס סיסמה
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                // יצירת קישור לאיפוס סיסמה
+                var callbackUrl = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { code = code, email = model.Email },
+                    protocol: Request.Scheme);
+
+                // יצירת תוכן HTML לאימייל - נשתמש בפונקציה הקיימת שלך
+                var htmlBody = GenerateResetPasswordEmailHtml(user.UserName ?? user.Email, callbackUrl);
+                var plainTextBody = $"שלום {user.UserName ?? user.Email},\n\n" +
+                                   $"קיבלנו בקשה לאיפוס הסיסמה שלך.\n\n" +
+                                   $"לחץ על הקישור הבא לאיפוס הסיסמה:\n{callbackUrl}\n\n" +
+                                   $"הקישור תקף ל-24 שעות.\n\n" +
+                                   $"אם לא ביקשת לאפס את הסיסמה, התעלם מהודעה זו.\n\n" +
+                                   $"בברכה,\nצוות TMS System";
+
+                // שליחת המייל באמצעות SendGrid - אותו שירות שעובד להצעות מחיר
                 await _emailService.SendHtmlAsync(
                     toEmail: model.Email,
                     subject: "איפוס סיסמה - מערכת TMS",
@@ -359,12 +361,13 @@ namespace TmsSystem.Controllers
                     plainTextBody: plainTextBody
                 );
 
-                ViewData["SuccessMessage"] = "אם כתובת האימייל קיימת במערכת, נשלח אליך קישור לאיפוס סיסמה.";
+                ViewData["SuccessMessage"] = "קישור לאיפוס סיסמה נשלח בהצלחה לכתובת המייל שלך!";
+                //_logger.LogInformation($"Password reset email sent successfully to {model.Email}");
             }
             catch (Exception ex)
             {
+               // _logger.LogError(ex, $"Error sending password reset email to {model.Email}");
                 ViewData["ErrorMessage"] = "אירעה שגיאה בשליחת האימייל. אנא נסה שוב מאוחר יותר.";
-                Console.WriteLine($"Email Error: {ex.Message}");
             }
 
             return View();
@@ -388,10 +391,11 @@ namespace TmsSystem.Controllers
         }
 
         // ===================== PASSWORD RESET (Admin) =====================
+        // ===================== PASSWORD RESET (Admin) =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ResetPassword(string id)
+        public async Task<IActionResult> AdminResetPassword(string id)  // ✅ שינוי שם!
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
@@ -414,6 +418,72 @@ namespace TmsSystem.Controllers
 
             return RedirectToAction("Index", "Users");
         }
+
+
+        // ===================== RESET PASSWORD (User - GET) =====================
+        [HttpGet]
+        public IActionResult ResetPassword(string code = null, string email = null)
+        {
+            if (code == null || email == null)
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Code = code,
+                Email = email
+            };
+
+            return View(model);
+        }
+
+        // ===================== RESET PASSWORD (User - POST) =====================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // בדיקה שהמשתמש קיים במסד הנתונים
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ViewData["SuccessMessage"] = "הסיסמה אופסה בהצלחה! תוכל להתחבר כעת עם הסיסמה החדשה.";
+                return View();
+            }
+
+            try
+            {
+                // פענוח הטוקן
+                var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Code));
+
+                // איפוס הסיסמה בטבלת aspnetusers
+                var result = await _userManager.ResetPasswordAsync(user, code, model.Password);
+
+                if (result.Succeeded)
+                {
+                    ViewData["SuccessMessage"] = "הסיסמה אופסה בהצלחה! תוכל להתחבר כעת עם הסיסמה החדשה.";
+                    return View();
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "אירעה שגיאה באיפוס הסיסמה. אנא נסה שוב.");
+            }
+
+            return View(model);
+        }
+
+
 
         // ===================== עזר פרטי =====================
         private IActionResult RedirectToLocal(string? returnUrl)
