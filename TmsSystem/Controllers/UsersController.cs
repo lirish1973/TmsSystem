@@ -12,12 +12,12 @@ namespace TmsSystem.Controllers
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UsersController(UserManager<ApplicationUser> userManager)
+        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager) 
         {
             _userManager = userManager;
-            
-
+            _roleManager = roleManager; 
         }
 
         // GET: /Users
@@ -35,13 +35,16 @@ namespace TmsSystem.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
+            var roles = await _userManager.GetRolesAsync(user);
+            ViewBag.IsAdmin = roles.Contains("Admin");
+
             return View(user);
         }
 
         // POST: /Users/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, ApplicationUser model)
+        public async Task<IActionResult> Edit(string id, ApplicationUser model, bool isAdmin)
         {
             if (id != model.Id) return NotFound();
 
@@ -60,7 +63,27 @@ namespace TmsSystem.Controllers
 
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                var isCurrentlyAdmin = currentRoles.Contains("Admin");
+
+                // אם השתנה התפקיד
+                if (isAdmin && !isCurrentlyAdmin)
+                {
+                    // הוספה לתפקיד מנהל
+                    await _userManager.RemoveFromRoleAsync(user, "User");
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                }
+                else if (!isAdmin && isCurrentlyAdmin)
+                {
+                    // הסרה מתפקיד מנהל
+                    await _userManager.RemoveFromRoleAsync(user, "Admin");
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
+
+                TempData["SuccessMessage"] = "המשתמש עודכן בהצלחה";
                 return RedirectToAction(nameof(Index));
+            }
 
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
