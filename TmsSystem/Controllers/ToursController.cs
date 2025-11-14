@@ -98,6 +98,23 @@ namespace TmsSystem.Controllers
                 existingTour.Title = model.Title;
                 existingTour.Description = model.Description;
 
+                // ✅ תיקון: מצא או צור Itinerary לסיור
+                var itinerary = await _context.Itineraries
+                    .FirstOrDefaultAsync(i => i.TourId == existingTour.TourId);
+
+                if (itinerary == null)
+                {
+                    // אם אין Itinerary, צור אחד חדש
+                    itinerary = new Itinerary
+                    {
+                        TourId = existingTour.TourId,
+                        Name = $"לוח זמנים - {existingTour.Title}"
+                        
+                    };
+                    _context.Itineraries.Add(itinerary);
+                    await _context.SaveChangesAsync();
+                }
+
                 // עדכן לוח זמנים (ItineraryItems)
                 if (existingTour.Schedule != null && existingTour.Schedule.Any())
                 {
@@ -106,14 +123,17 @@ namespace TmsSystem.Controllers
 
                 if (model.Schedule != null && model.Schedule.Any())
                 {
-                    var scheduleItems = model.Schedule.Select(s => new ItineraryItem
-                    {
-                        TourId = existingTour.TourId,
-                        StartTime = s.StartTime,
-                        EndTime = s.EndTime,
-                        Location = s.Location,
-                        Description = s.Description
-                    }).ToList();
+                    var scheduleItems = model.Schedule
+                        .Where(s => !string.IsNullOrEmpty(s.Location))
+                        .Select(s => new ItineraryItem
+                        {
+                            TourId = existingTour.TourId,
+                            ItineraryId = itinerary.ItineraryId,  // ✅ תיקון: הוספתי ItineraryId
+                            StartTime = s.StartTime,
+                            EndTime = s.EndTime,
+                            Location = s.Location,
+                            Description = s.Description
+                        }).ToList();
 
                     await _context.ItineraryItems.AddRangeAsync(scheduleItems);
                 }
@@ -161,12 +181,18 @@ namespace TmsSystem.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "הסיור עודכן בהצלחה";
-                return RedirectToAction("Details", new { id = existingTour.TourId });
+                // ✅ שינוי: חזרה לאותו עמוד עריכה במקום Details
+                return RedirectToAction("EditTour", new { id = existingTour.TourId });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in EditTour: {ex.Message}");
-                ModelState.AddModelError("", "אירעה שגיאה בעדכון הסיור. אנא נסה שוב.");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                ModelState.AddModelError("", $"אירעה שגיאה בעדכון הסיור: {ex.Message}");
                 return View(model);
             }
         }
@@ -250,6 +276,7 @@ namespace TmsSystem.Controllers
 
             var model = new CreateTourViewModel
             {
+                TourId = tour.TourId,  // ✅ תיקון: הוספתי את ה-TourId למודל
                 Title = tour.Title,
                 Description = tour.Description,
                 Schedule = tour.Schedule.Select(s => new ScheduleItemViewModel
@@ -262,9 +289,6 @@ namespace TmsSystem.Controllers
                 Includes = tour.Includes.Select(i => i.Description).ToList(),
                 Excludes = tour.Excludes.Select(e => e.Description).ToList()
             };
-
-            // שמירה של ה-TourId ב-TempData כדי להשתמש ב-POST
-            TempData["EditingTourId"] = tour.TourId;
 
             return View(model);
         }
@@ -279,72 +303,104 @@ namespace TmsSystem.Controllers
                 return View(model);
             }
 
-            // משחזר את ה-TourId מ-TempData
-            if (!TempData.ContainsKey("EditingTourId"))
-                return NotFound();
-
-            int tourId = (int)TempData["EditingTourId"];
-
-            var tour = await _context.Tours
-                .Include(t => t.Schedule)
-                .Include(t => t.Includes)
-                .Include(t => t.Excludes)
-                .FirstOrDefaultAsync(t => t.TourId == tourId);
-
-            if (tour == null) return NotFound();
-
-            // עדכון פרטים כלליים
-            tour.Title = model.Title;
-            tour.Description = model.Description;
-
-            // ---- עדכון לוח זמנים ----
-            _context.ItineraryItems.RemoveRange(tour.Schedule);
-            if (model.Schedule != null)
+            try
             {
-                foreach (var item in model.Schedule.Where(i => !string.IsNullOrEmpty(i.Location)))
+                var tour = await _context.Tours
+                    .Include(t => t.Schedule)
+                    .Include(t => t.Includes)
+                    .Include(t => t.Excludes)
+                    .FirstOrDefaultAsync(t => t.TourId == model.TourId);
+
+                if (tour == null)
                 {
-                    _context.ItineraryItems.Add(new ItineraryItem
+                    ModelState.AddModelError("", $"הסיור עם מזהה {model.TourId} לא נמצא במערכת");
+                    return View(model);
+                }
+
+                // עדכון פרטים כלליים
+                tour.Title = model.Title;
+                tour.Description = model.Description;
+
+                // ✅ תיקון: מצא או צור Itinerary לסיור
+                var itinerary = await _context.Itineraries
+                    .FirstOrDefaultAsync(i => i.TourId == tour.TourId);
+
+                if (itinerary == null)
+                {
+                    // אם אין Itinerary, צור אחד חדש
+                    itinerary = new Itinerary
                     {
                         TourId = tour.TourId,
-                        StartTime = item.StartTime,
-                        EndTime = item.EndTime,
-                        Location = item.Location,
-                        Description = item.Description
-                    });
+                        Name = $"לוח זמנים - {tour.Title}"
+                        
+                    };
+                    _context.Itineraries.Add(itinerary);
+                    await _context.SaveChangesAsync();
                 }
-            }
 
-            // ---- עדכון Includes ----
-            _context.TourIncludes.RemoveRange(tour.Includes);
-            if (model.Includes != null)
-            {
-                foreach (var inc in model.Includes.Where(i => !string.IsNullOrWhiteSpace(i)))
+                // ---- עדכון לוח זמנים ----
+                _context.ItineraryItems.RemoveRange(tour.Schedule);
+                if (model.Schedule != null)
                 {
-                    _context.TourIncludes.Add(new TourInclude
+                    foreach (var item in model.Schedule.Where(i => !string.IsNullOrEmpty(i.Location)))
                     {
-                        TourId = tour.TourId,
-                        Description = inc
-                    });
+                        _context.ItineraryItems.Add(new ItineraryItem
+                        {
+                            TourId = tour.TourId,
+                            ItineraryId = itinerary.ItineraryId,  // ✅ תיקון: הוספתי ItineraryId
+                            StartTime = item.StartTime,
+                            EndTime = item.EndTime,
+                            Location = item.Location,
+                            Description = item.Description
+                        });
+                    }
                 }
-            }
 
-            // ---- עדכון Excludes ----
-            _context.TourExcludes.RemoveRange(tour.Excludes);
-            if (model.Excludes != null)
-            {
-                foreach (var exc in model.Excludes.Where(e => !string.IsNullOrWhiteSpace(e)))
+                // ---- עדכון Includes ----
+                _context.TourIncludes.RemoveRange(tour.Includes);
+                if (model.Includes != null)
                 {
-                    _context.TourExcludes.Add(new TourExclude
+                    foreach (var inc in model.Includes.Where(i => !string.IsNullOrWhiteSpace(i)))
                     {
-                        TourId = tour.TourId,
-                        Description = exc
-                    });
+                        _context.TourIncludes.Add(new TourInclude
+                        {
+                            TourId = tour.TourId,
+                            Description = inc
+                        });
+                    }
                 }
+
+                // ---- עדכון Excludes ----
+                _context.TourExcludes.RemoveRange(tour.Excludes);
+                if (model.Excludes != null)
+                {
+                    foreach (var exc in model.Excludes.Where(e => !string.IsNullOrWhiteSpace(e)))
+                    {
+                        _context.TourExcludes.Add(new TourExclude
+                        {
+                            TourId = tour.TourId,
+                            Description = exc
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "הסיור עודכן בהצלחה";
+                // ✅ שינוי: חזרה לאותו עמוד עריכה במקום Index
+                return RedirectToAction("Edit", new { id = tour.TourId });
             }
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in Edit: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                ModelState.AddModelError("", $"אירעה שגיאה בעדכון הסיור: {ex.Message}");
+                return View(model);
+            }
         }
 
 
