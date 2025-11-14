@@ -392,32 +392,50 @@ namespace TmsSystem.Controllers
 
         // ===================== PASSWORD RESET (Admin) =====================
         // ===================== PASSWORD RESET (Admin) =====================
+        // POST: /Users/AdminResetPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminResetPassword(string id)  // ✅ שינוי שם!
+        public async Task<IActionResult> AdminResetPassword(string id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                TempData["ErrorMessage"] = "מזהה משתמש לא תקין.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 TempData["ErrorMessage"] = "משתמש לא נמצא.";
-                return RedirectToAction("Index", "Users");
+                return RedirectToAction(nameof(Index));
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
-
-            if (result.Succeeded)
+            try
             {
-                TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה ל- '@#$TempPass123'.";
+                // יצירת טוקן לאיפוס סיסמה
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                // איפוס הסיסמה
+                var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
+
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה למשתמש <strong>{user.UserName}</strong>.<br/>הסיסמה החדשה: <code>@#$TempPass123</code>";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "שגיאה באיפוס הסיסמה:<br/>" +
+                        string.Join("<br/>", result.Errors.Select(e => e.Description));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = string.Join("<br>", result.Errors.Select(e => e.Description));
+                TempData["ErrorMessage"] = $"אירעה שגיאה: {ex.Message}";
             }
 
-            return RedirectToAction("Index", "Users");
+            return RedirectToAction(nameof(Index));
         }
+
 
 
         // ===================== RESET PASSWORD (User - GET) =====================
@@ -587,5 +605,28 @@ namespace TmsSystem.Controllers
 </body>
 </html>";
         }
+
+        // POST: /Users/Delete/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "המשתמש נמחק בהצלחה.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+    
     }
+
 }

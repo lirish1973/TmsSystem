@@ -69,6 +69,76 @@ namespace TmsSystem.Controllers
         }
 
 
+
+        // GET: /Users/AdminResetPassword/{id}
+        [HttpGet]
+        public async Task<IActionResult> AdminResetPassword(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                TempData["ErrorMessage"] = "מזהה משתמש לא תקין.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "משתמש לא נמצא.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.UserId = id;
+            ViewBag.UserName = user.UserName;
+            ViewBag.Email = user.Email;
+
+            return View();
+        }
+
+        // POST: /Users/AdminResetPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminResetPassword(string id, string confirm)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                TempData["ErrorMessage"] = "מזהה משתמש לא תקין.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "משתמש לא נמצא.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, "@#$TempPass123");
+
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = $"הסיסמה אופסה בהצלחה למשתמש <strong>{user.UserName}</strong>.<br/>הסיסמה החדשה: <code>@#$TempPass123</code>";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "שגיאה באיפוס הסיסמה:<br/>" +
+                        string.Join("<br/>", result.Errors.Select(e => e.Description));
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"אירעה שגיאה: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+
+
+
         // POST: /Users/Delete/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
