@@ -29,7 +29,9 @@ namespace TmsSystem.Data
         public DbSet<Guide> Guides { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Offer> Offers { get; set; }
-
+        // Trips - טיולים
+        public DbSet<Trip> Trips { get; set; }
+        public DbSet<TripDay> TripDays { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -79,6 +81,24 @@ namespace TmsSystem.Data
                 .WithOne(e => e.Tour)
                 .HasForeignKey(e => e.TourId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Trip>()
+        .ToTable("trips");
+
+            // TripDay - הגדרת שם טבלה מדויק
+            builder.Entity<TripDay>()
+                .ToTable("tripdays");
+
+            // Trip relationships
+            builder.Entity<Trip>()
+                .HasMany(t => t.TripDays)
+                .WithOne(td => td.Trip)
+                .HasForeignKey(td => td.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<TripDay>()
+                .HasIndex(td => new { td.TripId, td.DayNumber })
+                .IsUnique();
 
 
         }

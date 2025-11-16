@@ -1,0 +1,297 @@
+﻿@model TmsSystem.Models.Trip
+
+@{
+    ViewData["Title"] = "עריכת טיול";
+    var orderedDays = Model.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TmsSystem.Models.TripDay>();
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+            <h3><i class="fas fa-edit"></i> עריכת טיול: @Model.Title</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data" id="tripForm">
+                <input type="hidden" asp-for="TripId" />
+                <input type="hidden" asp-for="CreatedAt" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" placeholder="לדוגמה: טיול מאורגן בצפון" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NumberOfDays" class="form-label"></label>
+                        <select asp-for="NumberOfDays" class="form-select" id="numberOfDays">
+                            @for (int i = 5; i <= 12; i++)
+                            {
+                                <option value="@i" selected="@(i == Model.NumberOfDays)">@i ימים</option>
+                            }
+                        </select>
+                        <span asp-validation-for="NumberOfDays" class="text-danger"></span>
+                        <small class="form-text text-muted">ניתן לשנות את מספר הימים - ימים חדשים יתווספו, ימים עודפים יימחקו</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="תיאור כללי של הטיול..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+
+                <hr />
+
+                <h4 class="mb-3">
+                    <i class="fas fa-calendar-day"></i> עריכת ימי הטיול
+                    <span class="badge bg-info">@orderedDays.Count ימים</span>
+                </h4>
+
+                <div id="tripDaysContainer">
+                    @if (orderedDays.Any())
+                    {
+                        for (int i = 0; i < orderedDays.Count; i++)
+                        {
+                            var day = orderedDays[i];
+                            <div class="card mb-3 trip-day-card" data-day-index="@i">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">יום @day.DayNumber</h5>
+                                    @if (day.TripDayId > 0)
+                                    {
+                                        <span class="badge bg-primary">קיים</span>
+                                    }
+                                </div>
+                                <div class="card-body">
+                                    <input type="hidden" name="TripDays[@i].TripDayId" value="@day.TripDayId" class="trip-day-id" />
+                                    <input type="hidden" name="TripDays[@i].TripId" value="@day.TripId" />
+                                    <input type="hidden" name="TripDays[@i].DayNumber" value="@day.DayNumber" class="day-number-input" />
+                                    <input type="hidden" name="TripDays[@i].DisplayOrder" value="@day.DisplayOrder" class="display-order-input" />
+                                    <input type="hidden" name="TripDays[@i].ImagePath" value="@day.ImagePath" class="image-path-input" />
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">כותרת *</label>
+                                            <input name="TripDays[@i].Title" class="form-control" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="@day.Title" required />
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">מיקום</label>
+                                            <input name="TripDays[@i].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" value="@day.Location" />
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">תיאור</label>
+                                        <textarea name="TripDays[@i].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום...">@day.Description</textarea>
+                                    </div>
+
+                                    <div class="row">
+                                        @if (!string.IsNullOrEmpty(day.ImagePath))
+                                        {
+                                            <div class="col-md-6 mb-3 current-image-container">
+                                                <label class="form-label">תמונה נוכחית</label>
+                                                <div class="position-relative">
+                                                    <img src="@day.ImagePath" alt="@day.Title" class="img-thumbnail current-image" style="max-height: 200px; max-width: 100%; display: block;" />
+                                                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn" data-day-index="@i" style="z-index: 10;">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">@(string.IsNullOrEmpty(day.ImagePath) ? "תמונה ליום" : "תמונה חדשה (אופציונלי)")</label>
+                                            <input type="file" name="dayImages" class="form-control" accept="image/*" />
+                                            <small class="form-text text-muted">
+                                                @if (!string.IsNullOrEmpty(day.ImagePath))
+                                                {
+                                                    <text>השאר ריק כדי לשמור את התמונה הנוכחית</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>גודל מומלץ: 1200x800 פיקסלים</text>
+                                                }
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> אין ימים לטיול זה. אנא שנה את מספר הימים כדי להוסיף ימים.
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> חזרה
+                    </a>
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="fas fa-save"></i> שמור שינויים
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            console.log('Edit page loaded. Current days: ' + @orderedDays.Count);
+
+            // מחיקת תמונה
+            $(document).on('click', '.delete-image-btn', function(e) {
+                e.preventDefault();
+                var dayIndex = $(this).data('day-index');
+                var card = $(this).closest('.trip-day-card');
+
+                if (confirm('האם אתה בטוח שברצונך למחוק את התמונה?')) {
+                    // הסתרת התמונה
+                    $(this).closest('.current-image-container').hide();
+
+                    // ניקוי הנתיב של התמונה
+                    card.find('.image-path-input').val('');
+
+                    alert('התמונה תימחק בעת שמירת השינויים');
+                }
+            });
+
+            // שינוי מספר ימים
+            $('#numberOfDays').change(function () {
+                var numDays = parseInt($(this).val());
+                var container = $('#tripDaysContainer');
+                var currentDays = container.find('.trip-day-card').length;
+
+                console.log('Changing days from ' + currentDays + ' to ' + numDays);
+
+                if (numDays > currentDays) {
+                    // הוספת ימים
+                    for (var i = currentDays; i < numDays; i++) {
+                        addDay(i + 1, i);
+                    }
+                } else if (numDays < currentDays) {
+                    // הסרת ימים
+                    if (confirm('האם אתה בטוח שברצונך להסיר ' + (currentDays - numDays) + ' ימים? פעולה זו תמחק את הנתונים והתמונות של הימים האלו.')) {
+                        container.find('.trip-day-card').slice(numDays).remove();
+                        reindexDays();
+                    } else {
+                        // ביטול - החזרת הערך המקורי
+                        $(this).val(currentDays);
+                    }
+                }
+            });
+
+            function addDay(dayNumber, index) {
+                var html = `
+                    <div class="card mb-3 trip-day-card" data-day-index="${index}">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">יום ${dayNumber}</h5>
+                            <span class="badge bg-success">חדש</span>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" name="TripDays[${index}].TripDayId" value="0" class="trip-day-id" />
+                            <input type="hidden" name="TripDays[${index}].TripId" value="@Model.TripId" />
+                            <input type="hidden" name="TripDays[${index}].DayNumber" value="${dayNumber}" class="day-number-input" />
+                            <input type="hidden" name="TripDays[${index}].DisplayOrder" value="${dayNumber}" class="display-order-input" />
+                            <input type="hidden" name="TripDays[${index}].ImagePath" value="" class="image-path-input" />
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">כותרת *</label>
+                                    <input name="TripDays[${index}].Title" class="form-control" placeholder="לדוגמה: יום פתיחה" value="יום ${dayNumber}" required />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">מיקום</label>
+                                    <input name="TripDays[${index}].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">תיאור</label>
+                                <textarea name="TripDays[${index}].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">תמונה ליום</label>
+                                <input type="file" name="dayImages" class="form-control" accept="image/*" />
+                                <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#tripDaysContainer').append(html);
+                console.log('Added day ' + dayNumber);
+            }
+
+            function reindexDays() {
+                var container = $('#tripDaysContainer');
+                container.find('.trip-day-card').each(function(index) {
+                    var dayNumber = index + 1;
+                    $(this).attr('data-day-index', index);
+                    $(this).find('h5').first().text('יום ' + dayNumber);
+
+                    // עדכון כל השדות
+                    $(this).find('.day-number-input').val(dayNumber).attr('name', `TripDays[${index}].DayNumber`);
+                    $(this).find('.display-order-input').val(dayNumber).attr('name', `TripDays[${index}].DisplayOrder`);
+                    $(this).find('.trip-day-id').attr('name', `TripDays[${index}].TripDayId`);
+                    $(this).find('.image-path-input').attr('name', `TripDays[${index}].ImagePath`);
+
+                    // עדכון שדות input
+                    $(this).find('input[type="text"], input[type="file"], textarea').each(function() {
+                        var name = $(this).attr('name');
+                        if (name && name.startsWith('TripDays[')) {
+                            var fieldName = name.split('.')[1];
+                            $(this).attr('name', `TripDays[${index}].${fieldName}`);
+                        }
+                    });
+
+                    $(this).find('input[type="hidden"]').each(function() {
+                        var name = $(this).attr('name');
+                        if (name && name.startsWith('TripDays[') && !$(this).hasClass('day-number-input') &&
+                            !$(this).hasClass('display-order-input') && !$(this).hasClass('trip-day-id') &&
+                            !$(this).hasClass('image-path-input')) {
+                            var fieldName = name.split('.')[1];
+                            $(this).attr('name', `TripDays[${index}].${fieldName}`);
+                        }
+                    });
+                });
+                console.log('Reindexed days');
+            }
+
+            // התראה לפני עזיבת הדף אם יש שינויים
+            var formChanged = false;
+            $('input, textarea, select').on('change', function() {
+                formChanged = true;
+            });
+
+            $(window).on('beforeunload', function(e) {
+                if (formChanged) {
+                    var message = 'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לעזוב?';
+                    e.returnValue = message;
+                    return message;
+                }
+            });
+
+            $('form').on('submit', function() {
+                formChanged = false;
+                $(window).off('beforeunload');
+            });
+        });
+    </script>
+}

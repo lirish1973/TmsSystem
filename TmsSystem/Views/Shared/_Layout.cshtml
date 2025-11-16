@@ -139,7 +139,18 @@
                     <a class="nav-link" asp-controller="Offers" asp-action="Index" asp-route-filter="near">הצעות קרובות</a>
                     <a class="nav-link" asp-controller="Offers" asp-action="Create">צור הצעת מחיר</a>
                 </div>
-
+                <!-- תפריט טיולים -->
+                <a class="nav-link" data-bs-toggle="collapse" href="#tripsMenu">
+                    <i class="bi bi-map-fill"></i> <span>ניהול טיולים</span>
+                </a>
+                <div class="collapse ps-4" id="tripsMenu">
+                    <a class="nav-link" asp-controller="Trips" asp-action="Index">
+                        <i class="bi bi-list-ul"></i> רשימת טיולים
+                    </a>
+                    <a class="nav-link" asp-controller="Trips" asp-action="Create">
+                        <i class="bi bi-plus-circle"></i> טיול חדש
+                    </a>
+                </div>
                 <div class="pin-btn" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
                 </div>
@@ -273,6 +284,7 @@
     <script src="~/js/email-success.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+    
 
 </body>
 </html>

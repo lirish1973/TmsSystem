@@ -1,0 +1,110 @@
+﻿@model TmsSystem.Models.Trip
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<style>
+    .trip-day-detail {
+        transition: transform 0.2s;
+    }
+
+        .trip-day-detail:hover {
+            transform: translateY(-5px);
+        }
+</style>
+
+<div class="container mt-4">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-map-marked-alt"></i> @Model.Title</h2>
+                <div>
+                    <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> עריכה
+                    </a>
+                    <a asp-controller="Trips" asp-action="Index" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> חזרה
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h5>תיאור כללי</h5>
+                    <p class="lead">@Model.Description</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-calendar-alt"></i> משך הטיול</h5>
+                        <h3>@Model.NumberOfDays ימים</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- פירוט ימי הטיול -->
+    @foreach (var day in Model.TripDays.OrderBy(d => d.DayNumber))
+    {
+        <div class="card shadow mb-4 trip-day-detail">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <span class="badge bg-primary me-2">יום @day.DayNumber</span>
+                        @day.Title
+                    </h4>
+                    @if (!string.IsNullOrEmpty(day.Location))
+                    {
+                        <span class="text-muted">
+                            <i class="fas fa-map-marker-alt"></i> @day.Location
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- תמונה בצד ימין -->
+                    <div class="col-md-5 order-md-2 mb-3 mb-md-0">
+                        @if (!string.IsNullOrEmpty(day.ImagePath))
+                        {
+                            <img src="@day.ImagePath" alt="@day.Title" class="img-fluid rounded shadow-sm" style="width: 100%; height: auto; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 300px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- תיאור בצד שמאל -->
+                    <div class="col-md-7 order-md-1">
+                        <div class="p-3">
+                            @if (!string.IsNullOrEmpty(day.Description))
+                            {
+                                <div style="white-space: pre-wrap; line-height: 1.8; font-size: 1.05rem;">
+                                    @day.Description
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted fst-italic">אין תיאור ליום זה</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="text-center my-4">
+        <a asp-controller="Trips" asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="fas fa-arrow-right"></i> חזרה לרשימת הטיולים
+        </a>
+        <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning btn-lg">
+            <i class="fas fa-edit"></i> ערוך טיול
+        </a>
+    </div>
+</div>

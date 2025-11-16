@@ -1,0 +1,98 @@
+﻿@model IEnumerable<TmsSystem.Models.Trip>
+
+@{
+    ViewData["Title"] = "רשימת טיולים";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-map-marked-alt"></i> ניהול טיולים
+        </h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> טיול חדש
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow">
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-map-marked-alt fa-4x text-muted mb-3"></i>
+                    <p class="text-muted">אין טיולים במערכת</p>
+                    <a asp-action="Create" class="btn btn-primary">צור טיול ראשון</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>שם הטיול</th>
+                                <th>מספר ימים</th>
+                                <th>תאריך יצירה</th>
+                                <th>סטטוס</th>
+                                <th style="width: 200px;">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var trip in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@trip.Title</strong>
+                                        @if (!string.IsNullOrEmpty(trip.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">@(trip.Description.Length > 50 ? trip.Description.Substring(0, 50) + "..." : trip.Description)</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@trip.NumberOfDays ימים</span>
+                                    </td>
+                                    <td>@trip.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (trip.IsActive)
+                                        {
+                                            <span class="badge bg-success">פעיל</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">לא פעיל</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-controller="Trips" asp-action="Details" asp-route-id="@trip.TripId"
+                                               class="btn btn-sm btn-info text-white" title="צפייה">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-controller="Trips" asp-action="Edit" asp-route-id="@trip.TripId"
+                                               class="btn btn-sm btn-warning text-white" title="עריכה">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-controller="Trips" asp-action="Delete" asp-route-id="@trip.TripId"
+                                               class="btn btn-sm btn-danger text-white" title="מחיקה">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

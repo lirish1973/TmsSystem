@@ -1,0 +1,167 @@
+﻿@model TmsSystem.Models.Trip
+
+@{
+    ViewData["Title"] = "טיול חדש";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3><i class="fas fa-plus-circle"></i> יצירת טיול חדש</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" id="tripForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" placeholder="לדוגמה: טיול מאורגן בצפון" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NumberOfDays" class="form-label"></label>
+                        <select asp-for="NumberOfDays" class="form-select" id="numberOfDays">
+                            @for (int i = 5; i <= 12; i++)
+                            {
+                                <option value="@i" selected="@(i == Model.NumberOfDays)">@i ימים</option>
+                            }
+                        </select>
+                        <span asp-validation-for="NumberOfDays" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="תיאור כללי של הטיול..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+
+                <hr />
+
+                <h4 class="mb-3"><i class="fas fa-calendar-day"></i> פירוט ימי הטיול</h4>
+                <div id="tripDaysContainer">
+                    @{
+                        var orderedDays = Model.TripDays.OrderBy(d => d.DayNumber).ToList();
+                        for (int i = 0; i < orderedDays.Count; i++)
+                        {
+                            var day = orderedDays[i];
+                            <div class="card mb-3 trip-day-card">
+                                <div class="card-header bg-light">
+                                    <h5>יום @day.DayNumber</h5>
+                                </div>
+                                <div class="card-body">
+                                    <input type="hidden" name="TripDays[@i].DayNumber" value="@day.DayNumber" />
+                                    <input type="hidden" name="TripDays[@i].DisplayOrder" value="@day.DisplayOrder" />
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">כותרת *</label>
+                                            <input name="TripDays[@i].Title" class="form-control" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="@day.Title" />
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">מיקום</label>
+                                            <input name="TripDays[@i].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" value="@day.Location" />
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">תיאור</label>
+                                        <textarea name="TripDays[@i].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום...">@day.Description</textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">תמונה ליום</label>
+                                        <input type="file" name="dayImages" class="form-control" accept="image/*" />
+                                        <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> חזרה
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> שמור טיול
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            $('#numberOfDays').change(function () {
+                var numDays = parseInt($(this).val());
+                var container = $('#tripDaysContainer');
+                var currentDays = container.find('.trip-day-card').length;
+
+                if (numDays > currentDays) {
+                    // הוספת ימים
+                    for (var i = currentDays; i < numDays; i++) {
+                        addDay(i);
+                    }
+                } else if (numDays < currentDays) {
+                    // הסרת ימים
+                    container.find('.trip-day-card').slice(numDays).remove();
+                }
+            });
+
+            function addDay(index) {
+                var dayNumber = index + 1;
+                var html = `
+                    <div class="card mb-3 trip-day-card">
+                        <div class="card-header bg-light">
+                            <h5>יום ${dayNumber}</h5>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" name="TripDays[${index}].DayNumber" value="${dayNumber}" />
+                            <input type="hidden" name="TripDays[${index}].DisplayOrder" value="${dayNumber}" />
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">כותרת *</label>
+                                    <input name="TripDays[${index}].Title" class="form-control" placeholder="לדוגמה: יום פתיחה" value="יום ${dayNumber}" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">מיקום</label>
+                                    <input name="TripDays[${index}].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">תיאור</label>
+                                <textarea name="TripDays[${index}].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">תמונה ליום</label>
+                                <input type="file" name="dayImages" class="form-control" accept="image/*" />
+                                <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#tripDaysContainer').append(html);
+            }
+        });
+    </script>
+}
