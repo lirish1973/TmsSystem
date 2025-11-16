@@ -11,8 +11,20 @@ namespace TmsSystem.Models
         public int ID { get; set; }
 
         [Required]
-        [Column("METHOD")]
         [StringLength(255)]
-        public string METHOD { get; set; }
+        [Column("METHOD")]
+        public string METHOD { get; set; } = string.Empty;
+
+        [Column("PaymentMethodId")]
+        public int PaymentMethodId { get; set; }
+
+        [Required]
+        [StringLength(140)]
+        [Column("PaymentName")]
+        public string PaymentName { get; set; } = string.Empty;
+
+        // Property נוח יותר לשימוש
+        [NotMapped]
+        public string DisplayName => PaymentName;
     }
 }

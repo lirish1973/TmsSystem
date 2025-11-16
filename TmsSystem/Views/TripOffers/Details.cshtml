@@ -1,0 +1,512 @@
+﻿@model TmsSystem.Models.TripOffer
+
+@{
+    ViewData["Title"] = "פרטי הצעת מחיר - " + Model.OfferNumber;
+}
+
+<style>
+    body {
+        direction: rtl;
+        text-align: right;
+    }
+
+    .offer-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    .price-summary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 2px solid #667eea;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 20px 0;
+    }
+
+    .total-price {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+
+    .status-badge {
+        font-size: 1.2rem;
+        padding: 10px 20px;
+    }
+
+    .section-title {
+        color: #667eea;
+        font-weight: 600;
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .trip-days-list {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    /* עיצוב לימי הטיול עם תמונות */
+    .trip-day-card {
+        background: white;
+        border-radius: 12px;
+        padding: 0;
+        margin-bottom: 20px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .trip-day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+    .trip-day-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+    }
+
+    .trip-day-content {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .trip-day-image {
+        width: 350px;
+        min-width: 350px;
+        height: 300px;
+        object-fit: cover;
+        border-left: 3px solid #667eea;
+    }
+
+    .trip-day-text {
+        padding: 20px;
+        flex: 1;
+    }
+
+    .trip-day-no-image {
+        width: 350px;
+        min-width: 350px;
+        height: 300px;
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-left: 3px solid #667eea;
+    }
+
+        .trip-day-no-image i {
+            font-size: 80px;
+            color: #adb5bd;
+        }
+
+    @@media (max-width: 768px) {
+        .trip-day-content
+
+    {
+        flex-direction: column;
+    }
+
+    .trip-day-image,
+    .trip-day-no-image {
+        width: 100%;
+        min-width: 100%;
+        height: 250px;
+        border-left: none;
+        border-bottom: 3px solid #667eea;
+    }
+
+    }
+
+    @@media print {
+        .trip-day-image
+
+    {
+        width: 250px;
+        min-width: 250px;
+        height: 200px;
+    }
+
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- כותרת -->
+    <div class="offer-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="fas fa-file-invoice-dollar me-3"></i>הצעת מחיר מספר: @Model.OfferNumber</h2>
+                <p class="mb-0">נוצר בתאריך: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="badge status-badge bg-warning">@Model.Status</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- פרטי הלקוח -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4 class="section-title"><i class="fas fa-user me-2"></i>פרטי הלקוח</h4>
+                <div class="mb-3">
+                    <div class="info-label">שם הלקוח</div>
+                    <div class="info-value">@Model.Customer?.DisplayName</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">אימייל</div>
+                    <div class="info-value">@Model.Customer?.Email</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">טלפון</div>
+                    <div class="info-value">@Model.Customer?.Phone</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Customer?.CompanyName))
+                {
+                    <div class="mb-3">
+                        <div class="info-label">חברה</div>
+                        <div class="info-value">@Model.Customer.CompanyName</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- פרטי הטיול -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4 class="section-title"><i class="fas fa-map-marked-alt me-2"></i>פרטי הטיול</h4>
+                <div class="mb-3">
+                    <div class="info-label">שם הטיול</div>
+                    <div class="info-value">@Model.Trip?.Title</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">משך הטיול</div>
+                    <div class="info-value">@Model.Trip?.NumberOfDays ימים</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">תאריך יציאה</div>
+                    <div class="info-value">@Model.DepartureDate.ToString("dd/MM/yyyy")</div>
+                </div>
+                @if (Model.ReturnDate.HasValue)
+                {
+                    <div class="mb-3">
+                        <div class="info-label">תאריך חזרה</div>
+                        <div class="info-value">@Model.ReturnDate.Value.ToString("dd/MM/yyyy")</div>
+                    </div>
+                }
+                <div class="mb-3">
+                    <div class="info-label">מספר משתתפים</div>
+                    <div class="info-value"><strong>@Model.Participants איש</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- תיאור הטיול -->
+    @if (!string.IsNullOrEmpty(Model.Trip?.Description))
+    {
+        <div class="info-card">
+            <h4 class="section-title"><i class="fas fa-info-circle me-2"></i>תיאור הטיול</h4>
+            <p>@Model.Trip.Description</p>
+        </div>
+    }
+
+    <!-- פירוט מחירים -->
+    <div class="info-card">
+        <h4 class="section-title"><i class="fas fa-dollar-sign me-2"></i>פירוט מחירים</h4>
+        <div class="price-summary">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="info-label">מחיר לאדם</div>
+                    <div class="info-value">$@Model.PricePerPerson.ToString("N2")</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="info-label">מספר משתתפים</div>
+                    <div class="info-value">@Model.Participants</div>
+                </div>
+            </div>
+
+            @if (Model.SingleRooms > 0 && Model.SingleRoomSupplement.HasValue)
+            {
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="info-label">תוספת חדר יחיד</div>
+                        <div class="info-value">$@Model.SingleRoomSupplement.Value.ToString("N2")</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="info-label">מספר חדרים יחידים</div>
+                        <div class="info-value">@Model.SingleRooms</div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.InsuranceIncluded && Model.InsurancePrice.HasValue)
+            {
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="info-label">ביטוח לאדם</div>
+                        <div class="info-value">$@Model.InsurancePrice.Value.ToString("N2")</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="info-label">סה"כ ביטוח</div>
+                        <div class="info-value">$@((Model.InsurancePrice.Value * Model.Participants).ToString("N2"))</div>
+                    </div>
+                </div>
+            }
+
+            <div class="total-price">
+                <i class="fas fa-calculator me-2"></i>
+                סה"כ לתשלום: $@Model.TotalPrice.ToString("N2")
+            </div>
+        </div>
+    </div>
+
+    <!-- אמצעי תשלום -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4 class="section-title"><i class="fas fa-credit-card me-2"></i>אמצעי תשלום</h4>
+                <div class="mb-3">
+                    <div class="info-label">אמצעי תשלום</div>
+                    <div class="info-value">@Model.PaymentMethod?.PaymentName</div>
+                </div>
+                @if (Model.PaymentInstallments.HasValue)
+                {
+                    <div class="mb-3">
+                        <div class="info-label">מספר תשלומים</div>
+                        <div class="info-value">@Model.PaymentInstallments תשלומים</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4 class="section-title"><i class="fas fa-plane me-2"></i>טיסה וביטוח</h4>
+                <div class="mb-3">
+                    <div class="info-label">טיסה</div>
+                    <div class="info-value">
+                        @if (Model.FlightIncluded)
+                        {
+                            <span class="badge bg-success">כלולה במחיר</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">לא כלולה</span>
+                        }
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">ביטוח</div>
+                    <div class="info-value">
+                        @if (Model.InsuranceIncluded)
+                        {
+                            <span class="badge bg-success">כלול במחיר</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">לא כלול</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- פרטי טיסה -->
+    @if (Model.FlightIncluded && !string.IsNullOrEmpty(Model.FlightDetails))
+    {
+        <div class="info-card">
+            <h4 class="section-title"><i class="fas fa-plane-departure me-2"></i>פרטי טיסה</h4>
+            <div style="white-space: pre-wrap;">@Model.FlightDetails</div>
+        </div>
+    }
+
+    <!-- מה כלול במחיר -->
+    @if (!string.IsNullOrEmpty(Model.Trip?.Includes))
+    {
+        <div class="info-card">
+            <h4 class="section-title"><i class="fas fa-check-circle me-2 text-success"></i>מה כלול במחיר</h4>
+            <ul class="list-unstyled">
+                @foreach (var line in Model.Trip.Includes.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        <li><i class="fas fa-check text-success me-2"></i>@line.Trim()</li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- מה לא כלול במחיר -->
+    @if (!string.IsNullOrEmpty(Model.Trip?.Excludes))
+    {
+        <div class="info-card">
+            <h4 class="section-title"><i class="fas fa-times-circle me-2 text-danger"></i>מה לא כלול במחיר</h4>
+            <ul class="list-unstyled">
+                @foreach (var line in Model.Trip.Excludes.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        <li><i class="fas fa-times text-danger me-2"></i>@line.Trim()</li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- תוכנית הטיול עם תמונות -->
+    @if (Model.Trip?.TripDays != null && Model.Trip.TripDays.Any())
+    {
+        <div class="info-card">
+            <h4 class="section-title"><i class="fas fa-calendar-week me-2"></i>תוכנית הטיול - יום אחר יום</h4>
+            <div class="trip-days-list">
+                @foreach (var day in Model.Trip.TripDays.OrderBy(d => d.DayNumber))
+                {
+                    <div class="trip-day-card">
+                        <!-- כותרת היום -->
+                        <div class="trip-day-header">
+                            <h5 class="mb-1">
+                                <span class="badge bg-light text-primary me-2">יום @day.DayNumber</span>
+                                @day.Title
+                            </h5>
+                            @if (!string.IsNullOrEmpty(day.Location))
+                            {
+                                <small><i class="fas fa-map-marker-alt me-2"></i>@day.Location</small>
+                            }
+                        </div>
+
+                        <!-- תוכן היום: תמונה + תיאור -->
+                        <div class="trip-day-content">
+                            <!-- תמונה -->
+                            @if (!string.IsNullOrEmpty(day.ImagePath))
+                            {
+                                <img src="@day.ImagePath" alt="@day.Title" class="trip-day-image" />
+                            }
+                            else
+                            {
+                                <div class="trip-day-no-image">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            }
+
+                            <!-- תיאור -->
+                            <div class="trip-day-text">
+                                @if (!string.IsNullOrEmpty(day.Description))
+                                {
+                                    <p class="mb-0" style="line-height: 1.8; text-align: justify;">@day.Description</p>
+                                }
+                                else
+                                {
+                                    <p class="text-muted fst-italic mb-0">אין תיאור ליום זה</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- בקשות והערות -->
+    @if (!string.IsNullOrEmpty(Model.SpecialRequests) || !string.IsNullOrEmpty(Model.AdditionalNotes))
+    {
+        <div class="row">
+            @if (!string.IsNullOrEmpty(Model.SpecialRequests))
+            {
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h4 class="section-title"><i class="fas fa-star me-2"></i>בקשות מיוחדות</h4>
+                        <p style="white-space: pre-wrap;">@Model.SpecialRequests</p>
+                    </div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.AdditionalNotes))
+            {
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h4 class="section-title"><i class="fas fa-sticky-note me-2"></i>הערות נוספות</h4>
+                        <p style="white-space: pre-wrap;">@Model.AdditionalNotes</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- כפתורי פעולה -->
+    <div class="text-center my-4">
+        <a asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="fas fa-arrow-right me-2"></i>חזרה לרשימה
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-lg">
+            <i class="fas fa-print me-2"></i>הדפס
+        </button>
+        <a href="mailto:@Model.Customer?.Email?subject=הצעת מחיר @Model.OfferNumber" class="btn btn-success btn-lg">
+            <i class="fas fa-envelope me-2"></i>שלח ללקוח
+        </a>
+    </div>
+</div>
+
+<style media="print">
+    .btn, .navbar, .footer {
+        display: none !important;
+    }
+
+    .offer-header {
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .trip-day-image {
+        width: 200px !important;
+        min-width: 200px !important;
+        height: 150px !important;
+    }
+
+    .trip-day-card {
+        page-break-inside: avoid;
+    }
+</style>

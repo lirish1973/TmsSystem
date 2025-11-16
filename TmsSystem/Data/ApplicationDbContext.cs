@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Reflection.Emit;
-using TmsSystem.Models; // ApplicationUser הנכון
+using TmsSystem.Models;
 
 namespace TmsSystem.Data
 {
@@ -32,7 +32,7 @@ namespace TmsSystem.Data
         // Trips - טיולים
         public DbSet<Trip> Trips { get; set; }
         public DbSet<TripDay> TripDays { get; set; }
-
+        public DbSet<TripOffer> TripOffers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -81,6 +81,56 @@ namespace TmsSystem.Data
                 .WithOne(e => e.Tour)
                 .HasForeignKey(e => e.TourId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            // Customer
+            builder.Entity<Customer>()
+                .ToTable("customers");
+
+            // PaymentMethod
+            builder.Entity<PaymentMethod>()
+                .ToTable("paymentmethod")
+                .HasKey(pm => pm.ID);
+
+            // Trip
+            builder.Entity<Trip>()
+                .ToTable("trips");
+
+            builder.Entity<Trip>()
+                .HasMany(t => t.TripDays)
+                .WithOne(td => td.Trip)
+                .HasForeignKey(td => td.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TripDay
+            builder.Entity<TripDay>()
+                .ToTable("tripdays");
+
+            // TripOffer
+            builder.Entity<TripOffer>()
+                .ToTable("tripoffers");
+
+            builder.Entity<TripOffer>()
+                .HasOne(to => to.Customer)
+                .WithMany()
+                .HasForeignKey(to => to.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TripOffer>()
+                .HasOne(to => to.Trip)
+                .WithMany()
+                .HasForeignKey(to => to.TripId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TripOffer>()
+                .HasOne(to => to.PaymentMethod)
+                .WithMany()
+                .HasForeignKey(to => to.PaymentMethodId)
+                .HasPrincipalKey(pm => pm.ID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
 
             builder.Entity<Trip>()
         .ToTable("trips");

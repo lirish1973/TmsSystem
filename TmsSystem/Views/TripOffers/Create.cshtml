@@ -1,0 +1,614 @@
+﻿@model TmsSystem.ViewModels.CreateTripOfferViewModel
+
+@{
+    ViewData["Title"] = "יצירת הצעת מחיר לטיול";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>שגיאות בטופס:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px 0;
+            direction: rtl;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: none;
+            overflow: hidden;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 25px;
+            position: relative;
+        }
+
+        .card-title {
+            color: white;
+            font-weight: 600;
+            font-size: 28px;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            text-align: right;
+            direction: rtl;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+                transform: translateY(-2px);
+            }
+
+            .form-control:hover, .form-select:hover {
+                border-color: #667eea;
+                transform: translateY(-1px);
+            }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+                background: linear-gradient(45deg, #5a6fd8, #6a42a0);
+            }
+
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+                transform: translateY(-2px);
+            }
+
+        .form-section {
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(222, 226, 230, 0.5);
+        }
+
+        .section-title {
+            color: #495057;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: inline-block;
+            text-align: right;
+        }
+
+        .row-cards {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+            .row-cards:hover {
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                transform: translateY(-2px);
+            }
+
+        .price-calculation {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .total-display {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .checkbox-custom {
+            transform: scale(1.3);
+            accent-color: #667eea;
+            margin-left: 10px;
+        }
+
+        .required-field::after {
+            content: ' *';
+            color: #dc3545;
+            margin-right: 3px;
+        }
+
+        .floating-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            z-index: 10;
+        }
+
+        .has-icon {
+            padding-right: 45px;
+        }
+
+        .trip-info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+
+            .trip-info-box.show {
+                display: block;
+                animation: slideDown 0.3s ease;
+            }
+
+        @@keyframes slideDown {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .alert {
+            text-align: right;
+            direction: rtl;
+        }
+
+        .text-danger {
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="max-width: 95%;">
+        <div class="card main-card animate-in">
+            <div class="card-header text-center">
+                <h2 class="card-title">
+                    <i class="fas fa-plane-departure me-3"></i>
+                    יצירת הצעת מחיר לטיול מאורגן
+                </h2>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" asp-controller="TripOffers" method="post" id="tripOfferForm">
+                    @Html.AntiForgeryToken()
+
+                    <!-- פרטי הלקוח והטיול -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-user-friends me-2"></i>
+                            פרטי הלקוח והטיול
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="CustomerId">לקוח</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-user floating-icon"></i>
+                                        <select asp-for="CustomerId" class="form-select has-icon" required>
+                                            <option value="">-- בחר לקוח --</option>
+                                            @if (Model.Customers != null)
+                                            {
+                                                @foreach (var customer in Model.Customers)
+                                                {
+                                                    <option value="@customer.CustomerId">@customer.DisplayName</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="TripId">בחירת טיול</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-map-marked-alt floating-icon"></i>
+                                        <select asp-for="TripId" class="form-select has-icon" id="tripSelect" required>
+                                            <option value="">-- בחר טיול --</option>
+                                            @if (Model.Trips != null)
+                                            {
+                                                @foreach (var trip in Model.Trips)
+                                                {
+                                                    <option value="@trip.TripId" data-days="@trip.NumberOfDays" data-price="@trip.PricePerPerson">
+                                                        @trip.Title (@trip.NumberOfDays ימים)
+                                                    </option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="TripId" class="text-danger"></span>
+                                    </div>
+                                    @if (Model.Trips == null || !Model.Trips.Any())
+                                    {
+                                        <div class="alert alert-warning mt-2" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            לא נמצאו טיולים פעילים במערכת.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- מידע על הטיול שנבחר -->
+                        <div id="tripInfoBox" class="trip-info-box">
+                            <h5><i class="fas fa-info-circle me-2"></i>פרטי הטיול</h5>
+                            <div id="tripInfoContent"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="Participants">מספר משתתפים</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-users floating-icon"></i>
+                                        <input asp-for="Participants" type="number" class="form-control has-icon"
+                                               min="1" max="100" required oninput="calculateTotal()" />
+                                        <span asp-validation-for="Participants" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="DepartureDate">תאריך יציאה</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-calendar-alt floating-icon"></i>
+                                        <input asp-for="DepartureDate" type="date" class="form-control has-icon"
+                                               required onchange="calculateReturnDate()" />
+                                        <span asp-validation-for="DepartureDate" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label" for="ReturnDate">תאריך חזרה (אוטומטי)</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-calendar-check floating-icon"></i>
+                                        <input asp-for="ReturnDate" type="date" class="form-control has-icon" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- מחירים -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-dollar-sign me-2"></i>
+                            מחירים ותשלום
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="PricePerPerson">מחיר לאדם ($)</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-dollar-sign floating-icon"></i>
+                                        <input asp-for="PricePerPerson" type="number" class="form-control has-icon"
+                                               min="0" step="0.01" required oninput="calculateTotal()" />
+                                        <span asp-validation-for="PricePerPerson" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label" for="SingleRoomSupplement">תוספת חדר יחיד ($)</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-bed floating-icon"></i>
+                                        <input asp-for="SingleRoomSupplement" type="number" class="form-control has-icon"
+                                               min="0" step="0.01" oninput="calculateTotal()" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label" for="SingleRooms">כמה חדרים יחידים</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-door-open floating-icon"></i>
+                                        <input asp-for="SingleRooms" type="number" class="form-control has-icon"
+                                               min="0" max="50" oninput="calculateTotal()" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="PaymentMethodId">אמצעי תשלום</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-credit-card floating-icon"></i>
+                                        <select asp-for="PaymentMethodId" class="form-select has-icon" required>
+                                            <option value="">-- בחר אמצעי תשלום --</option>
+                                            @if (Model.PaymentMethods != null)
+                                            {
+                                                @foreach (var method in Model.PaymentMethods)
+                                                {
+                                                    <option value="@method.ID">@method.PaymentName</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="PaymentMethodId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label" for="PaymentInstallments">מספר תשלומים</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-calendar-week floating-icon"></i>
+                                        <input asp-for="PaymentInstallments" type="number" class="form-control has-icon"
+                                               min="1" max="36" placeholder="לדוגמה: 12" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="price-calculation">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="FlightIncluded" type="checkbox" class="form-check-input checkbox-custom"
+                                               onchange="toggleFlightDetails()" />
+                                        <label asp-for="FlightIncluded" class="form-check-label fw-bold">
+                                            <i class="fas fa-plane me-2"></i>
+                                            טיסה כלולה במחיר
+                                        </label>
+                                    </div>
+                                    <div id="flightDetailsBox" style="display:none; margin-top: 10px;">
+                                        <textarea asp-for="FlightDetails" class="form-control" rows="3"
+                                                  placeholder="פרטי טיסה: חברה, מספר טיסה, שעות..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="InsuranceIncluded" type="checkbox" class="form-check-input checkbox-custom"
+                                               onchange="toggleInsurancePrice()" />
+                                        <label asp-for="InsuranceIncluded" class="form-check-label fw-bold">
+                                            <i class="fas fa-shield-alt me-2"></i>
+                                            ביטוח כלול במחיר
+                                        </label>
+                                    </div>
+                                    <div id="insurancePriceBox" style="display:none; margin-top: 10px;">
+                                        <input asp-for="InsurancePrice" type="number" class="form-control"
+                                               min="0" step="0.01" placeholder="מחיר ביטוח לאדם ($)"
+                                               oninput="calculateTotal()" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="total-display">
+                                <i class="fas fa-calculator me-2"></i>
+                                סה"כ לתשלום: <span id="totalAmount">$0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- בקשות מיוחדות -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            בקשות והערות
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label" for="SpecialRequests">בקשות מיוחדות</label>
+                                    <textarea asp-for="SpecialRequests" class="form-control" rows="4"
+                                              placeholder="לדוגמה: נגישות לכיסא גלגלים, מגבלות תזונתיות..."></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label" for="AdditionalNotes">הערות נוספות</label>
+                                    <textarea asp-for="AdditionalNotes" class="form-control" rows="4"
+                                              placeholder="הערות פנימיות או מידע נוסף..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>
+                            צור הצעת מחיר
+                        </button>
+                        <a href="@Url.Action("Index", "TripOffers")" class="btn btn-secondary btn-lg ms-3">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            חזור לרשימה
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // טעינת פרטי טיול
+        $('#tripSelect').change(function() {
+            var tripId = $(this).val();
+            if (tripId) {
+                $.get('@Url.Action("GetTripDetails", "TripOffers")/' + tripId, function(data) {
+                    var html = '<p><strong>משך הטיול:</strong> ' + data.numberOfDays + ' ימים</p>';
+                    if (data.pricePerPerson) {
+                        html += '<p><strong>מחיר מומלץ לאדם:</strong> $' + data.pricePerPerson + '</p>';
+                        $('#PricePerPerson').val(data.pricePerPerson);
+                    }
+                    if (data.priceDescription) {
+                        html += '<p><strong>תיאור מחיר:</strong> ' + data.priceDescription + '</p>';
+                    }
+                    $('#tripInfoContent').html(html);
+                    $('#tripInfoBox').addClass('show');
+
+                    calculateReturnDate();
+                    calculateTotal();
+                });
+            } else {
+                $('#tripInfoBox').removeClass('show');
+            }
+        });
+
+        // חישוב תאריך חזרה
+        function calculateReturnDate() {
+            var departureDate = new Date($('#DepartureDate').val());
+            var selectedOption = $('#tripSelect option:selected');
+            var numberOfDays = parseInt(selectedOption.data('days')) || 0;
+
+            if (departureDate && numberOfDays > 0) {
+                var returnDate = new Date(departureDate);
+                returnDate.setDate(returnDate.getDate() + numberOfDays);
+                $('#ReturnDate').val(returnDate.toISOString().split('T')[0]);
+            }
+        }
+
+        // חישוב מחיר כולל
+        function calculateTotal() {
+            var participants = parseInt($('#Participants').val()) || 0;
+            var pricePerPerson = parseFloat($('#PricePerPerson').val()) || 0;
+            var singleRoomSupplement = parseFloat($('#SingleRoomSupplement').val()) || 0;
+            var singleRooms = parseInt($('#SingleRooms').val()) || 0;
+            var insurancePrice = parseFloat($('#InsurancePrice').val()) || 0;
+            var insuranceIncluded = $('#InsuranceIncluded').is(':checked');
+
+            var total = participants * pricePerPerson;
+            total += singleRoomSupplement * singleRooms;
+
+            if (insuranceIncluded && insurancePrice > 0) {
+                total += insurancePrice * participants;
+            }
+
+            $('#totalAmount').text('$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        }
+
+        function toggleFlightDetails() {
+            if ($('#FlightIncluded').is(':checked')) {
+                $('#flightDetailsBox').slideDown();
+            } else {
+                $('#flightDetailsBox').slideUp();
+                $('#FlightDetails').val('');
+            }
+        }
+
+        function toggleInsurancePrice() {
+            if ($('#InsuranceIncluded').is(':checked')) {
+                $('#insurancePriceBox').slideDown();
+            } else {
+                $('#insurancePriceBox').slideUp();
+                $('#InsurancePrice').val('');
+                calculateTotal();
+            }
+        }
+
+        // אתחול
+        $(document).ready(function() {
+            var today = new Date();
+            today.setDate(today.getDate() + 30);
+            if (!$('#DepartureDate').val()) {
+                $('#DepartureDate').val(today.toISOString().split('T')[0]);
+            }
+            calculateTotal();
+        });
+    </script>
+</body>
+</html>

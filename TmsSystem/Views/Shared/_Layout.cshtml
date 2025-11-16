@@ -137,7 +137,10 @@
                 <div class="collapse ps-4" id="offersMenu">
                     <a class="nav-link" asp-controller="Offers" asp-action="Index">הצג הצעות מחיר</a>
                     <a class="nav-link" asp-controller="Offers" asp-action="Index" asp-route-filter="near">הצעות קרובות</a>
-                    <a class="nav-link" asp-controller="Offers" asp-action="Create">צור הצעת מחיר</a>
+                    <a class="nav-link" asp-controller="Offers" asp-action="Create">צור הצעת מחיר לסיור</a>
+                    <a class="nav-link" asp-controller="TripOffers" asp-action="Index">
+                        <i class="fas fa-plane-departure"></i> הצעות מחיר לטיולים
+                    </a>
                 </div>
                 <!-- תפריט טיולים -->
                 <a class="nav-link" data-bs-toggle="collapse" href="#tripsMenu">

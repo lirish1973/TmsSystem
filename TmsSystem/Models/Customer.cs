@@ -1,5 +1,6 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TmsSystem.Models
 {
@@ -27,5 +28,8 @@ namespace TmsSystem.Models
 
         [DataType(DataType.Date)]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [NotMapped]
+        public string DisplayName => FullName ?? CustomerName ?? Email;
     }
 }
