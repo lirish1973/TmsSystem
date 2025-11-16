@@ -89,7 +89,7 @@ namespace TmsSystem.Controllers
         // POST: Trips/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Trip trip, List<IFormFile>? dayImages)
+        public async Task<IActionResult> Create(Trip trip)
         {
             try
             {
@@ -134,15 +134,16 @@ namespace TmsSystem.Controllers
                         DisplayOrder = dayNumber
                     };
 
-                    // טיפול בתמונה של אותו יום
-                    if (dayImages != null && i < dayImages.Count && dayImages[i] != null && dayImages[i].Length > 0)
+                    // טיפול בתמונה של אותו יום - שימוש בשם ייחודי
+                    var imageFile = Request.Form.Files[$"dayImage_{i}"];
+                    if (imageFile != null && imageFile.Length > 0)
                     {
-                        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(dayImages[i].FileName)}";
+                        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imageFile.FileName)}";
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
-                            await dayImages[i].CopyToAsync(fileStream);
+                            await imageFile.CopyToAsync(fileStream);
                         }
 
                         tripDay.ImagePath = "/uploads/trips/" + uniqueFileName;
@@ -151,7 +152,7 @@ namespace TmsSystem.Controllers
                     tripDaysList.Add(tripDay);
                 }
 
-                // יצירת הטיול
+                // יצירת הטיול עם כל הפרטים
                 var newTrip = new Trip
                 {
                     Title = trip.Title,
@@ -159,6 +160,15 @@ namespace TmsSystem.Controllers
                     NumberOfDays = trip.NumberOfDays,
                     IsActive = trip.IsActive,
                     CreatedAt = DateTime.Now,
+
+                    // פרטי מחיר - חדש!
+                    PricePerPerson = trip.PricePerPerson,
+                    PriceDescription = trip.PriceDescription,
+                    Includes = trip.Includes,
+                    Excludes = trip.Excludes,
+                    FlightDetails = trip.FlightDetails,
+
+                    // ימי הטיול
                     TripDays = tripDaysList
                 };
 
@@ -243,9 +253,11 @@ namespace TmsSystem.Controllers
 
 
         // POST: Trips/Edit/5
+        // POST: Trips/Edit/5
+        // POST: Trips/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Trip trip, List<IFormFile>? dayImages)
+        public async Task<IActionResult> Edit(int id, Trip trip)
         {
             if (id != trip.TripId)
             {
@@ -254,7 +266,6 @@ namespace TmsSystem.Controllers
 
             try
             {
-                // מציאת הטיול הקיים
                 var existingTrip = await _context.Trips
                     .Include(t => t.TripDays)
                     .FirstOrDefaultAsync(t => t.TripId == id);
@@ -264,24 +275,19 @@ namespace TmsSystem.Controllers
                     return NotFound();
                 }
 
-                // עדכון פרטי הטיול הבסיסיים
                 existingTrip.Title = trip.Title;
                 existingTrip.Description = trip.Description;
                 existingTrip.IsActive = trip.IsActive;
                 existingTrip.NumberOfDays = trip.NumberOfDays;
 
-                // יצירת תיקיית uploads אם לא קיימת
                 var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "trips");
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // אוסף של ימים חדשים/מעודכנים
-                var updatedDays = new List<TripDay>();
                 var existingDayIds = new HashSet<int>();
 
-                // עיבוד כל הימים מהטופס
                 for (int i = 0; i < trip.NumberOfDays; i++)
                 {
                     var tripDayIdStr = Request.Form[$"TripDays[{i}].TripDayId"].ToString();
@@ -292,11 +298,12 @@ namespace TmsSystem.Controllers
                     var description = Request.Form[$"TripDays[{i}].Description"].ToString();
                     var existingImagePath = Request.Form[$"TripDays[{i}].ImagePath"].ToString();
 
+                    Console.WriteLine($"Processing Day {i}: DayNumber={dayNumber}, TripDayId={tripDayId}");
+
                     TripDay tripDay;
 
                     if (tripDayId > 0)
                     {
-                        // יום קיים - עדכון
                         tripDay = existingTrip.TripDays.FirstOrDefault(d => d.TripDayId == tripDayId);
                         if (tripDay != null)
                         {
@@ -309,12 +316,11 @@ namespace TmsSystem.Controllers
                         }
                         else
                         {
-                            continue; // יום לא נמצא, דלג
+                            continue;
                         }
                     }
                     else
                     {
-                        // יום חדש - יצירה
                         tripDay = new TripDay
                         {
                             TripId = existingTrip.TripId,
@@ -328,10 +334,14 @@ namespace TmsSystem.Controllers
                         existingTrip.TripDays.Add(tripDay);
                     }
 
-                    // טיפול בתמונה
-                    if (dayImages != null && i < dayImages.Count && dayImages[i] != null && dayImages[i].Length > 0)
+                    // טיפול בתמונה - שימוש בשם ייחודי לכל יום
+                    var imageFile = Request.Form.Files[$"dayImage_{i}"];
+
+                    if (imageFile != null && imageFile.Length > 0)
                     {
-                        // מחיקת תמונה ישנה אם קיימת
+                        Console.WriteLine($"Image uploaded for Day {i} (DayNumber {dayNumber}): {imageFile.FileName}");
+
+                        // מחיקת תמונה ישנה
                         if (!string.IsNullOrEmpty(tripDay.ImagePath))
                         {
                             var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, tripDay.ImagePath.TrimStart('/'));
@@ -342,33 +352,30 @@ namespace TmsSystem.Controllers
                         }
 
                         // שמירת תמונה חדשה
-                        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(dayImages[i].FileName)}";
+                        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imageFile.FileName)}";
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
-                            await dayImages[i].CopyToAsync(fileStream);
+                            await imageFile.CopyToAsync(fileStream);
                         }
 
                         tripDay.ImagePath = "/uploads/trips/" + uniqueFileName;
+                        Console.WriteLine($"Saved image for Day {dayNumber}: {tripDay.ImagePath}");
                     }
-                    else if (string.IsNullOrEmpty(existingImagePath))
+                    else
                     {
-                        // אם אין תמונה חדשה ואין תמונה קיימת
-                        tripDay.ImagePath = null;
+                        Console.WriteLine($"No new image for Day {i} (DayNumber {dayNumber})");
                     }
-
-                    updatedDays.Add(tripDay);
                 }
 
-                // מחיקת ימים שנמחקו (ימים שהיו קיימים אבל לא בטופס)
+                // מחיקת ימים שנמחקו
                 var daysToRemove = existingTrip.TripDays
                     .Where(d => d.TripDayId > 0 && !existingDayIds.Contains(d.TripDayId))
                     .ToList();
 
                 foreach (var dayToRemove in daysToRemove)
                 {
-                    // מחיקת תמונה אם קיימת
                     if (!string.IsNullOrEmpty(dayToRemove.ImagePath))
                     {
                         var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, dayToRemove.ImagePath.TrimStart('/'));
@@ -387,20 +394,10 @@ namespace TmsSystem.Controllers
                 TempData["SuccessMessage"] = $"הטיול '{existingTrip.Title}' עודכן בהצלחה!";
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TripExists(trip.TripId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"שגיאה בעדכון הטיול: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
+                ModelState.AddModelError("", $"שגיאה: {ex.Message}");
                 return View(trip);
             }
         }

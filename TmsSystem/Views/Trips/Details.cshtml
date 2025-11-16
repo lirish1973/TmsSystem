@@ -12,13 +12,50 @@
         .trip-day-detail:hover {
             transform: translateY(-5px);
         }
+
+    /* יישור טקסט לימין - כולל כל האלמנטים */
+    .rtl-content {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .trip-description {
+        direction: rtl !important;
+        text-align: right !important;
+        white-space: pre-wrap;
+        line-height: 1.8;
+        font-size: 1.05rem;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-right: 4px solid #0d6efd;
+        margin: 0;
+    }
+
+    /* וודא שכל הכותרות והפסקאות מיושרות לימין */
+    .card-header h4,
+    .card-header h5,
+    .card-body p,
+    .card-body div {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .price-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .price-item:last-child {
+            border-bottom: none;
+        }
 </style>
 
 <div class="container mt-4">
     <div class="card shadow mb-4">
         <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h2><i class="fas fa-map-marked-alt"></i> @Model.Title</h2>
+                <h2 class="rtl-content"><i class="fas fa-map-marked-alt"></i> @Model.Title</h2>
                 <div>
                     <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning">
                         <i class="fas fa-edit"></i> עריכה
@@ -32,32 +69,110 @@
         <div class="card-body">
             <div class="row mb-4">
                 <div class="col-md-8">
-                    <h5>תיאור כללי</h5>
-                    <p class="lead">@Model.Description</p>
+                    <h5 class="rtl-content">תיאור כללי</h5>
+                    <p class="lead rtl-content">@Model.Description</p>
                 </div>
-                <div class="col-md-4 text-end">
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-calendar-alt"></i> משך הטיול</h5>
-                        <h3>@Model.NumberOfDays ימים</h3>
+                <div class="col-md-4">
+                    <div class="alert alert-info text-center mb-3">
+                        <h5 class="rtl-content"><i class="fas fa-calendar-alt"></i> משך הטיול</h5>
+                        <h3 class="rtl-content">@Model.NumberOfDays ימים</h3>
                     </div>
+                    @if (Model.PricePerPerson.HasValue)
+                    {
+                        <div class="alert alert-success text-center">
+                            <h5 class="rtl-content"><i class="fas fa-dollar-sign"></i> מחיר</h5>
+                            <h2 class="rtl-content text-success mb-2">@Model.PricePerPerson?.ToString("N2")$</h2>
+                            @if (!string.IsNullOrEmpty(Model.PriceDescription))
+                            {
+                                <small class="rtl-content d-block">@Model.PriceDescription</small>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
+
+            <!-- פרטי מחיר: כלול ולא כלול -->
+            @if (!string.IsNullOrEmpty(Model.Includes) || !string.IsNullOrEmpty(Model.Excludes))
+            {
+                <div class="row mb-4">
+                    @if (!string.IsNullOrEmpty(Model.Includes))
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-success h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0 rtl-content"><i class="fas fa-check-circle"></i> מה כלול במחיר</h5>
+                                </div>
+                                <div class="card-body">
+                                    @foreach (var line in Model.Includes.Split('\n'))
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(line))
+                                        {
+                                            <div class="price-item rtl-content">
+                                                <i class="fas fa-check text-success me-2"></i> @line.Trim()
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Excludes))
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-danger h-100">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0 rtl-content"><i class="fas fa-times-circle"></i> מה לא כלול במחיר</h5>
+                                </div>
+                                <div class="card-body">
+                                    @foreach (var line in Model.Excludes.Split('\n'))
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(line))
+                                        {
+                                            <div class="price-item rtl-content">
+                                                <i class="fas fa-times text-danger me-2"></i> @line.Trim()
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- פרטי טיסות -->
+            @if (!string.IsNullOrEmpty(Model.FlightDetails))
+            {
+                <div class="card border-primary mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0 rtl-content"><i class="fas fa-plane"></i> פרטי טיסות</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="trip-description">
+                            @Model.FlightDetails
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
     <!-- פירוט ימי הטיול -->
+    <h3 class="mb-3 rtl-content"><i class="fas fa-calendar-week"></i> תוכנית הטיול - יום אחר יום</h3>
+
     @foreach (var day in Model.TripDays.OrderBy(d => d.DayNumber))
     {
         <div class="card shadow mb-4 trip-day-detail">
             <div class="card-header bg-light">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">
+                    <h4 class="mb-0 rtl-content">
                         <span class="badge bg-primary me-2">יום @day.DayNumber</span>
                         @day.Title
                     </h4>
                     @if (!string.IsNullOrEmpty(day.Location))
                     {
-                        <span class="text-muted">
+                        <span class="text-muted rtl-content">
                             <i class="fas fa-map-marker-alt"></i> @day.Location
                         </span>
                     }
@@ -65,11 +180,23 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <!-- תמונה בצד ימין -->
-                    <div class="col-md-5 order-md-2 mb-3 mb-md-0">
+                    <!-- תיאור בצד ימין -->
+                    <div class="col-md-7 mb-3 mb-md-0">
+                        @if (!string.IsNullOrEmpty(day.Description))
+                        {
+                            <div class="trip-description rtl-content">@day.Description</div>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic rtl-content">אין תיאור ליום זה</p>
+                        }
+                    </div>
+
+                    <!-- תמונה בצד שמאל -->
+                    <div class="col-md-5">
                         @if (!string.IsNullOrEmpty(day.ImagePath))
                         {
-                            <img src="@day.ImagePath" alt="@day.Title" class="img-fluid rounded shadow-sm" style="width: 100%; height: auto; object-fit: cover;" />
+                            <img src="@day.ImagePath" alt="@day.Title" class="img-fluid rounded shadow-sm" style="width: 100%; height: auto; object-fit: cover; max-height: 400px;" />
                         }
                         else
                         {
@@ -78,29 +205,14 @@
                             </div>
                         }
                     </div>
-
-                    <!-- תיאור בצד שמאל -->
-                    <div class="col-md-7 order-md-1">
-                        <div class="p-3">
-                            @if (!string.IsNullOrEmpty(day.Description))
-                            {
-                                <div style="white-space: pre-wrap; line-height: 1.8; font-size: 1.05rem;">
-                                    @day.Description
-                                </div>
-                            }
-                            else
-                            {
-                                <p class="text-muted fst-italic">אין תיאור ליום זה</p>
-                            }
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     }
 
+    <!-- כפתורי פעולה בתחתית -->
     <div class="text-center my-4">
-        <a asp-controller="Trips" asp-action="Index" class="btn btn-secondary btn-lg">
+        <a asp-controller="Trips" asp-action="Index" class="btn btn-secondary btn-lg me-2">
             <i class="fas fa-arrow-right"></i> חזרה לרשימת הטיולים
         </a>
         <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning btn-lg">

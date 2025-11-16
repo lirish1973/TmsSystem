@@ -4,9 +4,16 @@
     ViewData["Title"] = "רשימת טיולים";
 }
 
+<style>
+    .rtl-text {
+        direction: rtl;
+        text-align: right;
+    }
+</style>
+
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>
+        <h2 class="rtl-text">
             <i class="fas fa-map-marked-alt"></i> ניהול טיולים
         </h2>
         <a asp-action="Create" class="btn btn-primary">
@@ -16,7 +23,7 @@
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show rtl-text" role="alert">
             @TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -28,7 +35,7 @@
             {
                 <div class="text-center py-5">
                     <i class="fas fa-map-marked-alt fa-4x text-muted mb-3"></i>
-                    <p class="text-muted">אין טיולים במערכת</p>
+                    <p class="text-muted rtl-text">אין טיולים במערכת</p>
                     <a asp-action="Create" class="btn btn-primary">צור טיול ראשון</a>
                 </div>
             }
@@ -37,7 +44,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="table-light">
-                            <tr>
+                            <tr class="rtl-text">
                                 <th>שם הטיול</th>
                                 <th>מספר ימים</th>
                                 <th>תאריך יצירה</th>
@@ -49,7 +56,7 @@
                             @foreach (var trip in Model)
                             {
                                 <tr>
-                                    <td>
+                                    <td class="rtl-text">
                                         <strong>@trip.Title</strong>
                                         @if (!string.IsNullOrEmpty(trip.Description))
                                         {
@@ -57,11 +64,11 @@
                                             <small class="text-muted">@(trip.Description.Length > 50 ? trip.Description.Substring(0, 50) + "..." : trip.Description)</small>
                                         }
                                     </td>
-                                    <td>
+                                    <td class="rtl-text">
                                         <span class="badge bg-info">@trip.NumberOfDays ימים</span>
                                     </td>
-                                    <td>@trip.CreatedAt.ToString("dd/MM/yyyy")</td>
-                                    <td>
+                                    <td class="rtl-text">@trip.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="rtl-text">
                                         @if (trip.IsActive)
                                         {
                                             <span class="badge bg-success">פעיל</span>
