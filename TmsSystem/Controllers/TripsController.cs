@@ -253,15 +253,25 @@ namespace TmsSystem.Controllers
 
 
         // POST: Trips/Edit/5
-        // POST: Trips/Edit/5
-        // POST: Trips/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Trip trip)
         {
             if (id != trip.TripId)
-            {
                 return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                // טען מחדש את הימים אם יש שגיאת ולידציה
+                var vmTemp = await _context.Trips
+                    .Include(t => t.TripDays)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TripId == id);
+
+                if (vmTemp?.TripDays != null)
+                    trip.TripDays = vmTemp.TripDays.OrderBy(d => d.DayNumber).ToList();
+
+                return View(trip);
             }
 
             try
@@ -271,56 +281,76 @@ namespace TmsSystem.Controllers
                     .FirstOrDefaultAsync(t => t.TripId == id);
 
                 if (existingTrip == null)
-                {
                     return NotFound();
-                }
 
+                Console.WriteLine($"[Edit] Starting edit for Trip {id}, Title: {trip.Title}");
+
+                // עדכון שדות כלליים
                 existingTrip.Title = trip.Title;
                 existingTrip.Description = trip.Description;
                 existingTrip.IsActive = trip.IsActive;
                 existingTrip.NumberOfDays = trip.NumberOfDays;
+                existingTrip.PricePerPerson = trip.PricePerPerson;
+                existingTrip.PriceDescription = trip.PriceDescription;
+                existingTrip.Includes = trip.Includes;
+                existingTrip.Excludes = trip.Excludes;
+                existingTrip.FlightDetails = trip.FlightDetails;
 
-                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "trips");
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath ?? "", "uploads", "trips");
                 if (!Directory.Exists(uploadsFolder))
-                {
                     Directory.CreateDirectory(uploadsFolder);
-                }
 
                 var existingDayIds = new HashSet<int>();
 
+                // עבור על הימים מה-Form (לפי NumberOfDays)
                 for (int i = 0; i < trip.NumberOfDays; i++)
                 {
-                    var tripDayIdStr = Request.Form[$"TripDays[{i}].TripDayId"].ToString();
-                    var tripDayId = int.Parse(string.IsNullOrEmpty(tripDayIdStr) ? "0" : tripDayIdStr);
-                    var dayNumber = int.Parse(Request.Form[$"TripDays[{i}].DayNumber"].ToString());
-                    var title = Request.Form[$"TripDays[{i}].Title"].ToString();
-                    var location = Request.Form[$"TripDays[{i}].Location"].ToString();
-                    var description = Request.Form[$"TripDays[{i}].Description"].ToString();
-                    var existingImagePath = Request.Form[$"TripDays[{i}].ImagePath"].ToString();
+                    // קריאת ערכים מה-Request.Form
+                    var tripDayIdStr = Request.Form[$"TripDays[{i}].TripDayId"].FirstOrDefault() ?? "0";
+                    int.TryParse(tripDayIdStr, out var tripDayId);
 
-                    Console.WriteLine($"Processing Day {i}: DayNumber={dayNumber}, TripDayId={tripDayId}");
+                    var dayNumberStr = Request.Form[$"TripDays[{i}].DayNumber"].FirstOrDefault() ?? (i + 1).ToString();
+                    int.TryParse(dayNumberStr, out var dayNumber);
 
-                    TripDay tripDay;
+                    var displayOrderStr = Request.Form[$"TripDays[{i}].DisplayOrder"].FirstOrDefault() ?? dayNumber.ToString();
+                    int.TryParse(displayOrderStr, out var displayOrder);
+
+                    var title = Request.Form[$"TripDays[{i}].Title"].FirstOrDefault() ?? $"יום {dayNumber}";
+                    var location = Request.Form[$"TripDays[{i}].Location"].FirstOrDefault() ?? string.Empty;
+                    var description = Request.Form[$"TripDays[{i}].Description"].FirstOrDefault() ?? string.Empty;
+                    var existingImagePath = Request.Form[$"TripDays[{i}].ImagePath"].FirstOrDefault() ?? string.Empty;
+
+                    Console.WriteLine($"[Edit] Processing day {i}: TripDayId={tripDayId}, DayNumber={dayNumber}, Title='{title}'");
+
+                    TripDay tripDay = null;
 
                     if (tripDayId > 0)
                     {
+                        // עדכון יום קיים
                         tripDay = existingTrip.TripDays.FirstOrDefault(d => d.TripDayId == tripDayId);
+
                         if (tripDay != null)
                         {
+                            Console.WriteLine($"[Edit] Updating existing day {tripDayId}: '{tripDay.Title}' -> '{title}'");
+
                             tripDay.Title = title;
                             tripDay.Location = location;
                             tripDay.Description = description;
                             tripDay.DayNumber = dayNumber;
-                            tripDay.DisplayOrder = dayNumber;
+                            tripDay.DisplayOrder = displayOrder;
+
+                            _context.Entry(tripDay).State = EntityState.Modified;
                             existingDayIds.Add(tripDayId);
                         }
                         else
                         {
+                            Console.WriteLine($"[Edit] Warning: TripDay {tripDayId} not found in existingTrip.TripDays");
                             continue;
                         }
                     }
                     else
                     {
+                        // יום חדש
                         tripDay = new TripDay
                         {
                             TripId = existingTrip.TripId,
@@ -328,26 +358,39 @@ namespace TmsSystem.Controllers
                             Title = title,
                             Location = location,
                             Description = description,
-                            DisplayOrder = dayNumber,
+                            DisplayOrder = displayOrder,
                             ImagePath = existingImagePath
                         };
+
                         existingTrip.TripDays.Add(tripDay);
+                        _context.Entry(tripDay).State = EntityState.Added;
+                        Console.WriteLine($"[Edit] Added new day {dayNumber}: '{title}'");
                     }
 
-                    // טיפול בתמונה - שימוש בשם ייחודי לכל יום
+                    // טיפול בתמונה - שים לב לשם השדה: dayImage_i (ללא סוגריים מסולסלים)
                     var imageFile = Request.Form.Files[$"dayImage_{i}"];
 
                     if (imageFile != null && imageFile.Length > 0)
                     {
-                        Console.WriteLine($"Image uploaded for Day {i} (DayNumber {dayNumber}): {imageFile.FileName}");
+                        Console.WriteLine($"[Edit] Processing image for day {i}: {imageFile.FileName} ({imageFile.Length} bytes)");
 
-                        // מחיקת תמונה ישנה
+                        // מחיקת תמונה ישנה אם קיימת
                         if (!string.IsNullOrEmpty(tripDay.ImagePath))
                         {
-                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, tripDay.ImagePath.TrimStart('/'));
-                            if (System.IO.File.Exists(oldImagePath))
+                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath ?? "",
+                                tripDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                            try
                             {
-                                System.IO.File.Delete(oldImagePath);
+                                if (System.IO.File.Exists(oldImagePath))
+                                {
+                                    System.IO.File.Delete(oldImagePath);
+                                    Console.WriteLine($"[Edit] Deleted old image: {oldImagePath}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[Edit] Could not delete old image: {ex.Message}");
                             }
                         }
 
@@ -355,49 +398,139 @@ namespace TmsSystem.Controllers
                         var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imageFile.FileName)}";
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        using (var fs = new FileStream(filePath, FileMode.Create))
                         {
-                            await imageFile.CopyToAsync(fileStream);
+                            await imageFile.CopyToAsync(fs);
                         }
 
                         tripDay.ImagePath = "/uploads/trips/" + uniqueFileName;
-                        Console.WriteLine($"Saved image for Day {dayNumber}: {tripDay.ImagePath}");
+
+                        if (tripDay.TripDayId > 0)
+                            _context.Entry(tripDay).State = EntityState.Modified;
+
+                        Console.WriteLine($"[Edit] Saved new image: {tripDay.ImagePath}");
                     }
                     else
                     {
-                        Console.WriteLine($"No new image for Day {i} (DayNumber {dayNumber})");
+                        Console.WriteLine($"[Edit] No new image for day {i}");
+
+                        // בדיקה אם ImagePath ריק - זה אומר שהמשתמש מחק את התמונה
+                        if (string.IsNullOrEmpty(existingImagePath) && !string.IsNullOrEmpty(tripDay.ImagePath))
+                        {
+                            Console.WriteLine($"[Edit] Image was marked for deletion for day {i}");
+
+                            // מחיקת הקובץ הפיזי
+                            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath ?? "",
+                                tripDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                            try
+                            {
+                                if (System.IO.File.Exists(oldImagePath))
+                                {
+                                    System.IO.File.Delete(oldImagePath);
+                                    Console.WriteLine($"[Edit] Deleted image file: {oldImagePath}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[Edit] Could not delete image: {ex.Message}");
+                            }
+
+                            tripDay.ImagePath = null;
+
+                            if (tripDay.TripDayId > 0)
+                                _context.Entry(tripDay).State = EntityState.Modified;
+                        }
                     }
                 }
 
-                // מחיקת ימים שנמחקו
+                // מחיקת ימים שהוסרו
                 var daysToRemove = existingTrip.TripDays
                     .Where(d => d.TripDayId > 0 && !existingDayIds.Contains(d.TripDayId))
                     .ToList();
 
                 foreach (var dayToRemove in daysToRemove)
                 {
+                    Console.WriteLine($"[Edit] Removing day {dayToRemove.TripDayId} (DayNumber: {dayToRemove.DayNumber})");
+
+                    // מחיקת תמונה פיזית אם קיימת
                     if (!string.IsNullOrEmpty(dayToRemove.ImagePath))
                     {
-                        var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, dayToRemove.ImagePath.TrimStart('/'));
-                        if (System.IO.File.Exists(imagePath))
+                        var imagePath = Path.Combine(_webHostEnvironment.WebRootPath ?? "",
+                            dayToRemove.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                        try
                         {
-                            System.IO.File.Delete(imagePath);
+                            if (System.IO.File.Exists(imagePath))
+                            {
+                                System.IO.File.Delete(imagePath);
+                                Console.WriteLine($"[Edit] Deleted image: {imagePath}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Edit] Could not delete image: {ex.Message}");
                         }
                     }
+
                     existingTrip.TripDays.Remove(dayToRemove);
                     _context.TripDays.Remove(dayToRemove);
                 }
 
-                _context.Update(existingTrip);
+                // עדכון הישות הראשית
+                _context.Entry(existingTrip).State = EntityState.Modified;
+
+                Console.WriteLine("[Edit] Saving changes to database...");
+                Console.WriteLine($"[Edit] Trip: {existingTrip.Title}");
+                Console.WriteLine($"[Edit] Days count: {existingTrip.TripDays.Count}");
+
+                foreach (var day in existingTrip.TripDays.OrderBy(d => d.DayNumber))
+                {
+                    var state = _context.Entry(day).State;
+                    Console.WriteLine($"[Edit]   Day {day.DayNumber}: '{day.Title}' (ID: {day.TripDayId}, State: {state})");
+                }
+
                 await _context.SaveChangesAsync();
+                Console.WriteLine("[Edit] Changes saved successfully!");
 
                 TempData["SuccessMessage"] = $"הטיול '{existingTrip.Title}' עודכן בהצלחה!";
                 return RedirectToAction(nameof(Index));
             }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"[Edit] Database error: {ex.Message}");
+                Console.WriteLine($"[Edit] Inner exception: {ex.InnerException?.Message}");
+                Console.WriteLine(ex.StackTrace);
+
+                ModelState.AddModelError("", $"שגיאה בעדכון הנתונים: {ex.InnerException?.Message ?? ex.Message}");
+
+                // טען מחדש את הימים
+                var vmTemp = await _context.Trips
+                    .Include(t => t.TripDays)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TripId == id);
+
+                if (vmTemp?.TripDays != null)
+                    trip.TripDays = vmTemp.TripDays.OrderBy(d => d.DayNumber).ToList();
+
+                return View(trip);
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"[Edit] Error: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+
                 ModelState.AddModelError("", $"שגיאה: {ex.Message}");
+
+                // טען מחדש את הימים
+                var vmTemp = await _context.Trips
+                    .Include(t => t.TripDays)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TripId == id);
+
+                if (vmTemp?.TripDays != null)
+                    trip.TripDays = vmTemp.TripDays.OrderBy(d => d.DayNumber).ToList();
+
                 return View(trip);
             }
         }
