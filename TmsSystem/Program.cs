@@ -109,6 +109,8 @@ builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp")
 builder.Services.AddScoped<IEmailService, SendGridEmailService>();
 builder.Services.AddTransient<IEmailSender, SendGridEmailSender>();
 builder.Services.AddScoped<OfferEmailSender>();
+builder.Services.AddScoped<TripOfferEmailSender>();
+builder.Services.AddScoped<TripEmailSender>();
 
 // ========================================
 // 📄 PDF Services

@@ -1,34 +1,72 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TmsSystem.Data;
 using TmsSystem.Models;
 using TmsSystem.ViewModels;
+using TmsSystem.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace TmsSystem.Controllers
 {
+    [Authorize]
     public class TripOffersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly TripOfferEmailSender _tripOfferEmailSender;
 
-        public TripOffersController(ApplicationDbContext context)
+        public TripOffersController(
+            ApplicationDbContext context,
+            TripOfferEmailSender tripOfferEmailSender)
         {
             _context = context;
+            _tripOfferEmailSender = tripOfferEmailSender;
         }
 
         // GET: TripOffers
         public async Task<IActionResult> Index()
         {
-            var offers = await _context.TripOffers
+            try
+            {
+                var offers = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip)
+                    .Include(to => to.PaymentMethod)
+                    .OrderByDescending(to => to.OfferDate)
+                    .ToListAsync();
+
+                return View(offers);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in TripOffers/Index: {ex.Message}");
+                return View("Error");
+            }
+        }
+
+        // GET: TripOffers/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var tripOffer = await _context.TripOffers
                 .Include(to => to.Customer)
                 .Include(to => to.Trip)
+                    .ThenInclude(t => t.TripDays)
                 .Include(to => to.PaymentMethod)
-                .OrderByDescending(to => to.OfferDate)
-                .ToListAsync();
+                .FirstOrDefaultAsync(m => m.TripOfferId == id);
 
-            return View(offers);
+            if (tripOffer == null)
+            {
+                return NotFound();
+            }
+
+            return View(tripOffer);
         }
 
         // GET: TripOffers/Create
@@ -49,7 +87,7 @@ namespace TmsSystem.Controllers
                     .OrderBy(p => p.PaymentName)
                     .ToListAsync(),
 
-                DepartureDate = DateTime.Today.AddDays(30), // ברירת מחדל: בעוד חודש
+                DepartureDate = DateTime.Today.AddDays(30),
                 Participants = 2
             };
 
@@ -65,14 +103,12 @@ namespace TmsSystem.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    // טען מחדש את הרשימות
                     model.Customers = await _context.Customers.ToListAsync();
                     model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                     model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                     return View(model);
                 }
 
-                // חישוב תאריך חזרה אוטומטי אם לא הוזן
                 if (!model.ReturnDate.HasValue)
                 {
                     var trip = await _context.Trips.FindAsync(model.TripId);
@@ -82,22 +118,18 @@ namespace TmsSystem.Controllers
                     }
                 }
 
-                // חישוב מחיר כולל
                 decimal totalPrice = model.PricePerPerson * model.Participants;
 
-                // הוספת תוספת חדר יחיד
                 if (model.SingleRoomSupplement.HasValue && model.SingleRooms > 0)
                 {
                     totalPrice += model.SingleRoomSupplement.Value * model.SingleRooms;
                 }
 
-                // הוספת ביטוח
                 if (model.InsuranceIncluded && model.InsurancePrice.HasValue)
                 {
                     totalPrice += model.InsurancePrice.Value * model.Participants;
                 }
 
-                // יצירת מספר הצעת מחיר ייחודי
                 var offerNumber = $"TRIP-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}";
 
                 var tripOffer = new TripOffer
@@ -141,50 +173,51 @@ namespace TmsSystem.Controllers
             }
         }
 
-        // GET: TripOffers/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // POST: TripOffers/SendEmail/5
+        [HttpPost("/TripOffers/SendEmail/{id}")]
+        public async Task<IActionResult> SendEmail(int id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                var offer = await _context.TripOffers
+                    .Include(o => o.Customer)
+                    .Include(o => o.Trip)
+                        .ThenInclude(t => t.TripDays)
+                    .Include(o => o.PaymentMethod)
+                    .FirstOrDefaultAsync(o => o.TripOfferId == id);
+
+                if (offer == null)
+                    return Json(new { success = false, message = "הצעת המחיר לא נמצאה" });
+
+                if (string.IsNullOrWhiteSpace(offer.Customer?.Email))
+                    return Json(new { success = false, message = "לא נמצאה כתובת אימייל ללקוח" });
+
+                var result = await _tripOfferEmailSender.SendTripOfferEmailAsync(offer);
+
+                if (result.Success)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        sentTo = result.SentTo,
+                        subject = result.Subject,
+                        sentAt = result.SentAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        provider = result.Provider,
+                        customerName = result.CustomerName,
+                        offerNumber = offer.OfferNumber
+                    });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.ErrorMessage });
+                }
             }
-
-            var tripOffer = await _context.TripOffers
-                .Include(to => to.Customer)
-                .Include(to => to.Trip)
-                    .ThenInclude(t => t.TripDays)
-                .Include(to => to.PaymentMethod)
-                .FirstOrDefaultAsync(m => m.TripOfferId == id);
-
-            if (tripOffer == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                Console.WriteLine($"[SendTripOfferEmail] Error: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return Json(new { success = false, message = $"שגיאה: {ex.Message}" });
             }
-
-            return View(tripOffer);
-        }
-
-        // GET API: TripOffers/GetTripDetails/5
-        [HttpGet]
-        public async Task<IActionResult> GetTripDetails(int id)
-        {
-            var trip = await _context.Trips.FindAsync(id);
-            if (trip == null)
-            {
-                return NotFound();
-            }
-
-            return Json(new
-            {
-                tripId = trip.TripId,
-                title = trip.Title,
-                numberOfDays = trip.NumberOfDays,
-                pricePerPerson = trip.PricePerPerson,
-                priceDescription = trip.PriceDescription,
-                includes = trip.Includes,
-                excludes = trip.Excludes,
-                flightDetails = trip.FlightDetails
-            });
         }
     }
 }

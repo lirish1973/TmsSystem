@@ -13,5 +13,7 @@ namespace TmsSystem.Models
         public string MessageId { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public int OfferId { get; set; }
+        public int? TripId { get; set; }
+        public int? TripOfferId { get; set; }
     }
 }

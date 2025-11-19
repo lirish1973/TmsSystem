@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using TmsSystem.Services;
 
 namespace TmsSystem.Controllers
 {
@@ -17,11 +18,16 @@ namespace TmsSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly TripEmailSender _tripEmailSender; // הוסף את זה!
 
-        public TripsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public TripsController(
+            ApplicationDbContext context,
+            IWebHostEnvironment webHostEnvironment,
+            TripEmailSender tripEmailSender) // הוסף פרמטר!
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _tripEmailSender = tripEmailSender; // אתחול!
         }
 
         // GET: Trips
@@ -84,6 +90,50 @@ namespace TmsSystem.Controllers
             }
 
             return View(trip);
+        }
+
+        // POST: /trips/{id}/send-email
+        [HttpPost("/trips/{id}/send-email")]
+        public async Task<IActionResult> SendTripEmail(int id, [FromForm] string email, [FromForm] string customerName = null)
+        {
+            try
+            {
+                var trip = await _context.Trips
+                    .Include(t => t.TripDays)
+                    .FirstOrDefaultAsync(t => t.TripId == id);
+
+                if (trip == null)
+                    return Json(new { success = false, message = "הטיול לא נמצא" });
+
+                if (string.IsNullOrWhiteSpace(email))
+                    return Json(new { success = false, message = "כתובת אימייל נדרשת" });
+
+                // 🔧 תיקון: קריאה נכונה למתודה
+                var result = await _tripEmailSender.SendTripProposalAsync(trip, email, customerName);
+
+                if (result.Success)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        sentTo = result.SentTo,
+                        subject = result.Subject,
+                        sentAt = result.SentAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        provider = result.Provider,
+                        tripId = result.TripId
+                    });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.ErrorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SendTripEmail] Error: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return Json(new { success = false, message = $"שגיאה: {ex.Message}" });
+            }
         }
 
         // POST: Trips/Create
@@ -161,7 +211,7 @@ namespace TmsSystem.Controllers
                     IsActive = trip.IsActive,
                     CreatedAt = DateTime.Now,
 
-                    // פרטי מחיר - חדש!
+                    // פרטי מחיר
                     PricePerPerson = trip.PricePerPerson,
                     PriceDescription = trip.PriceDescription,
                     Includes = trip.Includes,
@@ -185,9 +235,6 @@ namespace TmsSystem.Controllers
             }
         }
 
-
-
-
         // GET: Trips/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -198,11 +245,9 @@ namespace TmsSystem.Controllers
 
             try
             {
-                // בדיקה אם הטיול קיים
                 var tripExists = await _context.Trips.AnyAsync(t => t.TripId == id);
                 Console.WriteLine($"Trip {id} exists: {tripExists}");
 
-                // טעינת הטיול עם הימים
                 var trip = await _context.Trips
                     .Include(t => t.TripDays)
                     .AsNoTracking()
@@ -217,13 +262,11 @@ namespace TmsSystem.Controllers
                 Console.WriteLine($"Trip loaded: {trip.Title}");
                 Console.WriteLine($"TripDays count: {trip.TripDays?.Count ?? 0}");
 
-                // בדיקה ישירה במסד הנתונים
                 var daysCount = await _context.TripDays.CountAsync(td => td.TripId == id);
                 Console.WriteLine($"Days in database: {daysCount}");
 
                 if (trip.TripDays == null || !trip.TripDays.Any())
                 {
-                    // טעינה ידנית של הימים אם לא נטענו
                     var days = await _context.TripDays
                         .Where(td => td.TripId == id)
                         .OrderBy(td => td.DayNumber)
@@ -234,7 +277,6 @@ namespace TmsSystem.Controllers
                 }
                 else
                 {
-                    // מיון הימים
                     trip.TripDays = trip.TripDays.OrderBy(d => d.DayNumber).ToList();
                 }
 
@@ -250,8 +292,6 @@ namespace TmsSystem.Controllers
             }
         }
 
-
-
         // POST: Trips/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -262,7 +302,6 @@ namespace TmsSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                // טען מחדש את הימים אם יש שגיאת ולידציה
                 var vmTemp = await _context.Trips
                     .Include(t => t.TripDays)
                     .AsNoTracking()
@@ -285,7 +324,6 @@ namespace TmsSystem.Controllers
 
                 Console.WriteLine($"[Edit] Starting edit for Trip {id}, Title: {trip.Title}");
 
-                // עדכון שדות כלליים
                 existingTrip.Title = trip.Title;
                 existingTrip.Description = trip.Description;
                 existingTrip.IsActive = trip.IsActive;
@@ -302,10 +340,8 @@ namespace TmsSystem.Controllers
 
                 var existingDayIds = new HashSet<int>();
 
-                // עבור על הימים מה-Form (לפי NumberOfDays)
                 for (int i = 0; i < trip.NumberOfDays; i++)
                 {
-                    // קריאת ערכים מה-Request.Form
                     var tripDayIdStr = Request.Form[$"TripDays[{i}].TripDayId"].FirstOrDefault() ?? "0";
                     int.TryParse(tripDayIdStr, out var tripDayId);
 
@@ -326,7 +362,6 @@ namespace TmsSystem.Controllers
 
                     if (tripDayId > 0)
                     {
-                        // עדכון יום קיים
                         tripDay = existingTrip.TripDays.FirstOrDefault(d => d.TripDayId == tripDayId);
 
                         if (tripDay != null)
@@ -350,7 +385,6 @@ namespace TmsSystem.Controllers
                     }
                     else
                     {
-                        // יום חדש
                         tripDay = new TripDay
                         {
                             TripId = existingTrip.TripId,
@@ -367,14 +401,12 @@ namespace TmsSystem.Controllers
                         Console.WriteLine($"[Edit] Added new day {dayNumber}: '{title}'");
                     }
 
-                    // טיפול בתמונה - שים לב לשם השדה: dayImage_i (ללא סוגריים מסולסלים)
                     var imageFile = Request.Form.Files[$"dayImage_{i}"];
 
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         Console.WriteLine($"[Edit] Processing image for day {i}: {imageFile.FileName} ({imageFile.Length} bytes)");
 
-                        // מחיקת תמונה ישנה אם קיימת
                         if (!string.IsNullOrEmpty(tripDay.ImagePath))
                         {
                             var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath ?? "",
@@ -394,7 +426,6 @@ namespace TmsSystem.Controllers
                             }
                         }
 
-                        // שמירת תמונה חדשה
                         var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imageFile.FileName)}";
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
@@ -414,12 +445,10 @@ namespace TmsSystem.Controllers
                     {
                         Console.WriteLine($"[Edit] No new image for day {i}");
 
-                        // בדיקה אם ImagePath ריק - זה אומר שהמשתמש מחק את התמונה
                         if (string.IsNullOrEmpty(existingImagePath) && !string.IsNullOrEmpty(tripDay.ImagePath))
                         {
                             Console.WriteLine($"[Edit] Image was marked for deletion for day {i}");
 
-                            // מחיקת הקובץ הפיזי
                             var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath ?? "",
                                 tripDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
@@ -444,7 +473,6 @@ namespace TmsSystem.Controllers
                     }
                 }
 
-                // מחיקת ימים שהוסרו
                 var daysToRemove = existingTrip.TripDays
                     .Where(d => d.TripDayId > 0 && !existingDayIds.Contains(d.TripDayId))
                     .ToList();
@@ -453,7 +481,6 @@ namespace TmsSystem.Controllers
                 {
                     Console.WriteLine($"[Edit] Removing day {dayToRemove.TripDayId} (DayNumber: {dayToRemove.DayNumber})");
 
-                    // מחיקת תמונה פיזית אם קיימת
                     if (!string.IsNullOrEmpty(dayToRemove.ImagePath))
                     {
                         var imagePath = Path.Combine(_webHostEnvironment.WebRootPath ?? "",
@@ -477,19 +504,9 @@ namespace TmsSystem.Controllers
                     _context.TripDays.Remove(dayToRemove);
                 }
 
-                // עדכון הישות הראשית
                 _context.Entry(existingTrip).State = EntityState.Modified;
 
                 Console.WriteLine("[Edit] Saving changes to database...");
-                Console.WriteLine($"[Edit] Trip: {existingTrip.Title}");
-                Console.WriteLine($"[Edit] Days count: {existingTrip.TripDays.Count}");
-
-                foreach (var day in existingTrip.TripDays.OrderBy(d => d.DayNumber))
-                {
-                    var state = _context.Entry(day).State;
-                    Console.WriteLine($"[Edit]   Day {day.DayNumber}: '{day.Title}' (ID: {day.TripDayId}, State: {state})");
-                }
-
                 await _context.SaveChangesAsync();
                 Console.WriteLine("[Edit] Changes saved successfully!");
 
@@ -504,7 +521,6 @@ namespace TmsSystem.Controllers
 
                 ModelState.AddModelError("", $"שגיאה בעדכון הנתונים: {ex.InnerException?.Message ?? ex.Message}");
 
-                // טען מחדש את הימים
                 var vmTemp = await _context.Trips
                     .Include(t => t.TripDays)
                     .AsNoTracking()
@@ -522,7 +538,6 @@ namespace TmsSystem.Controllers
 
                 ModelState.AddModelError("", $"שגיאה: {ex.Message}");
 
-                // טען מחדש את הימים
                 var vmTemp = await _context.Trips
                     .Include(t => t.TripDays)
                     .AsNoTracking()
@@ -534,11 +549,6 @@ namespace TmsSystem.Controllers
                 return View(trip);
             }
         }
-
-
-
-
-
 
         // GET: Trips/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -571,7 +581,6 @@ namespace TmsSystem.Controllers
 
             if (trip != null)
             {
-                // מחיקת תמונות
                 foreach (var day in trip.TripDays)
                 {
                     if (!string.IsNullOrEmpty(day.ImagePath))

@@ -483,9 +483,9 @@
         <button onclick="window.print()" class="btn btn-primary btn-lg">
             <i class="fas fa-print me-2"></i>הדפס
         </button>
-        <a href="mailto:@Model.Customer?.Email?subject=הצעת מחיר @Model.OfferNumber" class="btn btn-success btn-lg">
-            <i class="fas fa-envelope me-2"></i>שלח ללקוח
-        </a>
+        <button onclick="sendTripOfferEmail(@Model.TripOfferId)" class="btn btn-success btn-lg">
+            <i class="fas fa-envelope me-2"></i>שלח במייל
+        </button>
     </div>
 </div>
 
@@ -510,3 +510,7 @@
         page-break-inside: avoid;
     }
 </style>
+
+@section Scripts {
+    <script src="~/js/trip-email.js"></script>
+}
