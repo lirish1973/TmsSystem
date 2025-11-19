@@ -45,7 +45,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="js\" />
     <Folder Include="wwwroot\uploads\trips\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\js\Email-Success.js" />
+    <None Include="wwwroot\js\trip-email.js" />
+    <None Include="wwwroot\js\trip-offer-email.js" />
   </ItemGroup>
 
 </Project>

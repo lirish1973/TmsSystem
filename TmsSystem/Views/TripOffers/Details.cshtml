@@ -512,5 +512,215 @@
 </style>
 
 @section Scripts {
-    <script src="~/js/trip-email.js"></script>
+    <script>
+        console.log('🔧 Loading inline trip email script...');
+
+        // פונקציה לשליחת הצעת מחיר לטיול במייל
+        async function sendTripOfferEmail(tripOfferId) {
+            console.log('🚀 Function called! Trip Offer ID:', tripOfferId);
+
+            if (!tripOfferId || tripOfferId <= 0) {
+                alert('❌ מזהה הצעת מחיר לא תקין');
+                return;
+            }
+
+            // מציאת הכפתור
+            const btn = event?.target?.closest('button');
+            if (!btn) {
+                console.error('❌ Button element not found');
+                alert('שגיאה: לא נמצא כפתור');
+                return;
+            }
+
+            // שמירת התוכן המקורי של הכפתור
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>שולח...';
+
+            try {
+                const url = `/TripOffers/SendEmail/${tripOfferId}`;
+                console.log(`📤 Sending POST request to: ${url}`);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('📥 Response received. Status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Response data:', result);
+
+                if (result.success) {
+                    showSuccessModal(result);
+                } else {
+                    alert(`❌ שגיאה: ${result.message || 'לא ידוע'}`);
+                }
+
+            } catch (error) {
+                console.error('❌ Exception caught:', error);
+                alert(`שגיאה בשליחת המייל:\n${error.message}`);
+            } finally {
+                // החזרת הכפתור למצב המקורי
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        // פונקציה להצגת מודל הצלחה
+        function showSuccessModal(data) {
+            console.log('🎉 Showing success modal with data:', data);
+
+            // יצירת רקע כהה
+            const overlay = document.createElement('div');
+            overlay.className = 'email-success-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.75);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fadeIn 0.3s ease;
+            `;
+
+            // יצירת כרטיס המידע
+            const card = document.createElement('div');
+            card.style.cssText = `
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+                padding: 40px;
+                max-width: 550px;
+                width: 90%;
+                direction: rtl;
+                text-align: center;
+                animation: slideIn 0.4s ease-out;
+                max-height: 90vh;
+                overflow-y: auto;
+            `;
+
+            card.innerHTML = `
+                <div style="font-size: 80px; color: #28a745; margin-bottom: 20px; animation: bounce 0.6s ease;">
+                    ✅
+                </div>
+                <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 15px; color: #2c3e50;">
+                    המייל נשלח בהצלחה!
+                </h2>
+                <p style="color: #6c757d; font-size: 16px; margin-bottom: 30px;">
+                    הצעת המחיר נשלחה ללקוח במייל
+                </p>
+
+                <div style="background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; padding: 25px; margin: 20px 0; text-align: right; border: 2px solid #667eea;">
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #dee2e6;">
+                        <div style="font-weight: 600; color: #495057; font-size: 14px; margin-bottom: 5px;">📅 תאריך שליחה</div>
+                        <div style="color: #2c3e50; font-size: 16px; font-weight: 500;">${data.sentAt || new Date().toLocaleString('he-IL')}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #dee2e6;">
+                        <div style="font-weight: 600; color: #495057; font-size: 14px; margin-bottom: 5px;">📧 נשלח לכתובת</div>
+                        <div style="color: #2c3e50; font-size: 16px; font-weight: 500; word-break: break-all;">${data.sentTo || 'לא זמין'}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #dee2e6;">
+                        <div style="font-weight: 600; color: #495057; font-size: 14px; margin-bottom: 5px;">📋 נושא המייל</div>
+                        <div style="color: #2c3e50; font-size: 15px; font-weight: 500;">${data.subject || 'הצעת מחיר לטיול'}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #dee2e6;">
+                        <div style="font-weight: 600; color: #495057; font-size: 14px; margin-bottom: 5px;">🎫 מספר הצעה</div>
+                        <div style="color: #667eea; font-size: 18px; font-weight: 700;">${data.offerNumber || '-'}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #dee2e6;">
+                        <div style="font-weight: 600; color: #495057; font-size: 14px; margin-bottom: 5px;">👤 שם הלקוח</div>
+                        <div style="color: #2c3e50; font-size: 16px; font-weight: 500;">${data.customerName || 'לא זמין'}</div>
+                    </div>
+
+                    <div>
+                        <div style="font-weight: 600; color: #495057; font-size: 14px; margin-bottom: 5px;">🌐 ספק שליחה</div>
+                        <div style="color: #2c3e50; font-size: 16px; font-weight: 500;">${data.provider || 'SendGrid'}</div>
+                    </div>
+                </div>
+
+                <button onclick="this.closest('.email-success-overlay').remove()"
+                        style="
+                            background: linear-gradient(145deg, #28a745 0%, #20c997 100%);
+                            color: white;
+                            border: none;
+                            padding: 15px 40px;
+                            border-radius: 30px;
+                            font-size: 18px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+                            transition: all 0.3s ease;
+                            margin-top: 10px;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(40, 167, 69, 0.4)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(40, 167, 69, 0.3)';">
+                    <i class="fas fa-check me-2"></i>סגור
+                </button>
+            `;
+
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+
+            // סגירה בלחיצה על הרקע
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+
+            // סגירה עם ESC
+            const escHandler = function(e) {
+                if (e.key === 'Escape') {
+                    overlay.remove();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+        }
+
+        // הוספת אנימציות CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @@keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.7) translateY(50px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+            @@keyframes bounce {
+                0%, 100% { transform: scale(1); }
+                25% { transform: scale(0.9); }
+                50% { transform: scale(1.1); }
+                75% { transform: scale(0.95); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        console.log('✅ Trip email functions loaded successfully!');
+        console.log('✅ sendTripOfferEmail is now available:', typeof sendTripOfferEmail !== 'undefined');
+    </script>
 }

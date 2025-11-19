@@ -189,7 +189,7 @@ namespace TmsSystem.Services
     <title>הצעת מחיר - {HtmlEncode(model.Trip?.Title)}</title>
     <style>{GetTripOfferEmailCss()}</style>
 </head>
-<body>
+<body dir='rtl'>
     <div class='email-container'>
         <div class='header'>
             <div class='company-logo'>
@@ -348,8 +348,8 @@ namespace TmsSystem.Services
         <div class='footer'>
             <div class='contact-info'>
                 <h3>צור קשר</h3>
-                <p>📧 ofnoacomps@gmail.com</p>
-                <p>📱 לפרטים נוספים ולאישור הזמנה</p>
+                <p>mailto:info@tryit.co.il</p>
+                <p> לפרטים נוספים ולאישור הזמנה</p>
             </div>
             <div class='footer-note'>
                 <p>מחכים לנסוע איתכם!</p>

@@ -220,3 +220,13 @@
         </a>
     </div>
 </div>
+@section Scripts {
+    <script>
+        console.log('Loading trip-email.js...');
+    </script>
+    <script src="~/js/trip-email.js"></script>
+    <script>
+        console.log('trip-email.js should be loaded now');
+        console.log('sendTripOfferEmail function exists:', typeof sendTripOfferEmail !== 'undefined');
+    </script>
+}
