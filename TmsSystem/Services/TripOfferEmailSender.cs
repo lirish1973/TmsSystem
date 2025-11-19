@@ -162,6 +162,52 @@ namespace TmsSystem.Services
             return HttpUtility.HtmlEncode(text);
         }
 
+        private string ConvertImageToBase64(string imagePath)
+        {
+            try
+            {
+                // אם זה URL מלא, נחזיר אותו כמו שהוא
+                if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
+                {
+                    return imagePath;
+                }
+
+                // בונים את הנתיב המלא לקובץ
+                var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var fullPath = Path.Combine(webRootPath, imagePath.TrimStart('/'));
+
+                // בדיקה שהקובץ קיים
+                if (!File.Exists(fullPath))
+                {
+                    _logger.LogWarning("Image file not found: {Path}", fullPath);
+                    return string.Empty;
+                }
+
+                // קריאת הקובץ והמרה ל-Base64
+                byte[] imageBytes = File.ReadAllBytes(fullPath);
+                string base64String = Convert.ToBase64String(imageBytes);
+
+                // זיהוי סוג הקובץ
+                string extension = Path.GetExtension(fullPath).ToLower();
+                string mimeType = extension switch
+                {
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".gif" => "image/gif",
+                    ".webp" => "image/webp",
+                    _ => "image/jpeg"
+                };
+
+                return $"data:{mimeType};base64,{base64String}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error converting image to base64: {Path}", imagePath);
+                return string.Empty;
+            }
+        }
+
+
         private string HtmlEncodeWithLineBreaks(string text)
         {
             if (string.IsNullOrEmpty(text))
