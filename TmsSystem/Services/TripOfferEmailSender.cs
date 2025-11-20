@@ -59,9 +59,10 @@ namespace TmsSystem.Services
             {
                 _logger.LogInformation("Preparing trip offer email for Offer #{OfferId} to {ToEmail}", offerId, recipientEmail);
 
-                var html = GenerateTripOfferHtml(offer, customerName);
+                var inlineImages = new Dictionary<string, byte[]>();
+                var html = GenerateTripOfferHtml(offer, customerName, inlineImages);
 
-                await _emailService.SendHtmlAsync(recipientEmail, subject, html, ct: ct);
+                await _emailService.SendHtmlAsync(recipientEmail, subject, html, plainTextBody: null, inlineImages: inlineImages, ct: ct);
 
                 _logger.LogInformation("Trip offer #{OfferId} sent successfully to {ToEmail}", offerId, recipientEmail);
 
@@ -207,6 +208,28 @@ namespace TmsSystem.Services
             }
         }
 
+        private byte[]? LoadImageBytes(string imagePath)
+        {
+            try
+            {
+                var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var fullPath = Path.Combine(webRootPath, imagePath.TrimStart('/'));
+
+                if (!File.Exists(fullPath))
+                {
+                    _logger.LogWarning("Image file not found: {Path}", fullPath);
+                    return null;
+                }
+
+                return File.ReadAllBytes(fullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading image bytes: {Path}", imagePath);
+                return null;
+            }
+        }
+
 
         private string HtmlEncodeWithLineBreaks(string text)
         {
@@ -216,7 +239,7 @@ namespace TmsSystem.Services
             return HttpUtility.HtmlEncode(text).Replace("\n", "<br/>").Replace("\r", "");
         }
 
-        private string GenerateTripOfferHtml(TripOffer model, string customerName)
+        private string GenerateTripOfferHtml(TripOffer model, string customerName, Dictionary<string, byte[]> inlineImages)
         {
             var sb = new StringBuilder(10240);
 
@@ -352,7 +375,13 @@ namespace TmsSystem.Services
 
                     if (!string.IsNullOrWhiteSpace(day.ImagePath))
                     {
-                        sb.Append($@"<div class='day-image-container'><img src='{baseUrl}{day.ImagePath}' alt='{HtmlEncode(day.Title)}' class='day-image' /></div>");
+                        var imageBytes = LoadImageBytes(day.ImagePath);
+                        if (imageBytes != null && imageBytes.Length > 0)
+                        {
+                            var cid = $"day_{day.DayNumber}_image";
+                            inlineImages[cid] = imageBytes;
+                            sb.Append($@"<div class='day-image-container'><img src='cid:{cid}' alt='{HtmlEncode(day.Title)}' class='day-image' /></div>");
+                        }
                     }
 
                     if (!string.IsNullOrWhiteSpace(day.Description))
