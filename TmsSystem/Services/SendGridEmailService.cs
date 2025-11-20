@@ -21,7 +21,8 @@ public class SendGridEmailService : IEmailService
         var from = new EmailAddress(_config["SendGrid:FromEmail"], _config["SendGrid:FromName"]);
         var to = new EmailAddress(toEmail);
 
-        var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextBody, htmlBody);
+        // var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextBody, htmlBody);
+        var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextBody ?? "", htmlBody);
 
         var response = await client.SendEmailAsync(msg, ct);
 

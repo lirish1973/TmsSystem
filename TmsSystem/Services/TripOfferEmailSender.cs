@@ -61,7 +61,8 @@ namespace TmsSystem.Services
 
                 var html = GenerateTripOfferHtml(offer, customerName);
 
-                await _emailService.SendHtmlAsync(recipientEmail, subject, html, ct: ct);
+                //await _emailService.SendHtmlAsync(recipientEmail, subject, html, ct: ct);
+                await _emailService.SendHtmlAsync(recipientEmail, subject, html, plainTextBody: "", ct: ct);
 
                 _logger.LogInformation("Trip offer #{OfferId} sent successfully to {ToEmail}", offerId, recipientEmail);
 
@@ -352,7 +353,11 @@ namespace TmsSystem.Services
 
                     if (!string.IsNullOrWhiteSpace(day.ImagePath))
                     {
-                        sb.Append($@"<div class='day-image-container'><img src='{baseUrl}{day.ImagePath}' alt='{HtmlEncode(day.Title)}' class='day-image' /></div>");
+                        var base64Image = ConvertImageToBase64(day.ImagePath);
+                        if (!string.IsNullOrEmpty(base64Image))
+                        {
+                            sb.Append($@"<div class='day-image-container'><img src='{base64Image}' alt='{HtmlEncode(day.Title)}' class='day-image' /></div>");
+                        }
                     }
 
                     if (!string.IsNullOrWhiteSpace(day.Description))
