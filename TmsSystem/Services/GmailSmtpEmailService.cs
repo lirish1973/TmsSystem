@@ -20,7 +20,7 @@ namespace TmsSystem.Services
             _logger = logger;
         }
 
-        public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, Dictionary<string, byte[]>? inlineImages = null, CancellationToken ct = default)
+        public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, Dictionary<string, (byte[] data, string filename)>? inlineImages = null, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(toEmail))
                 throw new ArgumentException("Destination email address is required", nameof(toEmail));

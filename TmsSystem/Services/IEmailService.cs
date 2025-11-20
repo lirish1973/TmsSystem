@@ -12,7 +12,7 @@ namespace TmsSystem.Services
             string subject,
             string htmlBody,
             string? plainTextBody = null,
-            Dictionary<string, byte[]>? inlineImages = null,
+            Dictionary<string, (byte[] data, string filename)>? inlineImages = null,
             CancellationToken ct = default);
     }
 }

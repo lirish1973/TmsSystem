@@ -59,7 +59,7 @@ namespace TmsSystem.Services
             {
                 _logger.LogInformation("Preparing trip offer email for Offer #{OfferId} to {ToEmail}", offerId, recipientEmail);
 
-                var inlineImages = new Dictionary<string, byte[]>();
+                var inlineImages = new Dictionary<string, (byte[] data, string filename)>();
                 var html = GenerateTripOfferHtml(offer, customerName, inlineImages);
 
                 await _emailService.SendHtmlAsync(recipientEmail, subject, html, plainTextBody: null, inlineImages: inlineImages, ct: ct);
@@ -239,7 +239,7 @@ namespace TmsSystem.Services
             return HttpUtility.HtmlEncode(text).Replace("\n", "<br/>").Replace("\r", "");
         }
 
-        private string GenerateTripOfferHtml(TripOffer model, string customerName, Dictionary<string, byte[]> inlineImages)
+        private string GenerateTripOfferHtml(TripOffer model, string customerName, Dictionary<string, (byte[] data, string filename)> inlineImages)
         {
             var sb = new StringBuilder(10240);
 
@@ -379,7 +379,8 @@ namespace TmsSystem.Services
                         if (imageBytes != null && imageBytes.Length > 0)
                         {
                             var cid = $"day_{day.DayNumber}_image";
-                            inlineImages[cid] = imageBytes;
+                            var filename = Path.GetFileName(day.ImagePath);
+                            inlineImages[cid] = (imageBytes, filename);
                             sb.Append($@"<div class='day-image-container'><img src='cid:{cid}' alt='{HtmlEncode(day.Title)}' class='day-image' /></div>");
                         }
                     }

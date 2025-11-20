@@ -12,7 +12,7 @@ public class SendGridEmailService : IEmailService
         _config = config;
     }
 
-    public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, Dictionary<string, byte[]>? inlineImages = null, CancellationToken ct = default)
+    public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, Dictionary<string, (byte[] data, string filename)>? inlineImages = null, CancellationToken ct = default)
     {
         var apiKey = _config["SendGrid:ApiKey"];
         var client = new SendGridClient(apiKey);
@@ -27,12 +27,25 @@ public class SendGridEmailService : IEmailService
         {
             foreach (var image in inlineImages)
             {
-                var base64Image = Convert.ToBase64String(image.Value);
+                var base64Image = Convert.ToBase64String(image.Value.data);
+                
+                // קביעת סוג ה-MIME על פי סיומת הקובץ
+                var extension = Path.GetExtension(image.Value.filename).ToLower();
+                var mimeType = extension switch
+                {
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".gif" => "image/gif",
+                    ".webp" => "image/webp",
+                    ".bmp" => "image/bmp",
+                    _ => "image/jpeg"
+                };
+                
                 var attachment = new Attachment
                 {
                     Content = base64Image,
-                    Filename = image.Key,
-                    Type = "image/jpeg",
+                    Filename = image.Value.filename,
+                    Type = mimeType,
                     Disposition = "inline",
                     ContentId = image.Key
                 };

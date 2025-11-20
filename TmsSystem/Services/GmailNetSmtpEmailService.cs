@@ -18,7 +18,7 @@ namespace TmsSystem.Services
             _logger = logger;
         }
 
-        public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, Dictionary<string, byte[]>? inlineImages = null, CancellationToken ct = default)
+        public async Task SendHtmlAsync(string toEmail, string subject, string htmlBody, string? plainTextBody = null, Dictionary<string, (byte[] data, string filename)>? inlineImages = null, CancellationToken ct = default)
         {
             using var msg = new MailMessage();
             msg.From = new MailAddress(_options.FromEmail, _options.FromName);
