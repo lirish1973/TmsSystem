@@ -92,41 +92,32 @@
         </div>
 
         <!-- סייד בר - טיולים והצעות מחיר -->
+        <!-- טיולים של המדריך -->
         <div class="col-md-4">
-            <!-- טיולים -->
-            <div class="card shadow mb-3">
+            <div class="card shadow">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-map-marked-alt"></i> טיולים משויכים</h5>
+                    <h5><i class="fas fa-map-marked-alt"></i> טיולים</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.Trips != null && Model.Trips.Any())
                     {
-                        <div class="list-group list-group-flush">
-                            @foreach (var trip in Model.Trips.Where(t => t.IsActive))
+                        <ul class="list-group">
+                            @foreach (var trip in Model.Trips)
                             {
-                                <div class="list-group-item px-0">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">@trip.Title</h6>
-                                        <small class="text-muted">@trip.NumberOfDays ימים</small>
-                                    </div>
-                                    @if (trip.PricePerPerson.HasValue)
-                                    {
-                                        <small class="text-success">
-                                            <i class="fas fa-dollar-sign"></i> @trip.PricePerPerson.Value.ToString("N0")
-                                        </small>
-                                    }
-                                </div>
+                                <li class="list-group-item">
+                                    <strong>@trip.Title</strong><br />
+                                    <small class="text-muted">@trip.NumberOfDays ימים</small>
+                                </li>
                             }
-                        </div>
+                        </ul>
                     }
                     else
                     {
-                        <p class="text-muted mb-0">
-                            <i class="fas fa-info-circle"></i> אין טיולים משויכים למדריך זה
-                        </p>
+                        <p class="text-muted">אין טיולים משויכים</p>
                     }
                 </div>
             </div>
+        </div>
 
             <!-- הצעות מחיר -->
             <div class="card shadow">

@@ -32,21 +32,46 @@ namespace TmsSystem.Controllers
         {
             try
             {
+                Console.WriteLine("🔍 Starting TripOffers/Index");
+
                 var offers = await _context.TripOffers
                     .Include(to => to.Customer)
                     .Include(to => to.Trip)
+                        .ThenInclude(t => t.TripDays)
                     .Include(to => to.PaymentMethod)
                     .OrderByDescending(to => to.OfferDate)
                     .ToListAsync();
+
+                Console.WriteLine($"✅ Loaded {offers.Count} trip offers");
+
+                // 🆕 הדפס את הנתונים
+                foreach (var offer in offers)
+                {
+                    Console.WriteLine($"  📋 Offer: {offer.OfferNumber} - {offer.Trip?.Title ?? "No Title"}");
+                }
+
+                Console.WriteLine("🎯 Returning View with Model");
 
                 return View(offers);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in TripOffers/Index: {ex.Message}");
-                return View("Error");
+                Console.WriteLine($"❌ Error in TripOffers/Index: {ex.Message}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"🔥 InnerException: {ex.InnerException.Message}");
+                }
+
+                Console.WriteLine($"📍 StackTrace: {ex.StackTrace}");
+
+                TempData["ErrorMessage"] = $"שגיאה: {ex.Message}";
+                return RedirectToAction("Index", "Home");
             }
         }
+
+
+
 
         // GET: TripOffers/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -56,20 +81,35 @@ namespace TmsSystem.Controllers
                 return NotFound();
             }
 
-            var tripOffer = await _context.TripOffers
-                .Include(to => to.Customer)
-                .Include(to => to.Trip)
-                    .ThenInclude(t => t.TripDays)
-                .Include(to => to.PaymentMethod)
-                .FirstOrDefaultAsync(m => m.TripOfferId == id);
-
-            if (tripOffer == null)
+            try
             {
-                return NotFound();
-            }
+                var tripOffer = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip.TripDays)    // ✅ טעינה ישירה
+                    .Include(to => to.Trip.Guide)        // ✅ טעינה ישירה
+                    .Include(to => to.PaymentMethod)
+                    .FirstOrDefaultAsync(m => m.TripOfferId == id);
 
-            return View(tripOffer);
+                if (tripOffer == null)
+                {
+                    return NotFound();
+                }
+
+                return View(tripOffer);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in TripOffers/Details: {ex.Message}");
+                Console.WriteLine($"📍 InnerException: {ex.InnerException?.Message}");
+                Console.WriteLine($"📍 StackTrace: {ex.StackTrace}");
+
+                ViewBag.ErrorMessage = ex.Message;
+                return View("Error");
+            }
         }
+
+
+
 
         // GET: TripOffers/Create
         public async Task<IActionResult> Create()

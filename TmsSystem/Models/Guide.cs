@@ -26,7 +26,7 @@ namespace TmsSystem.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        public virtual ICollection<Trip>? Trips { get; set; }
-        public virtual ICollection<Offer>? Offers { get; set; }
+        public virtual ICollection<Trip> Trips { get; set; } = new List<Trip>(); // ✅ שינוי כאן
+        public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>(); // ✅ שינוי כאן
     }
 }
