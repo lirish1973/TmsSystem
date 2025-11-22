@@ -1,0 +1,154 @@
+﻿@model TmsSystem.Models.Guide
+
+@{
+    ViewData["Title"] = "פרטי מדריך";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-user-tie"></i> פרטי מדריך</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center mb-3">
+                            <div class="display-1 text-primary">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h2 class="mt-2">@Model.GuideName</h2>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success fs-6">פעיל</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary fs-6">לא פעיל</span>
+                            }
+                        </div>
+                    </div>
+
+                    <dl class="row">
+                        <dt class="col-sm-3">תיאור:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <p class="mb-0">@Model.Description</p>
+                            }
+                            else
+                            {
+                                <span class="text-muted">לא צוין תיאור</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">טלפון:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Phone))
+                            {
+                                <a href="tel:@Model.Phone" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-phone"></i> @Model.Phone
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">לא צוין</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">אימייל:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <a href="mailto:@Model.Email" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-envelope"></i> @Model.Email
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">לא צוין</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">תאריך הוספה:</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy בשעה HH:mm")</dd>
+                    </dl>
+
+                    <hr />
+
+                    <div class="d-flex gap-2 mt-3">
+                        <a asp-action="Edit" asp-route-id="@Model.GuideId" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> עריכה
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.GuideId" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> מחיקה
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary ms-auto">
+                            <i class="fas fa-arrow-right"></i> חזרה לרשימה
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- סייד בר - טיולים והצעות מחיר -->
+        <div class="col-md-4">
+            <!-- טיולים -->
+            <div class="card shadow mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marked-alt"></i> טיולים משויכים</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Trips != null && Model.Trips.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var trip in Model.Trips.Where(t => t.IsActive))
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@trip.Title</h6>
+                                        <small class="text-muted">@trip.NumberOfDays ימים</small>
+                                    </div>
+                                    @if (trip.PricePerPerson.HasValue)
+                                    {
+                                        <small class="text-success">
+                                            <i class="fas fa-dollar-sign"></i> @trip.PricePerPerson.Value.ToString("N0")
+                                        </small>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle"></i> אין טיולים משויכים למדריך זה
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- הצעות מחיר -->
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice-dollar"></i> הצעות מחיר</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Offers != null && Model.Offers.Any())
+                    {
+                        <div class="text-center">
+                            <div class="display-4 text-primary">@Model.Offers.Count</div>
+                            <p class="text-muted mb-0">הצעות מחיר</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle"></i> אין הצעות מחיר עדיין
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

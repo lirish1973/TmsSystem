@@ -4,27 +4,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TmsSystem</title>
+
+    <!-- CSS Styles -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TmsSystem.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/email-success.css" asp-append-version="true" />
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
+        /* ========================================
+                   Layout Structure
+                   ======================================== */
         body {
             display: flex;
             min-height: 100vh;
             margin: 0;
         }
 
-        /* Sidebar */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========================================
+                   Sidebar Styles
+                   ======================================== */
         .sidebar {
             width: 240px;
             margin-top: 60px;
-            background-color: #fdfdf5; /* לבן פנינה */
+            background-color: #fdfdf5;
             border-left: 1px solid #ddd;
             transition: width 0.3s ease;
             overflow-x: hidden;
@@ -40,7 +51,12 @@
                 gap: 10px;
                 padding: 10px 15px;
                 white-space: nowrap;
+                transition: background-color 0.2s;
             }
+
+                .sidebar .nav-link:hover {
+                    background-color: #e9ecef;
+                }
 
                 .sidebar .nav-link i {
                     font-size: 1.2rem;
@@ -49,16 +65,40 @@
                 }
 
             .sidebar.collapsed .nav-link span {
-                display: none; /* מסתיר טקסט ומשאיר רק אייקון */
+                display: none;
             }
 
-        /* Main content */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
+            .sidebar .logo-container {
+                padding: 15px;
+                text-align: center;
+                border-bottom: 1px solid #ddd;
+            }
+
+                .sidebar .logo-container img {
+                    width: 100px;
+                    transition: width 0.3s;
+                }
+
+            .sidebar.collapsed .logo-container img {
+                width: 50px;
+            }
+
+        .pin-btn {
+            cursor: pointer;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            border-top: 1px solid #ddd;
+            transition: background-color 0.2s;
         }
 
+            .pin-btn:hover {
+                background-color: #e9ecef;
+            }
+
+        /* ========================================
+                   Header & Footer
+                   ======================================== */
         header.navbar {
             border-bottom: 1px solid #ddd;
         }
@@ -69,82 +109,107 @@
             background-color: #f8f9fa;
         }
 
-        .pin-btn {
-            cursor: pointer;
-            padding: 10px;
-            text-align: center;
-            font-size: 1.2rem;
-            border-top: 1px solid #ddd;
-        }
-
-        /* תיקון dropdown ב-RTL */
+        /* ========================================
+                   Dropdown Menu (RTL Fix)
+                   ======================================== */
         .dropdown-menu-end {
             left: auto !important;
             right: 0 !important;
         }
 
-        /* ודא שה-dropdown נראה */
         .navbar .dropdown-menu {
             z-index: 1050;
         }
+
+        /* ========================================
+                   Submenu Styles
+                   ======================================== */
+        .sidebar .collapse {
+            background-color: #f8f9fa;
+        }
+
+            .sidebar .collapse .nav-link {
+                font-size: 0.9rem;
+                padding-right: 40px;
+            }
     </style>
 </head>
 <body>
-    <!-- Sidebar - מוצג רק למשתמשים מחוברים -->
+    <!-- ========================================
+         SIDEBAR - מוצג רק למשתמשים מחוברים
+         ======================================== -->
     @if (User.Identity.IsAuthenticated)
     {
         <div id="sidebar" class="sidebar">
-            <img src="https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png" style="width:100px;" />
+            <div class="logo-container">
+                <img src="https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png" alt="TRYIT Logo" />
+            </div>
+
             <nav class="nav flex-column">
+                <!-- דף הבית -->
                 <a class="nav-link" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-house"></i> <span>בית</span>
+                    <i class="bi bi-house"></i> <span>דף הבית</span>
                 </a>
+
+                <!-- Dashboard -->
                 <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
                     <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                 </a>
 
+                <hr class="my-2" />
+
+                <!-- ========================================
+                     ניהול לקוחות
+                     ======================================== -->
                 <a class="nav-link" data-bs-toggle="collapse" href="#customersMenu">
                     <i class="bi bi-people"></i> <span>לקוחות</span>
                 </a>
                 <div class="collapse ps-4" id="customersMenu">
-                    <a class="nav-link" asp-controller="Customers" asp-action="Index">הצג לקוחות</a>
-                    <a class="nav-link" asp-controller="Customers" asp-action="Create">הוסף לקוח</a>
+                    <a class="nav-link" asp-controller="Customers" asp-action="Index">
+                        <i class="bi bi-list-ul"></i> הצג לקוחות
+                    </a>
+                    <a class="nav-link" asp-controller="Customers" asp-action="Create">
+                        <i class="bi bi-plus-circle"></i> הוסף לקוח
+                    </a>
                 </div>
 
-                <!-- תפריט משתמשים - רק למנהלים -->
-                @if (User.IsInRole("Admin"))
-                {
-                    <a class="nav-link" data-bs-toggle="collapse" href="#usersMenu">
-                        <i class="bi bi-person"></i> <span>משתמשים</span>
+                <!-- ========================================
+                     ניהול מדריכים
+                     ======================================== -->
+                <a class="nav-link" data-bs-toggle="collapse" href="#guidesMenu">
+                    <i class="fas fa-user-tie"></i> <span>מדריכים</span>
+                </a>
+                <div class="collapse ps-4" id="guidesMenu">
+                    <a class="nav-link" asp-controller="Guides" asp-action="Index">
+                        <i class="bi bi-list-ul"></i> הצג מדריכים
                     </a>
-                    <div class="collapse ps-4" id="usersMenu">
-                        <a class="nav-link" asp-controller="Users" asp-action="Index">הצג משתמשים</a>
-                        <a class="nav-link" asp-controller="Account" asp-action="Register">הוסף משתמש</a>
-                    </div>
-                }
+                    <a class="nav-link" asp-controller="Guides" asp-action="Create">
+                        <i class="bi bi-plus-circle"></i> הוסף מדריך
+                    </a>
+                </div>
 
+                <hr class="my-2" />
+
+                <!-- ========================================
+                     סיורים (טיולים יום אחד)
+                     ======================================== -->
                 <a class="nav-link" data-bs-toggle="collapse" href="#toursMenu">
                     <i class="bi bi-geo-alt"></i> <span>סיורים</span>
                 </a>
                 <div class="collapse ps-4" id="toursMenu">
-                    <a class="nav-link" asp-controller="Tours" asp-action="Index">הצג סיורים</a>
-                    <a class="nav-link" asp-controller="Tours" asp-action="CreateTour">הוסף סיור</a>
-                </div>
-
-                <a class="nav-link" data-bs-toggle="collapse" href="#offersMenu">
-                    <i class="bi bi-cash-stack"></i> <span>הצעות מחיר</span>
-                </a>
-                <div class="collapse ps-4" id="offersMenu">
-                    <a class="nav-link" asp-controller="Offers" asp-action="Index">הצג הצעות מחיר</a>
-                    <a class="nav-link" asp-controller="Offers" asp-action="Index" asp-route-filter="near">הצעות קרובות</a>
-                    <a class="nav-link" asp-controller="Offers" asp-action="Create">צור הצעת מחיר לסיור</a>
-                    <a class="nav-link" asp-controller="TripOffers" asp-action="Index">
-                        <i class="fas fa-plane-departure"></i> הצעות מחיר לטיולים
+                    <a class="nav-link" asp-controller="Tours" asp-action="Index">
+                        <i class="bi bi-list-ul"></i> הצג סיורים
+                    </a>
+                    <a class="nav-link" asp-controller="Tours" asp-action="CreateTour">
+                        <i class="bi bi-plus-circle"></i> הוסף סיור
                     </a>
                 </div>
-                <!-- תפריט טיולים -->
+
+                <!-- ========================================
+                     טיולים (מספר ימים)
+                     ======================================== -->
                 <a class="nav-link" data-bs-toggle="collapse" href="#tripsMenu">
-                    <i class="bi bi-map-fill"></i> <span>ניהול טיולים</span>
+                    <i class="bi bi-map-fill"></i> <span>טיולים</span>
                 </a>
                 <div class="collapse ps-4" id="tripsMenu">
                     <a class="nav-link" asp-controller="Trips" asp-action="Index">
@@ -154,77 +219,170 @@
                         <i class="bi bi-plus-circle"></i> טיול חדש
                     </a>
                 </div>
-                <div class="pin-btn" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
+
+                <hr class="my-2" />
+
+                <!-- ========================================
+                     הצעות מחיר
+                     ======================================== -->
+                <a class="nav-link" data-bs-toggle="collapse" href="#offersMenu">
+                    <i class="bi bi-cash-stack"></i> <span>הצעות מחיר</span>
+                </a>
+                <div class="collapse ps-4" id="offersMenu">
+                    <!-- הצעות מחיר לסיורים -->
+                    <div class="text-muted small px-3 pt-2">
+                        <i class="bi bi-geo-alt"></i> <strong>סיורים</strong>
+                    </div>
+                    <a class="nav-link" asp-controller="Offers" asp-action="Index">
+                        <i class="bi bi-list-ul"></i> כל ההצעות
+                    </a>
+                    <a class="nav-link" asp-controller="Offers" asp-action="Index" asp-route-filter="near">
+                        <i class="bi bi-calendar-event"></i> הצעות קרובות
+                    </a>
+                    <a class="nav-link" asp-controller="Offers" asp-action="Create">
+                        <i class="bi bi-plus-circle"></i> צור הצעת מחיר
+                    </a>
+
+                    <div class="dropdown-divider my-2"></div>
+
+                    <!-- הצעות מחיר לטיולים -->
+                    <div class="text-muted small px-3 pt-2">
+                        <i class="bi bi-map-fill"></i> <strong>טיולים</strong>
+                    </div>
+                    <a class="nav-link" asp-controller="TripOffers" asp-action="Index">
+                        <i class="bi bi-list-ul"></i> כל ההצעות
+                    </a>
+                    <a class="nav-link" asp-controller="TripOffers" asp-action="Create">
+                        <i class="bi bi-plus-circle"></i> צור הצעת מחיר
+                    </a>
                 </div>
+
+                <hr class="my-2" />
+
+                <!-- ========================================
+                     ניהול משתמשים (רק למנהלים)
+                     ======================================== -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="nav-link" data-bs-toggle="collapse" href="#usersMenu">
+                        <i class="bi bi-person-gear"></i> <span>משתמשים</span>
+                    </a>
+                    <div class="collapse ps-4" id="usersMenu">
+                        <a class="nav-link" asp-controller="Users" asp-action="Index">
+                            <i class="bi bi-list-ul"></i> הצג משתמשים
+                        </a>
+                        <a class="nav-link" asp-controller="Account" asp-action="Register">
+                            <i class="bi bi-person-plus"></i> הוסף משתמש
+                        </a>
+                    </div>
+                }
             </nav>
+
+            <!-- כפתור קיפול/פתיחה -->
+            <div class="pin-btn" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </div>
         </div>
     }
 
-    <!-- Main -->
+    <!-- ========================================
+         MAIN CONTENT AREA
+         ======================================== -->
     <div class="main-content">
+        <!-- Header Navigation -->
         <header>
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
-                    <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">מערכת הצעות מחיר
-                        <img src="https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png" style="width:70px;" />
+                    <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                        מערכת ניהול טיולים
+                        <img src="https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png"
+                             style="width:70px; margin-right: 10px;" alt="TRYIT" />
                     </a>
 
-                    <!-- כפתור Hamburger למסכים קטנים -->
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <!-- Hamburger Button -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
-                    <!-- תוכן ה-navbar עם ID -->
+                    <!-- Navbar Content -->
                     <div class="collapse navbar-collapse" id="navbarContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             @if (User.Identity.IsAuthenticated)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Tours" asp-action="Index">סיורים</a>
+                                    <a class="nav-link" asp-controller="Tours" asp-action="Index">
+                                        <i class="bi bi-geo-alt"></i> סיורים
+                                    </a>
                                 </li>
-                               
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Trips" asp-action="Index">
+                                        <i class="bi bi-map-fill"></i> טיולים
+                                    </a>
+                                </li>
                             }
                         </ul>
 
-                        <!-- צד שמאל -->
+                        <!-- User Menu -->
                         <ul class="navbar-nav ms-auto">
                             @if (User.Identity.IsAuthenticated)
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown"
+                                       role="button" data-bs-toggle="dropdown">
                                         <i class="bi bi-person-circle"></i>
                                         שלום @User.Identity.Name
                                         @if (User.IsInRole("Admin"))
                                         {
-                                            @: ADMIN
+                                            <span class="badge bg-danger">ADMIN</span>
                                         }
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ViewProfile"><i class="bi bi-person"></i> צפה בפרופיל</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="EditProfile"><i class="bi bi-pencil"></i> ערוך פרופיל</a></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="ViewProfile">
+                                                <i class="bi bi-person"></i> צפה בפרופיל
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="EditProfile">
+                                                <i class="bi bi-pencil"></i> ערוך פרופיל
+                                            </a>
+                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
-                                                <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> התנתקות</button>
+                                                <button class="dropdown-item" type="submit">
+                                                    <i class="bi bi-box-arrow-right"></i> התנתקות
+                                                </button>
                                             </form>
                                         </li>
                                     </ul>
                                 </li>
 
-                                <!-- האפשרות הזו תופיע רק למנהלים -->
                                 @if (User.IsInRole("Admin"))
                                 {
                                     <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown"
+                                           role="button" data-bs-toggle="dropdown">
                                             <i class="bi bi-gear"></i> ניהול מערכת
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                            <li><a class="dropdown-item" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i> ניהול משתמשים</a></li>
-                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Register"><i class="bi bi-person-plus"></i> הוספת משתמש</a></li>
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Users" asp-action="Index">
+                                                    <i class="bi bi-people"></i> ניהול משתמשים
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Account" asp-action="Register">
+                                                    <i class="bi bi-person-plus"></i> הוספת משתמש
+                                                </a>
+                                            </li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" href="#"><i class="bi bi-sliders"></i> הגדרות מערכת</a></li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="bi bi-sliders"></i> הגדרות מערכת
+                                                </a>
+                                            </li>
                                         </ul>
                                     </li>
                                 }
@@ -232,7 +390,9 @@
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> כניסה</a>
+                                    <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                        <i class="bi bi-box-arrow-in-right"></i> כניסה
+                                    </a>
                                 </li>
                             }
                         </ul>
@@ -241,24 +401,35 @@
             </nav>
         </header>
 
+        <!-- Main Content -->
         <main role="main" class="container my-3">
             @RenderBody()
         </main>
 
+        <!-- Footer -->
         <footer class="text-center">
-            &copy; 2025 - TmsSystem - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - TmsSystem - TRYIT -
+            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
         </footer>
     </div>
 
+    <!-- ========================================
+         SCRIPTS
+         ======================================== -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/email-success.js" asp-append-version="true"></script>
+
+    <!-- Sidebar Toggle Script -->
     <script>
         function toggleSidebar() {
             document.getElementById("sidebar").classList.toggle("collapsed");
         }
     </script>
 
+    <!-- Auto-collapse Sidebar Menus -->
     <script>
-        // קיפול אוטומטי של תפריטים צד
         document.addEventListener("DOMContentLoaded", function() {
             const collapses = document.querySelectorAll(".sidebar .collapse");
 
@@ -281,13 +452,7 @@
             });
         });
     </script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/email-success.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
-    
-
 </body>
 </html>

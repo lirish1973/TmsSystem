@@ -17,28 +17,46 @@ namespace TmsSystem.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // סופרים משתמשים
-            var totalUsers = _userManager.Users.Count();
-            ViewBag.TotalUsers = totalUsers;
+            try
+            {
+                // משתמשים (רק למנהלים)
+                if (User.IsInRole("Admin"))
+                {
+                    ViewBag.TotalUsers = await _context.Users.CountAsync();
+                }
 
-            // סופרים לקוחות
-            var totalCustomers = _context.Customers.Count();
-            ViewBag.TotalCustomers = totalCustomers;
+                // לקוחות
+                ViewBag.TotalCustomers = await _context.Customers.CountAsync();
 
+                // 🆕 מדריכים
+                ViewBag.TotalGuides = await _context.Guides.CountAsync(g => g.IsActive);
 
-            var TotalTours = _context.Tours.Count();
-            ViewBag.TotalTours = TotalTours;
+                // סיורים
+                ViewBag.TotalTours = await _context.Tours.CountAsync();
 
-            // חישוב הצעות מחיר קרובות (טיולים בטווח של שבועיים מהיום)
-            var twoWeeksFromNow = DateTime.Today.AddDays(14);
-            var nearOffers = _context.Offers
-                .Where(o => o.TourDate >= DateTime.Today && o.TourDate <= twoWeeksFromNow)
-                .Count();
-            ViewBag.NearOffers = nearOffers;
+                // 🆕 טיולים
+                ViewBag.TotalTrips = await _context.Trips.CountAsync(t => t.IsActive);
 
-            return View();
+                // הצעות מחיר קרובות (בשבועיים הקרובים)
+                var twoWeeksFromNow = DateTime.Now.AddDays(14);
+                ViewBag.NearOffers = await _context.Offers
+                    .Where(o => o.TourDate >= DateTime.Now && o.TourDate <= twoWeeksFromNow)
+                    .CountAsync();
+
+                // סטטיסטיקות נוספות
+                ViewBag.TodayTrips = 0;
+                ViewBag.ApprovedOffers = 0;
+                ViewBag.PendingOffers = 0;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                return View("Error");
+            }
         }
     }
 }

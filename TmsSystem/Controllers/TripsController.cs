@@ -69,7 +69,7 @@ namespace TmsSystem.Controllers
         }
 
         // GET: Trips/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var trip = new Trip
             {
@@ -89,51 +89,13 @@ namespace TmsSystem.Controllers
                 });
             }
 
+            // 🆕 טעינת רשימת מדריכים זמינים
+            ViewBag.Guides = await _context.Guides
+                .Where(g => g.IsActive)
+                .OrderBy(g => g.GuideName)
+                .ToListAsync();
+
             return View(trip);
-        }
-
-        // POST: /trips/{id}/send-email
-        [HttpPost("/trips/{id}/send-email")]
-        public async Task<IActionResult> SendTripEmail(int id, [FromForm] string email, [FromForm] string customerName = null)
-        {
-            try
-            {
-                var trip = await _context.Trips
-                    .Include(t => t.TripDays)
-                    .FirstOrDefaultAsync(t => t.TripId == id);
-
-                if (trip == null)
-                    return Json(new { success = false, message = "הטיול לא נמצא" });
-
-                if (string.IsNullOrWhiteSpace(email))
-                    return Json(new { success = false, message = "כתובת אימייל נדרשת" });
-
-                // 🔧 תיקון: קריאה נכונה למתודה
-                var result = await _tripEmailSender.SendTripProposalAsync(trip, email, customerName);
-
-                if (result.Success)
-                {
-                    return Json(new
-                    {
-                        success = true,
-                        sentTo = result.SentTo,
-                        subject = result.Subject,
-                        sentAt = result.SentAt.ToString("dd/MM/yyyy HH:mm:ss"),
-                        provider = result.Provider,
-                        tripId = result.TripId
-                    });
-                }
-                else
-                {
-                    return Json(new { success = false, message = result.ErrorMessage });
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[SendTripEmail] Error: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                return Json(new { success = false, message = $"שגיאה: {ex.Message}" });
-            }
         }
 
         // POST: Trips/Create
@@ -145,17 +107,32 @@ namespace TmsSystem.Controllers
             {
                 // הסרת Validation Errors עבור Navigation Properties
                 ModelState.Remove("TripDays");
+                ModelState.Remove("Guide"); // 🆕 הוסף את זה
 
                 // בדיקת נתונים בסיסיים
                 if (string.IsNullOrWhiteSpace(trip.Title))
                 {
                     ModelState.AddModelError("Title", "שם הטיול הוא שדה חובה");
+
+                    // 🆕 טען שוב את רשימת המדריכים במקרה של שגיאה
+                    ViewBag.Guides = await _context.Guides
+                        .Where(g => g.IsActive)
+                        .OrderBy(g => g.GuideName)
+                        .ToListAsync();
+
                     return View(trip);
                 }
 
                 if (trip.NumberOfDays < 5 || trip.NumberOfDays > 12)
                 {
                     ModelState.AddModelError("NumberOfDays", "מספר הימים חייב להיות בין 5 ל-12");
+
+                    // 🆕 טען שוב את רשימת המדריכים במקרה של שגיאה
+                    ViewBag.Guides = await _context.Guides
+                        .Where(g => g.IsActive)
+                        .OrderBy(g => g.GuideName)
+                        .ToListAsync();
+
                     return View(trip);
                 }
 
@@ -211,6 +188,9 @@ namespace TmsSystem.Controllers
                     IsActive = trip.IsActive,
                     CreatedAt = DateTime.Now,
 
+                    // 🆕 הוסף את המדריך
+                    GuideId = trip.GuideId,
+
                     // פרטי מחיר
                     PricePerPerson = trip.PricePerPerson,
                     PriceDescription = trip.PriceDescription,
@@ -231,10 +211,65 @@ namespace TmsSystem.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"שגיאה בשמירת הטיול: {ex.Message}");
+
+                // 🆕 טען שוב את רשימת המדריכים במקרה של שגיאה
+                ViewBag.Guides = await _context.Guides
+                    .Where(g => g.IsActive)
+                    .OrderBy(g => g.GuideName)
+                    .ToListAsync();
+
                 return View(trip);
             }
         }
 
+
+
+
+        // POST: /trips/{id}/send-email
+        [HttpPost("/trips/{id}/send-email")]
+        public async Task<IActionResult> SendTripEmail(int id, [FromForm] string email, [FromForm] string customerName = null)
+        {
+            try
+            {
+                var trip = await _context.Trips
+                    .Include(t => t.TripDays)
+                    .FirstOrDefaultAsync(t => t.TripId == id);
+
+                if (trip == null)
+                    return Json(new { success = false, message = "הטיול לא נמצא" });
+
+                if (string.IsNullOrWhiteSpace(email))
+                    return Json(new { success = false, message = "כתובת אימייל נדרשת" });
+
+                // 🔧 תיקון: קריאה נכונה למתודה
+                var result = await _tripEmailSender.SendTripProposalAsync(trip, email, customerName);
+
+                if (result.Success)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        sentTo = result.SentTo,
+                        subject = result.Subject,
+                        sentAt = result.SentAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        provider = result.Provider,
+                        tripId = result.TripId
+                    });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.ErrorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SendTripEmail] Error: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return Json(new { success = false, message = $"שגיאה: {ex.Message}" });
+            }
+        }
+
+       
         // GET: Trips/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {

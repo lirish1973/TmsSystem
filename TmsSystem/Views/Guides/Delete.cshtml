@@ -1,0 +1,102 @@
+﻿@model TmsSystem.Models.Guide
+
+@{
+    ViewData["Title"] = "מחיקת מדריך";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> מחיקת מדריך</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>שים לב:</strong> המדריך יסומן כלא פעיל ולא יימחק לצמיתות מהמערכת.
+                    </div>
+
+                    <h5 class="text-danger mb-3">
+                        <i class="fas fa-question-circle"></i> האם אתה בטוח שברצונך למחוק את המדריך הזה?
+                    </h5>
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">שם המדריך:</dt>
+                                <dd class="col-sm-8"><strong class="fs-5">@Model.GuideName</strong></dd>
+
+                                <dt class="col-sm-4">תיאור:</dt>
+                                <dd class="col-sm-8">@(Model.Description ?? "לא צוין")</dd>
+
+                                <dt class="col-sm-4">טלפון:</dt>
+                                <dd class="col-sm-8">
+                                    @if (!string.IsNullOrEmpty(Model.Phone))
+                                    {
+                                        <i class="fas fa-phone text-primary"></i> 
+                                        @Model.Phone
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">לא צוין</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-4">אימייל:</dt>
+                                <dd class="col-sm-8">
+                                    @if (!string.IsNullOrEmpty(Model.Email))
+                                    {
+                                        <i class="fas fa-envelope text-primary"></i> 
+                                        @Model.Email
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">לא צוין</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-4">סטטוס נוכחי:</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="badge bg-success">פעיל</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">לא פעיל</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-4">נוצר בתאריך:</dt>
+                                <dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy")</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    @if (Model.Trips != null && Model.Trips.Any(t => t.IsActive))
+                    {
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>שים לב:</strong> למדריך זה יש <strong>@Model.Trips.Count(t => t.IsActive)</strong> טיולים משויכים.
+                            הם לא יימחקו, אך לא יוצג עבורם מדריך.
+                        </div>
+                    }
+
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        <input type="hidden" asp-for="GuideId" />
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> ביטול
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash"></i> אישור מחיקה
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

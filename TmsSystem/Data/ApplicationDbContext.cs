@@ -63,6 +63,12 @@ namespace TmsSystem.Data
             builder.Entity<TourExclude>()
                    .HasKey(te => te.Id);
 
+            builder.Entity<Trip>()
+                .HasOne(t => t.Guide)
+                .WithMany(g => g.Trips)
+                 .HasForeignKey(t => t.GuideId)
+                 .OnDelete(DeleteBehavior.SetNull);
+
             // Cascade relationships
             builder.Entity<Tour>()
                 .HasMany(t => t.Schedule)

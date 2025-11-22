@@ -1,13 +1,13 @@
 ﻿@{
     ViewData["Title"] = "לוח בקרה";
-   
 }
 
 <style>
-    /* עיצוב מותאם אישית */
+    /* ========================================
+           Dashboard Container
+           ======================================== */
     .dashboard-container {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-       /* min-height: 100vh;*/
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
@@ -19,6 +19,9 @@
         margin-bottom: 2rem;
     }
 
+    /* ========================================
+           Stats Cards
+           ======================================== */
     .stats-card {
         background: rgba(255,255,255,0.95);
         border: none;
@@ -41,25 +44,35 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .stats-card.warning::before {
-            background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%);
-        }
-
-        .stats-card.success::before {
-            background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%);
-        }
-
-        .stats-card.info::before {
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
         }
 
         .stats-card.primary::before {
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
 
+        .stats-card.success::before {
+            background: linear-gradient(90deg, #56ab2f 0%, #a8e063 100%);
+        }
+
+        .stats-card.info::before {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stats-card.warning::before {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stats-card.guide::before {
+            background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stats-card.trip::before {
+            background: linear-gradient(90deg, #30cfd0 0%, #330867 100%);
+        }
+
+    /* ========================================
+           Card Icons
+           ======================================== */
     .card-icon {
         width: 70px;
         height: 70px;
@@ -77,17 +90,28 @@
     }
 
     .icon-success {
-        background: linear-gradient(135deg, #3498db 0%, #85c1e9 100%);
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
     }
 
     .icon-info {
-        background: linear-gradient(135deg, #3498db 0%, #85c1e9 100%);
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
 
     .icon-warning {
-        background: linear-gradient(135deg, #3498db 0%, #85c1e9 100%);
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
 
+    .icon-guide {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .icon-trip {
+        background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    }
+
+    /* ========================================
+           Stats Text
+           ======================================== */
     .stats-number {
         font-size: 3rem;
         font-weight: 800;
@@ -109,6 +133,9 @@
         margin-bottom: 1rem;
     }
 
+    /* ========================================
+           Buttons
+           ======================================== */
     .btn-card {
         border-radius: 25px;
         padding: 8px 24px;
@@ -131,7 +158,7 @@
         }
 
     .btn-success-custom {
-        background: linear-gradient(135deg, #3498db 0%, #85c1e9 100%);
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
         color: white;
     }
 
@@ -142,49 +169,68 @@
         }
 
     .btn-info-custom {
-        background: linear-gradient(135deg, #3498db 0%, #85c1e9 100%);
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         color: white;
     }
 
         .btn-info-custom:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
             color: white;
         }
 
     .btn-warning-custom {
-        background: linear-gradient(135deg, #3498db 0%, #85c1e9 100%);
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         color: white;
     }
 
         .btn-warning-custom:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
             color: white;
         }
 
-    .pulse {
-        animation: pulse 2s infinite;
+    .btn-guide-custom {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: white;
     }
 
-    @@keyframes pulse {
-        0%
+        .btn-guide-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(250, 112, 154, 0.3);
+            color: white;
+        }
 
-    {
-        transform: scale(1);
+    .btn-trip-custom {
+        background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        color: white;
     }
 
-    50% {
-        transform: scale(1.05);
+        .btn-trip-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(48, 207, 208, 0.3);
+            color: white;
+        }
+
+    /* ========================================
+           Section Headers
+           ======================================== */
+    .section-header {
+        background: rgba(255,255,255,0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
     }
 
-    100% {
-        transform: scale(1);
-    }
+        .section-header h3 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
 
-    }
-
-    /* עיצוב רספונסיבי */
+    /* ========================================
+           Responsive Design
+           ======================================== */
     @@media (max-width: 768px) {
         .stats-number
 
@@ -207,16 +253,24 @@
 
 <div class="dashboard-container">
     <div class="container-xxl">
+        <!-- כותרת ראשית -->
         <div class="text-center mb-5">
             <h1 class="dashboard-title">
                 <i class="fas fa-tachometer-alt me-3"></i>
-                לוח בקרה יצירת הצעות מחיר
+                לוח בקרה - מערכת ניהול טיולים
             </h1>
             <p class="text-white-50 fs-5">סקירה כללית של פעילות המערכת</p>
         </div>
 
-        <div class="row g-4">
-            <!-- כרטיס משתמשים - רק למנהלים -->
+        <!-- ========================================
+             ניהול מערכת (משתמשים ולקוחות)
+             ======================================== -->
+        <div class="section-header">
+            <h3><i class="fas fa-cogs me-2"></i>ניהול מערכת</h3>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <!-- משתמשים - רק למנהלים -->
             @if (User.IsInRole("Admin"))
             {
                 <div class="col-xl-3 col-lg-6 col-md-6">
@@ -226,8 +280,8 @@
                                 <i class="fas fa-users"></i>
                             </div>
                             <div class="stats-number">@ViewBag.TotalUsers</div>
-                            <h5 class="stats-title">משתמשים רשומים</h5>
-                            <p class="stats-subtitle">מנהלים ומשתמשי המערכת</p>
+                            <h5 class="stats-title">משתמשים במערכת</h5>
+                            <p class="stats-subtitle">מנהלים ועובדים</p>
                             <a asp-controller="Users" asp-action="Index"
                                class="btn btn-primary-custom btn-card">
                                 <i class="fas fa-eye me-2"></i>צפה ברשימה
@@ -237,7 +291,7 @@
                 </div>
             }
 
-            <!-- כרטיס לקוחות -->
+            <!-- לקוחות -->
             <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="card stats-card success h-100">
                     <div class="card-body text-center p-4">
@@ -255,16 +309,43 @@
                 </div>
             </div>
 
-            <!-- כרטיס סיורים -->
+            <!-- מדריכים -->
             <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card stats-card guide h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="card-icon icon-guide">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stats-number">@(ViewBag.TotalGuides ?? 0)</div>
+                        <h5 class="stats-title">מדריכים פעילים</h5>
+                        <p class="stats-subtitle">צוות המדריכים שלנו</p>
+                        <a asp-controller="Guides" asp-action="Index"
+                           class="btn btn-guide-custom btn-card">
+                            <i class="fas fa-eye me-2"></i>צפה ברשימה
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             סיורים וטיולים
+             ======================================== -->
+        <div class="section-header">
+            <h3><i class="fas fa-map-marked-alt me-2"></i>סיורים וטיולים</h3>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <!-- סיורים (יום אחד) -->
+            <div class="col-xl-4 col-lg-6 col-md-6">
                 <div class="card stats-card info h-100">
                     <div class="card-body text-center p-4">
                         <div class="card-icon icon-info">
                             <i class="fas fa-route"></i>
                         </div>
                         <div class="stats-number">@ViewBag.TotalTours</div>
-                        <h5 class="stats-title">מספר סיורים</h5>
-                        <p class="stats-subtitle">סיורים וחבילות זמינות</p>
+                        <h5 class="stats-title">סיורים</h5>
+                        <p class="stats-subtitle">טיולים ליום אחד</p>
                         <a asp-controller="Tours" asp-action="Index"
                            class="btn btn-info-custom btn-card">
                             <i class="fas fa-eye me-2"></i>צפה ברשימה
@@ -273,16 +354,34 @@
                 </div>
             </div>
 
-            <!-- הוסף את הקטע הזה לכרטיס הצעות המחיר הקרובות -->
-            <div class="col-xl-3 col-lg-6 col-md-6">
+            <!-- טיולים (מרובי ימים) -->
+            <div class="col-xl-4 col-lg-6 col-md-6">
+                <div class="card stats-card trip h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="card-icon icon-trip">
+                            <i class="fas fa-plane-departure"></i>
+                        </div>
+                        <div class="stats-number">@(ViewBag.TotalTrips ?? 0)</div>
+                        <h5 class="stats-title">טיולים</h5>
+                        <p class="stats-subtitle">טיולים מרובי ימים</p>
+                        <a asp-controller="Trips" asp-action="Index"
+                           class="btn btn-trip-custom btn-card">
+                            <i class="fas fa-eye me-2"></i>צפה ברשימה
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- הצעות מחיר קרובות -->
+            <div class="col-xl-4 col-lg-6 col-md-6">
                 <div class="card stats-card warning h-100">
                     <div class="card-body text-center p-4">
                         <div class="card-icon icon-warning">
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="stats-number">@ViewBag.NearOffers</div>
-                        <h5 class="stats-title">הצעות מחיר קרובות</h5>
-                        <p class="stats-subtitle">טיולים בשבועיים הקרובים</p>
+                        <h5 class="stats-title">הצעות קרובות</h5>
+                        <p class="stats-subtitle">בשבועיים הקרובים</p>
                         <a asp-controller="Offers" asp-action="Index" asp-route-filter="near"
                            class="btn btn-warning-custom btn-card">
                             <i class="fas fa-eye me-2"></i>צפה ברשימה
@@ -290,40 +389,45 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-        <!-- שורה נוספת עם סטטיסטיקות משלימות -->
-        <div class="row g-4 mt-4">
+        <!-- ========================================
+             סטטיסטיקות נוספות
+             ======================================== -->
+        <div class="section-header">
+            <h3><i class="fas fa-chart-line me-2"></i>סטטיסטיקות</h3>
+        </div>
+
+        <div class="row g-4 mb-5">
             <div class="col-12">
                 <div class="card stats-card">
                     <div class="card-body p-4">
                         <div class="row text-center">
-                            <div class="col-md-3">
+                            <!-- טיולים היום -->
+                            <div class="col-md-4">
                                 <div class="card-icon icon-info mx-auto mb-3">
                                     <i class="fas fa-calendar-day"></i>
                                 </div>
-                                <h3 class="stats-number">0</h3>
+                                <h3 class="stats-number">@(ViewBag.TodayTrips ?? 0)</h3>
                                 <p class="stats-title">טיולים היום</p>
                             </div>
-                            <div class="col-md-3">
+
+                            <!-- הצעות שאושרו -->
+                            <div class="col-md-4">
                                 <div class="card-icon icon-success mx-auto mb-3">
                                     <i class="fas fa-check-circle"></i>
                                 </div>
-                                <h3 class="stats-number">0</h3>
+                                <h3 class="stats-number">@(ViewBag.ApprovedOffers ?? 0)</h3>
                                 <p class="stats-title">הצעות שאושרו</p>
                             </div>
-                            <div class="col-md-3">
+
+                            <!-- הצעות בהמתנה -->
+                            <div class="col-md-4">
                                 <div class="card-icon icon-warning mx-auto mb-3">
                                     <i class="fas fa-hourglass-half"></i>
                                 </div>
-                                <h3 class="stats-number">0</h3>
+                                <h3 class="stats-number">@(ViewBag.PendingOffers ?? 0)</h3>
                                 <p class="stats-title">הצעות בהמתנה</p>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card-icon icon-primary mx-auto mb-3">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <h3 class="stats-number">₪0</h3>
-                                <p class="stats-title">הכנסות החודש</p>
                             </div>
                         </div>
                     </div>
@@ -331,40 +435,85 @@
             </div>
         </div>
 
-        <!-- פעולות מהירות -->
-        <div class="row g-4 mt-4">
+        <!-- ========================================
+             פעולות מהירות
+             ======================================== -->
+        <div class="section-header">
+            <h3><i class="fas fa-bolt me-2"></i>פעולות מהירות</h3>
+        </div>
+
+        <div class="row g-4">
             <div class="col-12">
                 <div class="card stats-card">
                     <div class="card-body p-4">
-                        <h4 class="text-center mb-4 text-primary">
-                            <i class="fas fa-bolt me-2"></i>פעולות מהירות
-                        </h4>
-                        <div class="row text-center">
-                            <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="row text-center g-3">
+                            <!-- הצעת מחיר לסיור -->
+                            <div class="col-lg-3 col-md-6">
                                 <a asp-controller="Offers" asp-action="Create"
-                                   class="btn btn-primary-custom btn-card w-100 py-3">
-                                    <i class="fas fa-plus-circle mb-2 d-block fs-3"></i>
-                                    הצעת מחיר חדשה
+                                   class="btn btn-info-custom btn-card w-100 py-3">
+                                    <i class="fas fa-file-invoice-dollar mb-2 d-block fs-3"></i>
+                                    הצעת מחיר לסיור
                                 </a>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
+
+                            <!-- הצעת מחיר לטיול -->
+                            <div class="col-lg-3 col-md-6">
+                                <a asp-controller="TripOffers" asp-action="Create"
+                                   class="btn btn-trip-custom btn-card w-100 py-3">
+                                    <i class="fas fa-plane-departure mb-2 d-block fs-3"></i>
+                                    הצעת מחיר לטיול
+                                </a>
+                            </div>
+
+                            <!-- לקוח חדש -->
+                            <div class="col-lg-3 col-md-6">
                                 <a asp-controller="Customers" asp-action="Create"
                                    class="btn btn-success-custom btn-card w-100 py-3">
                                     <i class="fas fa-user-plus mb-2 d-block fs-3"></i>
                                     לקוח חדש
                                 </a>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
+
+                            <!-- מדריך חדש -->
+                            <div class="col-lg-3 col-md-6">
+                                <a asp-controller="Guides" asp-action="Create"
+                                   class="btn btn-guide-custom btn-card w-100 py-3">
+                                    <i class="fas fa-user-tie mb-2 d-block fs-3"></i>
+                                    מדריך חדש
+                                </a>
+                            </div>
+
+                            <!-- סיור חדש -->
+                            <div class="col-lg-3 col-md-6">
                                 <a asp-controller="Tours" asp-action="Create"
                                    class="btn btn-info-custom btn-card w-100 py-3">
-                                    <i class="fas fa-map-marked-alt mb-2 d-block fs-3"></i>
+                                    <i class="fas fa-route mb-2 d-block fs-3"></i>
                                     סיור חדש
                                 </a>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
+
+                            <!-- טיול חדש -->
+                            <div class="col-lg-3 col-md-6">
+                                <a asp-controller="Trips" asp-action="Create"
+                                   class="btn btn-trip-custom btn-card w-100 py-3">
+                                    <i class="fas fa-map-marked-alt mb-2 d-block fs-3"></i>
+                                    טיול חדש
+                                </a>
+                            </div>
+
+                            <!-- דוחות -->
+                            <div class="col-lg-3 col-md-6">
                                 <a href="#" class="btn btn-warning-custom btn-card w-100 py-3">
                                     <i class="fas fa-chart-bar mb-2 d-block fs-3"></i>
                                     דוחות
+                                </a>
+                            </div>
+
+                            <!-- הגדרות -->
+                            <div class="col-lg-3 col-md-6">
+                                <a href="#" class="btn btn-primary-custom btn-card w-100 py-3">
+                                    <i class="fas fa-cog mb-2 d-block fs-3"></i>
+                                    הגדרות
                                 </a>
                             </div>
                         </div>

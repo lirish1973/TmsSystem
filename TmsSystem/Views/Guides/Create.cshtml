@@ -1,0 +1,67 @@
+﻿@model TmsSystem.Models.Guide
+
+@{
+    ViewData["Title"] = "הוספת מדריך חדש";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-user-plus"></i> הוספת מדריך חדש</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="GuideName" class="form-label">
+                                שם המדריך <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="GuideName" class="form-control" placeholder="הזן שם מלא" autofocus />
+                            <span asp-validation-for="GuideName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">תיאור</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"
+                                      placeholder="ניסיון, התמחויות, תחומי עניין..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <small class="form-text text-muted">תיאור קצר על המדריך והתמחויותיו</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Phone" class="form-label">טלפון</label>
+                                <input asp-for="Phone" class="form-control" placeholder="050-1234567" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">אימייל</label>
+                                <input asp-for="Email" class="form-control" type="email" placeholder="guide@example.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> ביטול
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> שמור
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
