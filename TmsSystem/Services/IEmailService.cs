@@ -1,7 +1,7 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using TmsSystem.Models;
-
 
 namespace TmsSystem.Services
 {
@@ -11,6 +11,15 @@ namespace TmsSystem.Services
             string toEmail,
             string subject,
             string htmlBody,
+            string? plainTextBody = null,
+            Dictionary<string, byte[]>? inlineImages = null,
+            CancellationToken ct = default);
+
+        Task SendHtmlWithAttachmentsAsync(
+            string toEmail,
+            string subject,
+            string htmlBody,
+            List<EmailAttachment> attachments,
             string? plainTextBody = null,
             CancellationToken ct = default);
     }

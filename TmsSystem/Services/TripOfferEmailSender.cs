@@ -3,6 +3,8 @@ using TmsSystem.Models;
 using System.Web;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.IO;
+using System.Linq;
 
 namespace TmsSystem.Services
 {
@@ -27,9 +29,9 @@ namespace TmsSystem.Services
         }
 
         public async Task<EmailResponse> SendTripOfferEmailAsync(
-            TripOffer offer,
-            string toEmail = null,
-            CancellationToken ct = default)
+    TripOffer offer,
+    string toEmail = null,
+    CancellationToken ct = default)
         {
             if (offer == null)
             {
@@ -59,12 +61,31 @@ namespace TmsSystem.Services
             {
                 _logger.LogInformation("Preparing trip offer email for Offer #{OfferId} to {ToEmail}", offerId, recipientEmail);
 
-                var html = GenerateTripOfferHtml(offer, customerName);
+                // 🆕 איסוף תמונות ל-inline images
+                var inlineImages = new Dictionary<string, byte[]>();
+                var orderedDays = offer.Trip?.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TripDay>();
 
-                //await _emailService.SendHtmlAsync(recipientEmail, subject, html, ct: ct);
-                await _emailService.SendHtmlAsync(recipientEmail, subject, html, plainTextBody: "", ct: ct);
+                foreach (var day in orderedDays)
+                {
+                    if (!string.IsNullOrWhiteSpace(day.ImagePath))
+                    {
+                        var imageBytes = GetImageBytes(day.ImagePath);
+                        if (imageBytes != null && imageBytes.Length > 0)
+                        {
+                            var contentId = $"day{day.DayNumber}_image";
+                            inlineImages[contentId] = imageBytes;
+                            _logger.LogInformation("✅ Added inline image for day {DayNumber}", day.DayNumber);
+                        }
+                    }
+                }
 
-                _logger.LogInformation("Trip offer #{OfferId} sent successfully to {ToEmail}", offerId, recipientEmail);
+                // 🆕 משתמש במתודה עם inline images
+                var html = GenerateTripOfferHtmlWithInlineImages(offer, customerName, inlineImages);
+
+                await _emailService.SendHtmlAsync(recipientEmail, subject, html, plainTextBody: null, inlineImages: inlineImages, ct: ct);
+
+                _logger.LogInformation("Trip offer #{OfferId} sent successfully to {ToEmail} with {Count} inline images",
+                    offerId, recipientEmail, inlineImages.Count);
 
                 return CreateSuccessResponse(recipientEmail, subject, customerName, offerId);
             }
@@ -76,6 +97,75 @@ namespace TmsSystem.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception while sending trip offer #{OfferId} to {ToEmail}", offerId, recipientEmail);
+                return CreateFailureResponse(recipientEmail, subject, ex.Message, customerName, offerId);
+            }
+        }
+
+
+        // 🆕 מתודה חדשה עם תמיכה ב-inline images
+        public async Task<EmailResponse> SendTripOfferEmailWithImagesAsync(
+            TripOffer offer,
+            string toEmail = null,
+            List<EmailAttachment> attachments = null,
+            CancellationToken ct = default)
+        {
+            if (offer == null)
+            {
+                _logger.LogError("TripOffer is null");
+                throw new ArgumentNullException(nameof(offer));
+            }
+
+            var offerId = offer.TripOfferId;
+            var customerName = SanitizeCustomerName(offer.Customer?.DisplayName);
+            var recipientEmail = toEmail ?? offer.Customer?.Email;
+
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                _logger.LogWarning("No email address found for Offer #{OfferId}", offerId);
+                return CreateFailureResponse(recipientEmail, null, "כתובת אימייל לא נמצאה", customerName, offerId);
+            }
+
+            if (!IsValidEmail(recipientEmail))
+            {
+                _logger.LogWarning("Invalid email format: {Email} for Offer #{OfferId}", recipientEmail, offerId);
+                return CreateFailureResponse(recipientEmail, null, "כתובת אימייל לא תקינה", customerName, offerId);
+            }
+
+            var subject = BuildEmailSubject(offer);
+
+            try
+            {
+                _logger.LogInformation("Preparing trip offer email with images for Offer #{OfferId} to {ToEmail}", offerId, recipientEmail);
+
+                // איסוף תמונות ל-inline images
+                var inlineImages = new Dictionary<string, byte[]>();
+                var orderedDays = offer.Trip?.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TripDay>();
+
+                foreach (var day in orderedDays)
+                {
+                    if (!string.IsNullOrWhiteSpace(day.ImagePath))
+                    {
+                        var imageBytes = GetImageBytes(day.ImagePath);
+                        if (imageBytes != null && imageBytes.Length > 0)
+                        {
+                            var contentId = $"day{day.DayNumber}_image";
+                            inlineImages[contentId] = imageBytes;
+                            _logger.LogInformation("✅ Added inline image for day {DayNumber}", day.DayNumber);
+                        }
+                    }
+                }
+
+                var html = GenerateTripOfferHtmlWithInlineImages(offer, customerName, inlineImages);
+
+                await _emailService.SendHtmlAsync(recipientEmail, subject, html, plainTextBody: null, inlineImages: inlineImages, ct: ct);
+
+                _logger.LogInformation("Trip offer #{OfferId} sent successfully with {Count} inline images", offerId, inlineImages.Count);
+
+                return CreateSuccessResponse(recipientEmail, subject, customerName, offerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception while sending trip offer #{OfferId}", offerId);
                 return CreateFailureResponse(recipientEmail, subject, ex.Message, customerName, offerId);
             }
         }
@@ -113,6 +203,239 @@ namespace TmsSystem.Services
             {
                 return false;
             }
+        }
+
+        // 🆕 פונקציה חדשה - מחזירה bytes של תמונה
+        private byte[] GetImageBytes(string imagePath)
+        {
+            try
+            {
+                if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
+                {
+                    _logger.LogWarning("⚠️ External URL detected, cannot use as inline image: {ImagePath}", imagePath);
+                    return null;
+                }
+
+                var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var cleanPath = imagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                var fullPath = Path.Combine(webRootPath, cleanPath);
+
+                if (!File.Exists(fullPath))
+                {
+                    _logger.LogWarning("❌ Image file not found at: {Path}", fullPath);
+                    return null;
+                }
+
+                byte[] imageBytes = File.ReadAllBytes(fullPath);
+                _logger.LogInformation("✅ Image loaded: {Size:N0} bytes", imageBytes.Length);
+
+                return imageBytes;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error reading image: {Path}", imagePath);
+                return null;
+            }
+        }
+
+        // 🆕 פונקציה נפרדת ליצירת HTML עם inline images
+        private string GenerateTripOfferHtmlWithInlineImages(TripOffer model, string customerName, Dictionary<string, byte[]> inlineImages)
+        {
+            var sb = new StringBuilder(10240);
+
+            var orderedDays = model.Trip?.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TripDay>();
+            var includesList = ParseMultilineText(model.Trip?.Includes);
+            var excludesList = ParseMultilineText(model.Trip?.Excludes);
+            var validityDate = DateTime.UtcNow.AddDays(OFFER_VALIDITY_DAYS);
+            var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "https://localhost:7033";
+
+            sb.Append($@"
+<!DOCTYPE html>
+<html dir='rtl' lang='he'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>הצעת מחיר - {HtmlEncode(model.Trip?.Title)}</title>
+    <style>{GetTripOfferEmailCss()}</style>
+</head>
+<body dir='rtl'>
+    <div class='email-container'>
+        <div class='header'>
+            <div class='company-logo'>
+                <h1>TRYIT</h1>
+                <p class='tagline'>חוויות טיולים בלתי נשכחות</p>
+            </div>
+        </div>
+        <div class='greeting'>
+            <h2>שלום {HtmlEncode(customerName)},</h2>
+            <p>שמחים להציג בפניך את הצעת המחיר המפורטת לטיול המבוקש</p>
+            <div class='offer-number'>הצעת מחיר מספר: <strong>{HtmlEncode(model.OfferNumber)}</strong></div>
+        </div>
+        <div class='trip-header'>
+            <h1 class='trip-title'>{HtmlEncode(model.Trip?.Title)}</h1>
+            <div class='trip-info-grid'>
+                <div class='info-item'>
+                    <span class='icon'>📅</span>
+                    <div>
+                        <div class='label'>משך הטיול</div>
+                        <div class='value'>{model.Trip?.NumberOfDays ?? 0} ימים</div>
+                    </div>
+                </div>
+                <div class='info-item'>
+                    <span class='icon'>✈️</span>
+                    <div>
+                        <div class='label'>תאריך יציאה</div>
+                        <div class='value'>{model.DepartureDate:dd/MM/yyyy}</div>
+                    </div>
+                </div>");
+
+            if (model.ReturnDate.HasValue)
+            {
+                sb.Append($@"
+                <div class='info-item'>
+                    <span class='icon'>🏠</span>
+                    <div>
+                        <div class='label'>תאריך חזרה</div>
+                        <div class='value'>{model.ReturnDate.Value:dd/MM/yyyy}</div>
+                    </div>
+                </div>");
+            }
+
+            sb.Append($@"
+                <div class='info-item'>
+                    <span class='icon'>👥</span>
+                    <div>
+                        <div class='label'>מספר משתתפים</div>
+                        <div class='value'>{model.Participants} נוסעים</div>
+                    </div>
+                </div>
+            </div>");
+
+            if (!string.IsNullOrWhiteSpace(model.Trip?.Description))
+            {
+                sb.Append($@"<p class='trip-description'>{HtmlEncodeWithLineBreaks(model.Trip.Description)}</p>");
+            }
+
+            sb.Append($@"</div>
+        <div class='price-section'>
+            <h2 class='section-title'>💰 פירוט מחירים</h2>
+            <div class='price-breakdown'>
+                <div class='price-row'><span>מחיר לאדם</span><span>${model.PricePerPerson:N2}</span></div>
+                <div class='price-row'><span>מספר משתתפים</span><span>× {model.Participants}</span></div>
+                <div class='price-row subtotal'><span>סכום ביניים</span><span>${(model.PricePerPerson * model.Participants):N2}</span></div>");
+
+            if (model.SingleRooms > 0 && model.SingleRoomSupplement.HasValue)
+            {
+                sb.Append($@"<div class='price-row'><span>תוספת {model.SingleRooms} חדרים יחידים (${model.SingleRoomSupplement.Value:N2} לחדר)</span><span>${(model.SingleRoomSupplement.Value * model.SingleRooms):N2}</span></div>");
+            }
+
+            if (model.InsuranceIncluded && model.InsurancePrice.HasValue)
+            {
+                sb.Append($@"<div class='price-row'><span>ביטוח נסיעות ({model.Participants} משתתפים × ${model.InsurancePrice.Value:N2})</span><span>${(model.InsurancePrice.Value * model.Participants):N2}</span></div>");
+            }
+
+            sb.Append($@"<div class='price-row total'><span>סה""כ לתשלום</span><span>${model.TotalPrice:N2}</span></div>
+            </div>
+        </div>
+        <div class='payment-section'>
+            <h2 class='section-title'>💳 פרטי תשלום</h2>
+            <div class='payment-grid'>
+                <div class='payment-item'><strong>אמצעי תשלום:</strong> {HtmlEncode(model.PaymentMethod?.PaymentName ?? "לא צוין")}</div>");
+
+            if (model.PaymentInstallments.HasValue)
+            {
+                sb.Append($@"<div class='payment-item'><strong>מספר תשלומים:</strong> {model.PaymentInstallments.Value} תשלומים</div>");
+            }
+
+            sb.Append($@"
+                <div class='payment-item'><strong>טיסה:</strong> {(model.FlightIncluded ? "✅ כלולה במחיר" : "❌ לא כלולה")}</div>
+                <div class='payment-item'><strong>ביטוח:</strong> {(model.InsuranceIncluded ? "✅ כלול במחיר" : "❌ לא כלול")}</div>
+            </div>
+        </div>");
+
+            if (model.FlightIncluded && !string.IsNullOrWhiteSpace(model.FlightDetails))
+            {
+                sb.Append($@"<div class='section-card'><h2 class='section-title'>✈️ פרטי טיסה</h2><div class='content-box'>{HtmlEncodeWithLineBreaks(model.FlightDetails)}</div></div>");
+            }
+
+            if (orderedDays.Any())
+            {
+                sb.Append(@"<div class='section-card'><h2 class='section-title'>📋 תוכנית הטיול המלאה - יום אחר יום</h2></div><div class='days-container'>");
+
+                foreach (var day in orderedDays)
+                {
+                    sb.Append($@"<div class='day-card'><div class='day-header'><span class='day-number'>יום {day.DayNumber}</span><h3 class='day-title'>{HtmlEncode(day.Title)}</h3></div>");
+
+                    if (!string.IsNullOrWhiteSpace(day.Location))
+                    {
+                        sb.Append($@"<div class='day-location'><span class='icon'>📍</span><span>{HtmlEncode(day.Location)}</span></div>");
+                    }
+
+                    sb.Append("<div class='day-content-grid'>");
+
+                    // 🆕 שימוש ב-inline images במקום Base64
+                    if (!string.IsNullOrWhiteSpace(day.ImagePath))
+                    {
+                        var contentId = $"day{day.DayNumber}_image";
+                        if (inlineImages.ContainsKey(contentId))
+                        {
+                            sb.Append($@"<div class='day-image-container'><img src='cid:{contentId}' alt='{HtmlEncode(day.Title)}' class='day-image' /></div>");
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(day.Description))
+                    {
+                        sb.Append($@"<div class='day-description'>{HtmlEncodeWithLineBreaks(day.Description)}</div>");
+                    }
+
+                    sb.Append("</div></div>");
+                }
+
+                sb.Append("</div>");
+            }
+
+            if (includesList.Any())
+            {
+                sb.Append(@"<div class='section-card includes'><h2 class='section-title'>✅ המחיר כולל</h2><ul class='includes-list'>");
+                foreach (var item in includesList) sb.Append($"<li>{HtmlEncode(item)}</li>");
+                sb.Append("</ul></div>");
+            }
+
+            if (excludesList.Any())
+            {
+                sb.Append(@"<div class='section-card excludes'><h2 class='section-title'>❌ המחיר אינו כולל</h2><ul class='excludes-list'>");
+                foreach (var item in excludesList) sb.Append($"<li>{HtmlEncode(item)}</li>");
+                sb.Append("</ul></div>");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.SpecialRequests))
+            {
+                sb.Append($@"<div class='section-card'><h2 class='section-title'>⭐ בקשות מיוחדות</h2><div class='content-box'>{HtmlEncodeWithLineBreaks(model.SpecialRequests)}</div></div>");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.AdditionalNotes))
+            {
+                sb.Append($@"<div class='section-card'><h2 class='section-title'>📝 הערות נוספות</h2><div class='content-box'>{HtmlEncodeWithLineBreaks(model.AdditionalNotes)}</div></div>");
+            }
+
+            sb.Append($@"
+        <div class='footer'>
+            <div class='contact-info'>
+                <h3>צור קשר</h3>
+                <p>mailto:info@tryit.co.il</p>
+                <p> לפרטים נוספים ולאישור הזמנה</p>
+            </div>
+            <div class='footer-note'>
+                <p>מחכים לנסוע איתכם!</p>
+                <p class='company-name'>TRYIT - חוויות טיולים בלתי נשכחות</p>
+                <p class='validity'>הצעה זו בתוקף עד {validityDate:dd/MM/yyyy}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>");
+
+            return sb.ToString();
         }
 
         private EmailResponse CreateSuccessResponse(string email, string subject, string customerName, int offerId)
@@ -167,28 +490,23 @@ namespace TmsSystem.Services
         {
             try
             {
-                // אם זה URL מלא, נחזיר אותו כמו שהוא
                 if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
                 {
                     return imagePath;
                 }
 
-                // בונים את הנתיב המלא לקובץ
                 var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var fullPath = Path.Combine(webRootPath, imagePath.TrimStart('/'));
 
-                // בדיקה שהקובץ קיים
                 if (!File.Exists(fullPath))
                 {
                     _logger.LogWarning("Image file not found: {Path}", fullPath);
                     return string.Empty;
                 }
 
-                // קריאת הקובץ והמרה ל-Base64
                 byte[] imageBytes = File.ReadAllBytes(fullPath);
                 string base64String = Convert.ToBase64String(imageBytes);
 
-                // זיהוי סוג הקובץ
                 string extension = Path.GetExtension(fullPath).ToLower();
                 string mimeType = extension switch
                 {
@@ -207,7 +525,6 @@ namespace TmsSystem.Services
                 return string.Empty;
             }
         }
-
 
         private string HtmlEncodeWithLineBreaks(string text)
         {
@@ -284,7 +601,7 @@ namespace TmsSystem.Services
                     <span class='icon'>👥</span>
                     <div>
                         <div class='label'>מספר משתתפים</div>
-                        <div class='value'>{model.Participants} איש</div>
+                        <div class='value'>{model.Participants} נוסעים</div>
                     </div>
                 </div>
             </div>");

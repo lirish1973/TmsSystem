@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TmsSystem.Data;
-using TmsSystem.Models;
-using TmsSystem.ViewModels;
-using TmsSystem.Services;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using TmsSystem.Data;
+using TmsSystem.Models;
+using TmsSystem.Services;
+using TmsSystem.ViewModels;
+using System.IO;
 
 namespace TmsSystem.Controllers
 {
@@ -192,6 +194,7 @@ namespace TmsSystem.Controllers
                 if (string.IsNullOrWhiteSpace(offer.Customer?.Email))
                     return Json(new { success = false, message = "לא נמצאה כתובת אימייל ללקוח" });
 
+                // ✅ קריאה למתודה הנכונה ב-TripOfferEmailSender
                 var result = await _tripOfferEmailSender.SendTripOfferEmailAsync(offer);
 
                 if (result.Success)
@@ -219,5 +222,112 @@ namespace TmsSystem.Controllers
                 return Json(new { success = false, message = $"שגיאה: {ex.Message}" });
             }
         }
+
+        // 🆕 POST: TripOffers/SendEmailWithAttachments/5
+        [HttpPost]
+        [Route("TripOffers/SendEmailWithAttachments/{id}")]
+        public async Task<IActionResult> SendEmailWithAttachments(int id, [FromBody] SendTripEmailRequest request)
+        {
+            Console.WriteLine($"=== SendEmailWithAttachments START === ID: {id}");
+
+            try
+            {
+                Console.WriteLine("Step 1: Loading trip offer from database...");
+
+                var tripOffer = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip)
+                        .ThenInclude(t => t.TripDays)
+                    .Include(to => to.PaymentMethod)
+                    .FirstOrDefaultAsync(to => to.TripOfferId == id);
+
+                if (tripOffer == null)
+                {
+                    Console.WriteLine($"ERROR: Trip offer {id} not found");
+                    return Json(new { success = false, message = "הצעת הטיול לא נמצאה" });
+                }
+
+                Console.WriteLine($"Step 2: Trip offer found: {tripOffer.OfferNumber}");
+
+                string email = request?.Email ?? tripOffer.Customer?.Email;
+
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    Console.WriteLine("ERROR: No email address");
+                    return Json(new { success = false, message = "כתובת אימייל נדרשת" });
+                }
+
+                Console.WriteLine($"Step 3: Sending email to {email}");
+                Console.WriteLine($"Attachments count: {request?.Attachments?.Count ?? 0}");
+
+                // המרת attachments ל-EmailAttachment
+                var emailAttachments = request?.Attachments?.Select(a => new EmailAttachment
+                {
+                    FileName = a.FileName,
+                    Base64Content = a.Base64Content,
+                    MimeType = a.MimeType
+                }).ToList();
+
+                Console.WriteLine("Step 4: Calling email sender...");
+
+                // ✅ קריאה למתודה עם inline images
+                var result = await _tripOfferEmailSender.SendTripOfferEmailWithImagesAsync(
+                    tripOffer,
+                    email,
+                    emailAttachments);
+
+                Console.WriteLine($"Step 5: Email result - Success: {result.Success}");
+
+                if (result.Success)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        sentTo = result.SentTo,
+                        subject = result.Subject,
+                        sentAt = result.SentAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        provider = result.Provider,
+                        tripOfferId = result.TripOfferId,
+                        customerName = result.CustomerName,
+                        messageId = result.MessageId ?? ""
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"Email failed: {result.ErrorMessage}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = result.ErrorMessage
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("=== EXCEPTION ===");
+                Console.WriteLine($"Message: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+
+                return Json(new
+                {
+                    success = false,
+                    message = $"שגיאה בשליחת המייל: {ex.Message}"
+                });
+            }
+        }
+    }
+
+    // Model classes לקבלת הנתונים מה-JavaScript
+    public class SendTripEmailRequest
+    {
+        public string Email { get; set; }
+        public List<AttachmentDto> Attachments { get; set; }
+    }
+
+    public class AttachmentDto
+    {
+        public string FileName { get; set; }
+        public string Base64Content { get; set; }
+        public string MimeType { get; set; }
     }
 }
