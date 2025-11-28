@@ -18,34 +18,52 @@
                    Layout Structure
                    ======================================== */
         body {
-            display: flex;
-            min-height: 100vh;
             margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
 
         .main-content {
-            flex-grow: 1;
+            margin-right: 240px; /* רוחב ה-Sidebar */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: margin-right 0.3s ease;
+        }
+
+        /* כאשר ה-Sidebar מקופל */
+        body.sidebar-collapsed . main-content {
+            margin-right: 70px;
+        }
+
+        /* אם המשתמש לא מחובר - אין sidebar */
+        body.no-sidebar . main-content {
+            margin-right: 0;
         }
 
         /* ========================================
-                   Sidebar Styles
+                   Sidebar Styles (FIXED)
                    ======================================== */
         .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
             width: 240px;
-            margin-top: 60px;
+            height: 100vh;
             background-color: #fdfdf5;
             border-left: 1px solid #ddd;
             transition: width 0.3s ease;
             overflow-x: hidden;
+            overflow-y: auto; /* גלילה פנימית אם התפריט ארוך */
+            z-index: 1000;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
         }
 
-            .sidebar.collapsed {
+            . sidebar.collapsed {
                 width: 70px;
             }
 
-            .sidebar .nav-link {
+            . sidebar .nav-link {
                 display: flex;
                 align-items: center;
                 gap: 10px;
@@ -54,7 +72,7 @@
                 transition: background-color 0.2s;
             }
 
-                .sidebar .nav-link:hover {
+                . sidebar .nav-link:hover {
                     background-color: #e9ecef;
                 }
 
@@ -64,14 +82,18 @@
                     text-align: center;
                 }
 
-            .sidebar.collapsed .nav-link span {
+            .sidebar. collapsed .nav-link span {
                 display: none;
             }
 
-            .sidebar .logo-container {
+            .sidebar . logo-container {
                 padding: 15px;
                 text-align: center;
                 border-bottom: 1px solid #ddd;
+                position: sticky;
+                top: 0;
+                background-color: #fdfdf5;
+                z-index: 10;
             }
 
                 .sidebar .logo-container img {
@@ -79,17 +101,20 @@
                     transition: width 0.3s;
                 }
 
-            .sidebar.collapsed .logo-container img {
+            .sidebar. collapsed .logo-container img {
                 width: 50px;
             }
 
-        .pin-btn {
+        . pin-btn {
             cursor: pointer;
             padding: 10px;
             text-align: center;
             font-size: 1.2rem;
             border-top: 1px solid #ddd;
             transition: background-color 0.2s;
+            position: sticky;
+            bottom: 0;
+            background-color: #fdfdf5;
         }
 
             .pin-btn:hover {
@@ -99,8 +124,12 @@
         /* ========================================
                    Header & Footer
                    ======================================== */
-        header.navbar {
+        header. navbar {
             border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background-color: #f8f9fa;
         }
 
         footer {
@@ -108,7 +137,6 @@
             padding: 10px;
             background-color: #f8f9fa;
         }
-
         /* ========================================
                    Dropdown Menu (RTL Fix)
                    ======================================== */
@@ -132,6 +160,65 @@
                 font-size: 0.9rem;
                 padding-right: 40px;
             }
+
+
+        /* ========================================
+                   Responsive - Mobile
+                   ======================================== */
+        @@media (max-width: 768px) {
+            .sidebar
+
+        {
+            width: 70px;
+        }
+
+        .sidebar . nav-link span {
+            display: none;
+        }
+
+        .sidebar . logo-container img {
+            width: 50px;
+        }
+
+        .main-content {
+            margin-right: 70px;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-right: 0;
+        }
+
+        . sidebar.collapsed {
+            width: 0;
+            border: none;
+        }
+
+        }
+
+        /* גלילה חלקה */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Scrollbar styling */
+        . sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+            . sidebar::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+
     </style>
 </head>
 <body>
@@ -422,10 +509,59 @@
     <script src="~/js/email-success.js" asp-append-version="true"></script>
 
     <!-- Sidebar Toggle Script -->
+    <!-- Sidebar Toggle Script -->
     <script>
         function toggleSidebar() {
-            document.getElementById("sidebar").classList.toggle("collapsed");
+            const sidebar = document.getElementById("sidebar");
+            const body = document.body;
+
+            sidebar.classList.toggle("collapsed");
+            body.classList.toggle("sidebar-collapsed");
+
+            // שמירה ב-localStorage
+            const isCollapsed = sidebar.classList. contains("collapsed");
+            localStorage. setItem("sidebarCollapsed", isCollapsed);
         }
+
+        // טעינת מצב ה-sidebar מ-localStorage
+        document.addEventListener("DOMContentLoaded", function() {
+            const sidebar = document.getElementById("sidebar");
+            const body = document.body;
+
+            // אם אין sidebar (משתמש לא מחובר)
+            if (!sidebar) {
+                body.classList.add("no-sidebar");
+                return;
+            }
+
+            // טעינת מצב שמור
+            const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+            if (isCollapsed) {
+                sidebar.classList.add("collapsed");
+                body.classList.add("sidebar-collapsed");
+            }
+
+            // Auto-collapse Sidebar Menus
+            const collapses = document.querySelectorAll(". sidebar .collapse");
+
+            collapses.forEach(collapse => {
+                const trigger = document.querySelector(`[href="#${collapse.id}"]`);
+                if (trigger) {
+                    trigger.addEventListener("click", function(e) {
+                        collapses.forEach(other => {
+                            if (other !== collapse) {
+                                const bsCollapse = bootstrap.Collapse.getInstance(other);
+                                if (bsCollapse) {
+                                    bsCollapse.hide();
+                                } else {
+                                    new bootstrap.Collapse(other, { toggle: false }).hide();
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+        });
     </script>
 
     <!-- Auto-collapse Sidebar Menus -->

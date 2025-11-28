@@ -1,0 +1,216 @@
+﻿@model TmsSystem.ViewModels.CreateTripOfferViewModel
+
+@{
+    ViewData["Title"] = "עריכת הצעת מחיר";
+    var offerId = ViewBag.TripOfferId;
+    var offerNumber = ViewBag.OfferNumber;
+    var currentStatus = ViewBag.CurrentStatus;
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h3>
+                <i class="fas fa-edit"></i> עריכת הצעת מחיר
+                <span class="badge bg-secondary">@offerNumber</span>
+            </h3>
+            <a asp-action="Index" class="btn btn-dark">
+                <i class="fas fa-arrow-right"></i> חזרה לרשימה
+            </a>
+        </div>
+
+        <div class="card-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle"></i> שגיאות בטופס:</h5>
+                    <ul>
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error. ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form asp-action="Edit" asp-route-id="@offerId" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+                    <!-- לקוח -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerId" class="form-label">
+                            <i class="fas fa-user"></i> לקוח <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="CustomerId" class="form-select" asp-items="@(new SelectList(Model.Customers, "CustomerId", "DisplayName"))">
+                            <option value="">-- בחר לקוח --</option>
+                        </select>
+                        <span asp-validation-for="CustomerId" class="text-danger"></span>
+                    </div>
+
+                    <!-- טיול -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="TripId" class="form-label">
+                            <i class="fas fa-map-marked-alt"></i> טיול <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="TripId" class="form-select" asp-items="@(new SelectList(Model.Trips, "TripId", "Title"))">
+                            <option value="">-- בחר טיול --</option>
+                        </select>
+                        <span asp-validation-for="TripId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- מספר משתתפים -->
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Participants" class="form-label">
+                            <i class="fas fa-users"></i> מספר משתתפים <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Participants" type="number" class="form-control" min="1" max="100" />
+                        <span asp-validation-for="Participants" class="text-danger"></span>
+                    </div>
+
+                    <!-- תאריך יציאה -->
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="DepartureDate" class="form-label">
+                            <i class="fas fa-calendar-day"></i> תאריך יציאה <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DepartureDate" type="date" class="form-control" />
+                        <span asp-validation-for="DepartureDate" class="text-danger"></span>
+                    </div>
+
+                    <!-- תאריך חזרה -->
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ReturnDate" class="form-label">
+                            <i class="fas fa-calendar-day"></i> תאריך חזרה
+                        </label>
+                        <input asp-for="ReturnDate" type="date" class="form-control" />
+                        <span asp-validation-for="ReturnDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- מחיר לאדם -->
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="PricePerPerson" class="form-label">
+                            <i class="fas fa-dollar-sign"></i> מחיר לאדם ($) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="PricePerPerson" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="PricePerPerson" class="text-danger"></span>
+                    </div>
+
+                    <!-- תוספת חדר יחיד -->
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="SingleRoomSupplement" class="form-label">
+                            <i class="fas fa-bed"></i> תוספת חדר יחיד ($)
+                        </label>
+                        <input asp-for="SingleRoomSupplement" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="SingleRoomSupplement" class="text-danger"></span>
+                    </div>
+
+                    <!-- כמות חדרים יחידים -->
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="SingleRooms" class="form-label">
+                            <i class="fas fa-bed"></i> מספר חדרים יחידים
+                        </label>
+                        <input asp-for="SingleRooms" type="number" min="0" class="form-control" />
+                        <span asp-validation-for="SingleRooms" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- אמצעי תשלום -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PaymentMethodId" class="form-label">
+                            <i class="fas fa-credit-card"></i> אמצעי תשלום <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="PaymentMethodId" class="form-select" asp-items="@(new SelectList(Model.PaymentMethods, "ID", "PaymentName"))">
+                            <option value="">-- בחר אמצעי תשלום --</option>
+                        </select>
+                        <span asp-validation-for="PaymentMethodId" class="text-danger"></span>
+                    </div>
+
+                    <!-- מספר תשלומים -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PaymentInstallments" class="form-label">
+                            <i class="fas fa-list-ol"></i> מספר תשלומים
+                        </label>
+                        <input asp-for="PaymentInstallments" type="number" min="1" max="36" class="form-control" />
+                        <span asp-validation-for="PaymentInstallments" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- טיסה -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input asp-for="FlightIncluded" class="form-check-input" type="checkbox" />
+                        <label asp-for="FlightIncluded" class="form-check-label">
+                            <i class="fas fa-plane"></i> טיסה כלולה במחיר
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FlightDetails" class="form-label">
+                        <i class="fas fa-plane-departure"></i> פרטי טיסה
+                    </label>
+                    <textarea asp-for="FlightDetails" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="FlightDetails" class="text-danger"></span>
+                </div>
+
+                <!-- ביטוח -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input asp-for="InsuranceIncluded" class="form-check-input" type="checkbox" />
+                            <label asp-for="InsuranceIncluded" class="form-check-label">
+                                <i class="fas fa-shield-alt"></i> ביטוח כלול
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="InsurancePrice" class="form-label">
+                            <i class="fas fa-dollar-sign"></i> מחיר ביטוח לאדם ($)
+                        </label>
+                        <input asp-for="InsurancePrice" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="InsurancePrice" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- בקשות מיוחדות -->
+                <div class="mb-3">
+                    <label asp-for="SpecialRequests" class="form-label">
+                        <i class="fas fa-comment-dots"></i> בקשות מיוחדות
+                    </label>
+                    <textarea asp-for="SpecialRequests" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="SpecialRequests" class="text-danger"></span>
+                </div>
+
+                <!-- הערות נוספות -->
+                <div class="mb-3">
+                    <label asp-for="AdditionalNotes" class="form-label">
+                        <i class="fas fa-sticky-note"></i> הערות נוספות
+                    </label>
+                    <textarea asp-for="AdditionalNotes" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="AdditionalNotes" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> שמור שינויים
+                    </button>
+                    <a asp-action="Details" asp-route-id="@offerId" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times"></i> ביטול
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -240,6 +240,223 @@ namespace TmsSystem.Controllers
             }
         }
 
+        // GET: TripOffers/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var tripOffer = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip)
+                    .Include(to => to.PaymentMethod)
+                    .FirstOrDefaultAsync(to => to.TripOfferId == id);
+
+                if (tripOffer == null)
+                {
+                    return NotFound();
+                }
+
+                // המרה ל-ViewModel
+                var viewModel = new CreateTripOfferViewModel
+                {
+                    CustomerId = tripOffer.CustomerId,
+                    TripId = tripOffer.TripId,
+                    Participants = tripOffer.Participants,
+                    DepartureDate = tripOffer.DepartureDate,
+                    ReturnDate = tripOffer.ReturnDate,
+                    PricePerPerson = tripOffer.PricePerPerson,
+                    SingleRoomSupplement = tripOffer.SingleRoomSupplement,
+                    SingleRooms = tripOffer.SingleRooms,
+                    PaymentMethodId = tripOffer.PaymentMethodId,
+                    PaymentInstallments = tripOffer.PaymentInstallments,
+                    FlightIncluded = tripOffer.FlightIncluded,
+                    FlightDetails = tripOffer.FlightDetails,
+                    InsuranceIncluded = tripOffer.InsuranceIncluded,
+                    InsurancePrice = tripOffer.InsurancePrice,
+                    SpecialRequests = tripOffer.SpecialRequests,
+                    AdditionalNotes = tripOffer.AdditionalNotes,
+
+                    // טעינת הרשימות
+                    Customers = await _context.Customers.OrderBy(c => c.FullName).ToListAsync(),
+                    Trips = await _context.Trips.Where(t => t.IsActive).OrderBy(t => t.Title).ToListAsync(),
+                    PaymentMethods = await _context.PaymentMethods.OrderBy(p => p.PaymentName).ToListAsync()
+                };
+
+                ViewBag.TripOfferId = id;
+                ViewBag.OfferNumber = tripOffer.OfferNumber;
+                ViewBag.CurrentStatus = tripOffer.Status;
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in Edit GET: {ex.Message}");
+                TempData["ErrorMessage"] = $"שגיאה בטעינת ההצעה: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: TripOffers/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, CreateTripOfferViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    model.Customers = await _context.Customers.ToListAsync();
+                    model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
+                    model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
+                    return View(model);
+                }
+
+                var tripOffer = await _context.TripOffers.FindAsync(id);
+
+                if (tripOffer == null)
+                {
+                    return NotFound();
+                }
+
+                // חישוב מחיר כולל
+                decimal totalPrice = model.PricePerPerson * model.Participants;
+
+                if (model.SingleRoomSupplement.HasValue && model.SingleRooms > 0)
+                {
+                    totalPrice += model.SingleRoomSupplement.Value * model.SingleRooms;
+                }
+
+                if (model.InsuranceIncluded && model.InsurancePrice.HasValue)
+                {
+                    totalPrice += model.InsurancePrice.Value * model.Participants;
+                }
+
+                // עדכון השדות
+                tripOffer.CustomerId = model.CustomerId;
+                tripOffer.TripId = model.TripId;
+                tripOffer.Participants = model.Participants;
+                tripOffer.DepartureDate = model.DepartureDate;
+                tripOffer.ReturnDate = model.ReturnDate;
+                tripOffer.PricePerPerson = model.PricePerPerson;
+                tripOffer.SingleRoomSupplement = model.SingleRoomSupplement;
+                tripOffer.SingleRooms = model.SingleRooms;
+                tripOffer.TotalPrice = totalPrice;
+                tripOffer.PaymentMethodId = model.PaymentMethodId;
+                tripOffer.PaymentInstallments = model.PaymentInstallments;
+                tripOffer.FlightIncluded = model.FlightIncluded;
+                tripOffer.FlightDetails = model.FlightDetails;
+                tripOffer.InsuranceIncluded = model.InsuranceIncluded;
+                tripOffer.InsurancePrice = model.InsurancePrice;
+                tripOffer.SpecialRequests = model.SpecialRequests;
+                tripOffer.AdditionalNotes = model.AdditionalNotes;
+                tripOffer.UpdatedAt = DateTime.Now;
+
+                _context.Update(tripOffer);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"הצעת מחיר '{tripOffer.OfferNumber}' עודכנה בהצלחה!";
+                return RedirectToAction(nameof(Details), new { id = tripOffer.TripOfferId });
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"❌ DbUpdateException: {dbEx.Message}");
+                Console.WriteLine($"🔥 InnerException: {dbEx.InnerException?.Message}");
+
+                string errorMsg = dbEx.InnerException?.InnerException?.Message
+                               ?? dbEx.InnerException?.Message
+                               ?? dbEx.Message;
+
+                ModelState.AddModelError("", $"שגיאה בעדכון: {errorMsg}");
+                model.Customers = await _context.Customers.ToListAsync();
+                model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
+                model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception: {ex.Message}");
+                ModelState.AddModelError("", $"שגיאה: {ex.Message}");
+                model.Customers = await _context.Customers.ToListAsync();
+                model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
+                model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
+                return View(model);
+            }
+        }
+
+        // POST: TripOffers/UpdateStatus/5
+        // POST: TripOffers/UpdateStatus
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus([FromForm] int id, [FromForm] string status)
+        {
+            try
+            {
+                Console.WriteLine($"🔍 UpdateStatus called - ID: {id}, Status: {status}");
+
+                var tripOffer = await _context.TripOffers.FindAsync(id);
+
+                if (tripOffer == null)
+                {
+                    Console.WriteLine($"❌ TripOffer {id} not found");
+                    return Json(new { success = false, message = "הצעת המחיר לא נמצאה" });
+                }
+
+                // בדיקת תקינות הסטטוס
+                var validStatuses = new[] { "Pending", "Approved", "Rejected", "Cancelled" };
+                if (!validStatuses.Contains(status))
+                {
+                    Console.WriteLine($"❌ Invalid status: {status}");
+                    return Json(new { success = false, message = "סטטוס לא תקין" });
+                }
+
+                string oldStatus = tripOffer.Status;
+                tripOffer.Status = status;
+                tripOffer.UpdatedAt = DateTime.Now;
+
+                _context.Update(tripOffer);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ Status updated from {oldStatus} to {status}");
+
+                var statusText = status switch
+                {
+                    "Pending" => "ממתין",
+                    "Approved" => "מאושר",
+                    "Rejected" => "נדחה",
+                    "Cancelled" => "בוטל",
+                    _ => status
+                };
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"הסטטוס עודכן ל'{statusText}' בהצלחה",
+                    newStatus = status,
+                    statusText = statusText
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error updating status: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
+                return Json(new { success = false, message = $"שגיאה: {ex.Message}" });
+            }
+        }
+
+
+
+
+
+
+
+
+
+
         // POST: TripOffers/SendEmail/5
         [HttpPost("/TripOffers/SendEmail/{id}")]
         public async Task<IActionResult> SendEmail(int id)

@@ -418,6 +418,86 @@ namespace TmsSystem.Services
                 sb.Append($@"<div class='section-card'><h2 class='section-title'>📝 הערות נוספות</h2><div class='content-box'>{HtmlEncodeWithLineBreaks(model.AdditionalNotes)}</div></div>");
             }
 
+            
+            // ===== 🆕 תנאי ביטול ותשלום =====
+            sb.Append(@"
+        <div class='terms-section'>
+            <h2 class='section-title'>📋 תנאי ביטול ותשלום</h2>
+            <div class='terms-content'>
+                <div class='term-item'>
+                    <div class='term-icon'>💵</div>
+                    <div class='term-text'>
+                        <strong>תשלום מקדמה:</strong> על מנת לשריין את הטיול יש להעביר מקדמה של 50% עם אישור ההזמנה.  יש לסיים את כל התשלום עד 7 ימים עסקים מיום יציאת הטיול. 
+                    </div>
+                </div>
+                <div class='term-item'>
+                    <div class='term-icon'>📅</div>
+                    <div class='term-text'>
+                        <strong>דחיית תאריך:</strong> במידה ותרצו לדחות את התאריך עד 14 יום לפני הטיול ניתן לעשות זאת ללא עלות. 
+                    </div>
+                </div>
+                <div class='term-item warning'>
+                    <div class='term-icon'>⚠️</div>
+                    <div class='term-text'>
+                        <strong>ביטול עד 30 יום:</strong> במידה ותרצו לבטל את הטיול עד 30 יום לפני הטיול, תקבלו החזר פחות 300$ דמי טיפול.
+                    </div>
+                </div>
+                <div class='term-item warning'>
+                    <div class='term-icon'>⚡</div>
+                    <div class='term-text'>
+                        <strong>ביטול 30-14 ימים:</strong> ביטול שיתקיים בין 30 יום ל-14 יום לפני מועד הטיול - יגבו דמי ביטול של 50% מהמחיר.
+                    </div>
+                </div>
+                <div class='term-item danger'>
+                    <div class='term-icon'>🚫</div>
+                    <div class='term-text'>
+                        <strong>ביטול עד 14 ימים:</strong> ביטול שיתקיים בין 14 יום ליום הטיול - יגבו דמי ביטול מלאים.
+                    </div>
+                </div>
+                <div class='term-item success'>
+                    <div class='term-icon'>🛡️</div>
+                    <div class='term-text'>
+                        <strong>ביטול מטעמנו:</strong> במידה ולא ניתן לקיים את הטיול, ואנו נבטל אותו בשל תנאים ביטחוניים או תנאי מזג אויר, ולא תרצו מועד חלופי - תשלום מלא יוחזר.
+                    </div>
+                </div>
+            </div>
+        </div>");
+
+            // ===== 🆕 פרטי העברה בנקאית =====
+            sb. Append($@"
+        <div class='bank-section'>
+            <h2 class='section-title'>🏦 פרטי העברה בנקאית</h2>
+            <div class='bank-details-grid'>
+                <div class='bank-row'>
+                    <span class='bank-label'>שם הבנק:</span>
+                    <span class='bank-value'>בנק לאומי</span>
+                </div>
+                <div class='bank-row'>
+                    <span class='bank-label'>מספר סניף:</span>
+                    <span class='bank-value'>805</span>
+                </div>
+                <div class='bank-row'>
+                    <span class='bank-label'>מספר חשבון:</span>
+                    <span class='bank-value'>39820047</span>
+                </div>
+                <div class='bank-row'>
+                    <span class='bank-label'>שם בעל החשבון:</span>
+                    <span class='bank-value'>TRYIT Travel Ltd. </span>
+                </div>
+                <div class='bank-row'>
+                    <span class='bank-label'>ח.פ:</span>
+                    <span class='bank-value'>515323970</span>
+                </div>
+                <div class='bank-row highlight'>
+                    <span class='bank-label'>סכום להעברה:</span>
+                    <span class='bank-value total-amount'>${model.TotalPrice:N2}</span>
+                </div>
+            </div>
+            <div class='bank-note'>
+                <strong>⚠️ חשוב!</strong> נא לציין בהעברה את מספר ההצעה: <strong>{HtmlEncode(model. OfferNumber)}</strong>
+            </div>
+        </div>");
+
             sb.Append($@"
         <div class='footer'>
             <div class='contact-info'>
@@ -711,6 +791,97 @@ namespace TmsSystem.Services
             {
                 sb.Append($@"<div class='section-card'><h2 class='section-title'>📝 הערות נוספות</h2><div class='content-box'>{HtmlEncodeWithLineBreaks(model.AdditionalNotes)}</div></div>");
             }
+
+            // ===== תנאי ביטול ותשלום =====
+            sb.Append(@"
+        <div class='section-card'>
+            <h2 class='section-title'>📋 תנאי ביטול ותשלום</h2>
+            <div class='terms-container'>
+                <div class='term-box'>
+                    <div class='term-icon'>💵</div>
+                    <div class='term-content'>
+                        <strong>תשלום מקדמה:</strong>
+                        <p>על מנת לשריין את הטיול יש להעביר מקדמה של 50% עם אישור ההזמנה.  יש לסיים את כל התשלום עד 7 ימים עסקים מיום יציאת הטיול.</p>
+                    </div>
+                </div>
+                <div class='term-box'>
+                    <div class='term-icon'>📅</div>
+                    <div class='term-content'>
+                        <strong>דחיית תאריך:</strong>
+                        <p>במידה ותרצו לדחות את התאריך עד 14 יום לפני הטיול ניתן לעשות זאת ללא עלות.</p>
+                    </div>
+                </div>
+                <div class='term-box warning'>
+                    <div class='term-icon'>⚠️</div>
+                    <div class='term-content'>
+                        <strong>ביטול עד 30 יום:</strong>
+                        <p>במידה ותרצו לבטל את הטיול עד 30 יום לפני הטיול, תקבלו החזר פחות 300$ דמי טיפול.</p>
+                    </div>
+                </div>
+                <div class='term-box warning'>
+                    <div class='term-icon'>⚡</div>
+                    <div class='term-content'>
+                        <strong>ביטול 30-14 ימים:</strong>
+                        <p>ביטול שיתקיים בין 30 יום ל-14 יום לפני מועד הטיול - יגבו דמי ביטול של 50% מהמחיר.</p>
+                    </div>
+                </div>
+                <div class='term-box danger'>
+                    <div class='term-icon'>🚫</div>
+                    <div class='term-content'>
+                        <strong>ביטול עד 14 ימים:</strong>
+                        <p>ביטול שיתקיים בין 14 יום ליום הטיול - יגבו דמי ביטול מלאים. </p>
+                    </div>
+                </div>
+                <div class='term-box success'>
+                    <div class='term-icon'>🛡️</div>
+                    <div class='term-content'>
+                        <strong>ביטול מטעמנו:</strong>
+                        <p>במידה ולא ניתן לקיים את הטיול, ואנו נבטל אותו בשל תנאים ביטחוניים או תנאי מזג אויר, ולא תרצו מועד חלופי - תשלום מלא יוחזר.</p>
+                    </div>
+                </div>
+            </div>
+        </div>");
+
+            // ===== פרטי העברה בנקאית =====
+            sb.Append($@"
+        <div class='section-card bank-info'>
+            <h2 class='section-title'>🏦 פרטי העברה בנקאית</h2>
+            <div class='bank-container'>
+                <div class='bank-details'>
+                    <div class='bank-row'>
+                        <span class='bank-label'>שם הבנק:</span>
+                        <span class='bank-value'>בנק לאומי</span>
+                    </div>
+                    <div class='bank-row'>
+                        <span class='bank-label'>מספר סניף:</span>
+                        <span class='bank-value'>805</span>
+                    </div>
+                    <div class='bank-row'>
+                        <span class='bank-label'>מספר חשבון:</span>
+                        <span class='bank-value'>39820047</span>
+                    </div>
+                    <div class='bank-row'>
+                        <span class='bank-label'>שם בעל החשבון:</span>
+                        <span class='bank-value'>TRYIT Travel Ltd. </span>
+                    </div>
+                    <div class='bank-row'>
+                        <span class='bank-label'>ח.פ:</span>
+                        <span class='bank-value'>515323970</span>
+                    </div>
+                    <div class='bank-row total-row'>
+                        <span class='bank-label'>סכום להעברה:</span>
+                        <span class='bank-value amount'>${model.TotalPrice:N2}</span>
+                    </div>
+                </div>
+                <div class='bank-note'>
+                    <strong>⚠️ חשוב! </strong> נא לציין בהעברה את מספר ההצעה: <strong class='highlight'>{HtmlEncode(model.OfferNumber)}</strong>
+                </div>
+                <div class='payment-note'>
+                    <p><strong>מקדמה נדרשת (50%):</strong> ${(model.TotalPrice * 0.5m):N2}</p>
+                    <p><strong>יתרה לתשלום:</strong> ${(model.TotalPrice * 0.5m):N2}</p>
+                </div>
+            </div>
+        </div>");
 
             sb.Append($@"
         <div class='footer'>
