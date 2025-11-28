@@ -160,7 +160,7 @@
                                             <small class="text-muted">@offer.Trip.NumberOfDays ימים</small>
                                         }
                                     </td>
-                                    <td>@offer.DepartureDate. ToString("dd/MM/yyyy")</td>
+                                    <td>@offer.DepartureDate.ToString("dd/MM/yyyy")</td>
                                     <td><span class="badge bg-info">@offer.Participants</span></td>
                                     <td><strong class="text-success">$@offer.TotalPrice.ToString("N2")</strong></td>
                                     <td>
@@ -186,7 +186,7 @@
                                     </td>
                                     <td>
                                         @offer.CreatedAt.ToString("dd/MM/yyyy")
-                                        <br><small class="text-muted">@offer.CreatedAt. ToString("HH:mm")</small>
+                                        <br><small class="text-muted">@offer.CreatedAt.ToString("HH:mm")</small>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -237,12 +237,7 @@
                                                 </ul>
                                             </div>
 
-                                            <button type="button"
-                                                    class="btn btn-sm btn-success"
-                                                    onclick="sendEmail(@offer.TripOfferId)"
-                                                    title="שליחת מייל">
-                                                <i class="fas fa-envelope"></i>
-                                            </button>
+                                           
                                         </div>
                                     </td>
                                 </tr>

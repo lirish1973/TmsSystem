@@ -495,6 +495,7 @@ namespace TmsSystem.Services
             </div>
             <div class='bank-note'>
                 <strong>⚠️ חשוב!</strong> נא לציין בהעברה את מספר ההצעה: <strong>{HtmlEncode(model. OfferNumber)}</strong>
+                    <br/><br/>
             </div>
         </div>");
 
@@ -950,7 +951,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 .includes-list li:before { content: '✓'; position: absolute; right: 0; color: #28a745; font-weight: bold; font-size: 18px; }
 .excludes-list li:before { content: '✗'; position: absolute; right: 0; color: #dc3545; font-weight: bold; font-size: 18px; }
 .includes-list li:last-child, .excludes-list li:last-child { border-bottom: none; }
-.footer { background: #2c3e50; color: white; padding: 40px; text-align: center; }
+.footer { background: #395b7c; color: white; padding: 40px; text-align: center; }
 .contact-info { margin-bottom: 30px; }
 .contact-info h3 { font-size: 24px; margin-bottom: 15px; }
 .contact-info p { font-size: 16px; margin: 8px 0; opacity: 0.9; }
