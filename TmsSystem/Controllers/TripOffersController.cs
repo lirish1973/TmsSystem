@@ -33,6 +33,9 @@ namespace TmsSystem.Controllers
             try
             {
                 Console.WriteLine("🔍 Starting TripOffers/Index");
+                var totalInDb = await _context.TripOffers.CountAsync();
+                Console.WriteLine($"📊 Total TripOffers in DB: {totalInDb}");
+
 
                 var offers = await _context.TripOffers
                     .Include(to => to.Customer)
@@ -56,7 +59,9 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in TripOffers/Index: {ex.Message}");
+                Console.WriteLine($"❌ FULL ERROR: {ex}");
+                ViewBag.ErrorMessage = ex.Message;
+                return View(new List<TripOffer>());
 
                 if (ex.InnerException != null)
                 {
@@ -205,9 +210,29 @@ namespace TmsSystem.Controllers
                 TempData["SuccessMessage"] = $"הצעת מחיר '{offerNumber}' נוצרה בהצלחה!";
                 return RedirectToAction(nameof(Index));
             }
+            catch (DbUpdateException dbEx)
+            {
+                // הדפס את השגיאה המלאה
+                Console.WriteLine($"❌ DbUpdateException: {dbEx.Message}");
+                Console.WriteLine($"🔥 InnerException: {dbEx.InnerException?.Message}");
+                Console.WriteLine($"🔥 Inner-Inner: {dbEx.InnerException?.InnerException?.Message}");
+
+                string errorMsg = dbEx.InnerException?.InnerException?.Message
+                               ?? dbEx.InnerException?.Message
+                               ?? dbEx.Message;
+
+                ModelState.AddModelError("", $"שגיאה בשמירה: {errorMsg}");
+                model.Customers = await _context.Customers.ToListAsync();
+                model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
+                model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
+                return View(model);
+            }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"שגיאה ביצירת הצעת מחיר: {ex.Message}");
+                Console.WriteLine($"❌ Exception: {ex.Message}");
+                Console.WriteLine($"🔥 InnerException: {ex.InnerException?.Message}");
+
+                ModelState.AddModelError("", $"שגיאה: {ex.InnerException?.Message ?? ex.Message}");
                 model.Customers = await _context.Customers.ToListAsync();
                 model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                 model.PaymentMethods = await _context.PaymentMethods.ToListAsync();

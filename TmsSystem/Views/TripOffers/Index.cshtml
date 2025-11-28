@@ -3,7 +3,12 @@
 @{
     ViewData["Title"] = "הצעות מחיר לטיולים";
 }
-
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        <strong>שגיאה:</strong> @ViewBag.ErrorMessage
+    </div>
+}
 <!-- 🔍 Debug Info -->
 <div class="alert alert-info">
     <strong>🔍 Debug:</strong>

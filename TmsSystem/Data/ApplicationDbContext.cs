@@ -38,53 +38,42 @@ namespace TmsSystem.Data
         {
             base.OnModelCreating(builder);
 
-            // שמות טבלאות מדויקים במסד
-            builder.Entity<TourInclude>().ToTable("tourInclude");
-            builder.Entity<TourExclude>().ToTable("tourExclude");
-            builder.Entity<ItineraryItem>().ToTable("ItineraryItems");
+            // ===== שמות טבלאות =====
+            builder.Entity<TourInclude>().ToTable("tourinclude");
+            builder.Entity<TourExclude>().ToTable("tourexclude");
+            builder.Entity<ItineraryItem>().ToTable("itineraryitems");
+            builder.Entity<Customer>().ToTable("customers");
+            builder.Entity<PaymentMethod>().ToTable("paymentmethod");
+            builder.Entity<Guide>().ToTable("guides");
+            builder.Entity<Trip>().ToTable("trips");
+            builder.Entity<TripDay>().ToTable("tripdays");
+            builder.Entity<TripOffer>().ToTable("tripoffers");
 
-            // הגדרת טבלת PaymentMethod
-            builder.Entity<PaymentMethod>()
-                .ToTable("paymentmethod");
-
-            // IdentityUserLogin - מפתח קומפוזיט
+            // ===== Identity - IdentityUserLogin =====
             builder.Entity<IdentityUserLogin<string>>()
-                   .HasKey(l => new { l.LoginProvider, l.ProviderKey });
+                .HasKey(l => new { l.LoginProvider, l.ProviderKey });
 
-            // TourBooking - מפתח ראשי
+            // ===== TourBooking =====
             builder.Entity<TourBooking>()
-                   .HasKey(tb => tb.BookingId);
+                .HasKey(tb => tb.BookingId);
 
-            // TourInclude - מפתח ראשי
+            // ===== TourInclude =====
             builder.Entity<TourInclude>()
-                   .HasKey(ti => ti.Id);
+                .HasKey(ti => ti.Id);
 
-            // TourExclude - מפתח ראשי
+            // ===== TourExclude =====
             builder.Entity<TourExclude>()
-                   .HasKey(te => te.Id);
+                .HasKey(te => te.Id);
 
-            builder.Entity<Trip>(entity =>
-            {
-                entity.HasKey(e => e.TripId);
+            // ===== PaymentMethod =====
+            builder.Entity<PaymentMethod>()
+                .HasKey(pm => pm.ID);
 
-                entity.HasOne(t => t.Guide)
-                    .WithMany(g => g.Trips)
-                    .HasForeignKey(t => t.GuideId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("fk_trips_guide");
-            });
+            // ===== Guide =====
+            builder.Entity<Guide>()
+                .HasKey(e => e.GuideId);
 
-            builder.Entity<Guide>(entity =>
-            {
-                entity.HasKey(e => e.GuideId);
-
-                entity.HasMany(g => g.Trips)
-                    .WithOne(t => t.Guide)
-                    .HasForeignKey(t => t.GuideId)
-                    .OnDelete(DeleteBehavior.SetNull);
-            });
-
-            // Cascade relationships
+            // ===== Tour - קשרים לטיולים רגילים (לא trips) =====
             builder.Entity<Tour>()
                 .HasMany(t => t.Schedule)
                 .WithOne(s => s.Tour)
@@ -103,75 +92,58 @@ namespace TmsSystem.Data
                 .HasForeignKey(e => e.TourId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // ===== Trip - טיולים מאורגנים (רק פעם אחת!) =====
+            builder.Entity<Trip>(entity =>
+            {
+                entity.HasKey(e => e.TripId);
 
+                // קשר למדריך
+                entity.HasOne(t => t.Guide)
+                    .WithMany(g => g.Trips)
+                    .HasForeignKey(t => t.GuideId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
-            // Customer
-            builder.Entity<Customer>()
-                .ToTable("customers");
+                // קשר ל-TripDays
+                entity.HasMany(t => t.TripDays)
+                    .WithOne(td => td.Trip)
+                    .HasForeignKey(td => td.TripId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
-            // PaymentMethod
-            builder.Entity<PaymentMethod>()
-                .ToTable("paymentmethod")
-                .HasKey(pm => pm.ID);
+            // ===== TripDay =====
+            builder.Entity<TripDay>(entity =>
+            {
+                entity.HasKey(e => e.TripDayId);
 
-            // Trip
-            builder.Entity<Trip>()
-                .ToTable("trips");
+                // אינדקס ייחודי - טיול + מספר יום
+                entity.HasIndex(td => new { td.TripId, td.DayNumber })
+                    .IsUnique();
+            });
 
-            builder.Entity<Trip>()
-                .HasMany(t => t.TripDays)
-                .WithOne(td => td.Trip)
-                .HasForeignKey(td => td.TripId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // ===== TripOffer - הצעות מחיר לטיולים =====
+            builder.Entity<TripOffer>(entity =>
+            {
+                entity.HasKey(e => e.TripOfferId);
 
-            // TripDay
-            builder.Entity<TripDay>()
-                .ToTable("tripdays");
+                // קשר ללקוח
+                entity.HasOne(to => to.Customer)
+                    .WithMany()
+                    .HasForeignKey(to => to.CustomerId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            // TripOffer
-            builder.Entity<TripOffer>()
-                .ToTable("tripoffers");
+                // קשר לטיול - ⚠️ בלי navigation property מצד Trip
+                entity.HasOne(to => to.Trip)
+                    .WithMany()
+                    .HasForeignKey(to => to.TripId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<TripOffer>()
-                .HasOne(to => to.Customer)
-                .WithMany()
-                .HasForeignKey(to => to.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<TripOffer>()
-                .HasOne(to => to.Trip)
-                .WithMany()
-                .HasForeignKey(to => to.TripId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<TripOffer>()
-                .HasOne(to => to.PaymentMethod)
-                .WithMany()
-                .HasForeignKey(to => to.PaymentMethodId)
-                .HasPrincipalKey(pm => pm.ID)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-
-            builder.Entity<Trip>()
-        .ToTable("trips");
-
-            // TripDay - הגדרת שם טבלה מדויק
-            builder.Entity<TripDay>()
-                .ToTable("tripdays");
-
-            // Trip relationships
-            builder.Entity<Trip>()
-                .HasMany(t => t.TripDays)
-                .WithOne(td => td.Trip)
-                .HasForeignKey(td => td.TripId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<TripDay>()
-                .HasIndex(td => new { td.TripId, td.DayNumber })
-                .IsUnique();
-
-
+                // קשר לאמצעי תשלום
+                entity.HasOne(to => to.PaymentMethod)
+                    .WithMany()
+                    .HasForeignKey(to => to.PaymentMethodId)
+                    .HasPrincipalKey(pm => pm.ID)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

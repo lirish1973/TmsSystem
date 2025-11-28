@@ -35,7 +35,7 @@ namespace TmsSystem.Models
 
         // Navigation properties
         public virtual ICollection<TripDay>? TripDays { get; set; }
-        public virtual ICollection<TripOffer>? TripOffers { get; set; }
+       // public virtual ICollection<TripOffer>? TripOffers { get; set; }
 
         // 🆕 Navigation למדריך
         [ForeignKey("GuideId")]
