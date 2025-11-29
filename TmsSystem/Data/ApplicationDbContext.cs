@@ -23,13 +23,10 @@ namespace TmsSystem.Data
         public DbSet<TourInclude> TourIncludes { get; set; }
         public DbSet<TourExclude> TourExcludes { get; set; }
         public DbSet<ApplicationUser> Users { get; set; }
-        // שינוי כאן - PaymentMethods במקום PaymentsMethod
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
-
         public DbSet<Guide> Guides { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Offer> Offers { get; set; }
-        // Trips - טיולים
         public DbSet<Trip> Trips { get; set; }
         public DbSet<TripDay> TripDays { get; set; }
         public DbSet<TripOffer> TripOffers { get; set; }
@@ -73,7 +70,7 @@ namespace TmsSystem.Data
             builder.Entity<Guide>()
                 .HasKey(e => e.GuideId);
 
-            // ===== Tour - קשרים לטיולים רגילים (לא trips) =====
+            // ===== Tour - קשרים לטיולים רגילים =====
             builder.Entity<Tour>()
                 .HasMany(t => t.Schedule)
                 .WithOne(s => s.Tour)
@@ -92,7 +89,7 @@ namespace TmsSystem.Data
                 .HasForeignKey(e => e.TourId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== Trip - טיולים מאורגנים (רק פעם אחת!) =====
+            // ===== Trip - טיולים מאורגנים =====
             builder.Entity<Trip>(entity =>
             {
                 entity.HasKey(e => e.TripId);
@@ -108,6 +105,12 @@ namespace TmsSystem.Data
                     .WithOne(td => td.Trip)
                     .HasForeignKey(td => td.TripId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                // ✅ קשר ל-TripOffers
+                entity.HasMany(t => t.TripOffers)
+                    .WithOne(to => to.Trip)
+                    .HasForeignKey(to => to.TripId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ===== TripDay =====
@@ -131,9 +134,10 @@ namespace TmsSystem.Data
                     .HasForeignKey(to => to.CustomerId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // קשר לטיול - ⚠️ בלי navigation property מצד Trip
+                // ✅ הקשר הזה מוגדר כבר מצד Trip, אז לא צריך כאן
+                // אבל אפשר להשאיר לבהירות
                 entity.HasOne(to => to.Trip)
-                    .WithMany()
+                    .WithMany(t => t.TripOffers)
                     .HasForeignKey(to => to.TripId)
                     .OnDelete(DeleteBehavior.Restrict);
 

@@ -11,7 +11,7 @@
         text-align: right;
     }
 
-    .form-label, label {
+    . form-label, label {
         direction: rtl;
         text-align: right;
     }
@@ -34,26 +34,46 @@
                 <!-- פרטים בסיסיים -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Title" class="form-label"></label>
-                        <input asp-for="Title" class="form-control" placeholder="לדוגמה: טיול מאורגן בצפון" />
+                        <label asp-for="Title" class="form-label">שם הטיול *</label>
+                        <input asp-for="Title" class="form-control" placeholder="לדוגמה: טיול מאורגן בצפון" required />
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="NumberOfDays" class="form-label"></label>
+                        <label asp-for="NumberOfDays" class="form-label">מספר ימים *</label>
                         <select asp-for="NumberOfDays" class="form-select" id="numberOfDays">
                             @for (int i = 5; i <= 12; i++)
                             {
-                                <option value="@i" selected="@(i == Model.NumberOfDays)">@i ימים</option>
+                                <option value="@i">@i ימים</option>
                             }
                         </select>
                         <span asp-validation-for="NumberOfDays" class="text-danger"></span>
                     </div>
                 </div>
 
+                <!-- 👨‍✈️ שדה מדריך -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="GuideId" class="form-label">
+                            <i class="fas fa-user-tie"></i> מדריך מלווה (אופציונלי)
+                        </label>
+                        <select asp-for="GuideId" class="form-select" asp-items="ViewBag.Guides">
+                            <option value="">-- ללא מדריך / נבחר בהמשך --</option>
+                        </select>
+                        <span asp-validation-for="GuideId" class="text-danger"></span>
+                        <small class="form-text text-muted">
+                            ניתן לשייך מדריך לטיול או לבחור בהמשך
+                        </small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <!-- ריק לאיזון הגריד -->
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label asp-for="Description" class="form-label"></label>
-                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="תיאור כללי של הטיול..."></textarea>
+                    <label asp-for="Description" class="form-label">תיאור הטיול</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="תיאור כללי של הטיול... "></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
@@ -62,41 +82,7 @@
                 <!-- ימי הטיול -->
                 <h4 class="mb-3"><i class="fas fa-calendar-day"></i> פירוט ימי הטיול</h4>
                 <div id="tripDaysContainer">
-                    @for (int i = 0; i < Model.NumberOfDays; i++)
-                    {
-                        <div class="card mb-3 trip-day-card">
-                            <div class="card-header bg-light">
-                                <h5>יום @(i + 1)</h5>
-                            </div>
-                            <div class="card-body">
-                                <input type="hidden" name="TripDays[@i].DayNumber" value="@(i + 1)" />
-                                <input type="hidden" name="TripDays[@i].DisplayOrder" value="@(i + 1)" />
-
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">כותרת *</label>
-                                        <input name="TripDays[@i].Title" class="form-control" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="יום @(i + 1)" />
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">מיקום</label>
-                                        <input name="TripDays[@i].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" />
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">תיאור</label>
-                                    <textarea name="TripDays[@i].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום..."></textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">תמונה ליום</label>
-                                    <input type="file" name="dayImage_@i" class="form-control" accept="image/*" />
-                                    <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                    <!-- הימים יווצרו דינמית ב-JavaScript -->
                 </div>
 
                 <hr />
@@ -109,7 +95,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="PricePerPerson" class="form-label"></label>
+                                <label asp-for="PricePerPerson" class="form-label">מחיר לאדם</label>
                                 <div class="input-group">
                                     <input asp-for="PricePerPerson" class="form-control" type="number" step="0.01" placeholder="1500" />
                                     <span class="input-group-text">$</span>
@@ -118,7 +104,7 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="PriceDescription" class="form-label"></label>
+                                <label asp-for="PriceDescription" class="form-label">תיאור מחיר</label>
                                 <input asp-for="PriceDescription" class="form-control" placeholder="לדוגמה: 1500$ לאדם בחדר זוגי" />
                                 <span asp-validation-for="PriceDescription" class="text-danger"></span>
                             </div>
@@ -126,34 +112,34 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Includes" class="form-label"></label>
+                                <label asp-for="Includes" class="form-label">המחיר כולל</label>
                                 <textarea asp-for="Includes" class="form-control" rows="6" placeholder="לדוגמה:&#10;לינה במלונות 4-5 כוכבים&#10;ארוחות בוקר&#10;הסעות באוטובוס מפואר&#10;מדריך מקצועי צמוד&#10;כניסה לכל האתרים"></textarea>
                                 <small class="form-text text-muted">כל פריט בשורה נפרדת</small>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Excludes" class="form-label"></label>
+                                <label asp-for="Excludes" class="form-label">המחיר אינו כולל</label>
                                 <textarea asp-for="Excludes" class="form-control" rows="6" placeholder="לדוגמה:&#10;טיסות בינלאומיות&#10;ביטוח נסיעות&#10;ארוחות צהריים וערב&#10;הוצאות אישיות&#10;טיפים"></textarea>
                                 <small class="form-text text-muted">כל פריט בשורה נפרדת</small>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="FlightDetails" class="form-label"></label>
+                            <label asp-for="FlightDetails" class="form-label">פרטי טיסות</label>
                             <textarea asp-for="FlightDetails" class="form-control" rows="5" placeholder="לדוגמה:&#10;טיסות זמינות:&#10;אל על LY315 - יציאה: 06:00, נחיתה: 10:30&#10;ישראייר 6H501 - יציאה: 14:00, נחיתה: 18:30&#10;&#10;מחיר טיסה הלוך-חזור: כ-800$"></textarea>
                             <small class="form-text text-muted">פרטי טיסות זמינות ומחירים משוערים</small>
                         </div>
 
                         <div class="form-check">
                             <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                            <label asp-for="IsActive" class="form-check-label"></label>
+                            <label asp-for="IsActive" class="form-check-label">טיול פעיל</label>
                         </div>
                     </div>
                 </div>
 
                 <!-- כפתורי שמירה -->
                 <div class="d-flex justify-content-between mt-4">
-                    <a asp-action="Index" class="btn btn-secondary">
+                    <a asp-action="Index" class="btn btn-secondary btn-lg">
                         <i class="fas fa-arrow-right"></i> חזרה
                     </a>
                     <button type="submit" class="btn btn-primary btn-lg">
@@ -172,19 +158,24 @@
 
     <script>
         $(document).ready(function () {
-            $('#numberOfDays').change(function () {
-                var numDays = parseInt($(this).val());
-                var container = $('#tripDaysContainer');
-                var currentDays = container.find('.trip-day-card').length;
+            // יצירת ימים ראשוניים בהתאם לערך שנבחר
+            var initialDays = parseInt($('#numberOfDays').val()) || 7;
+            generateDays(initialDays);
 
-                if (numDays > currentDays) {
-                    for (var i = currentDays; i < numDays; i++) {
-                        addDay(i);
-                    }
-                } else if (numDays < currentDays) {
-                    container.find('.trip-day-card').slice(numDays).remove();
-                }
+            // טיפול בשינוי מספר הימים
+            $('#numberOfDays').change(function () {
+                var numDays = parseInt($(this). val());
+                generateDays(numDays);
             });
+
+            function generateDays(numDays) {
+                var container = $('#tripDaysContainer');
+                container.empty(); // ניקוי תוכן קיים
+
+                for (var i = 0; i < numDays; i++) {
+                    addDay(i);
+                }
+            }
 
             function addDay(index) {
                 var dayNumber = index + 1;
@@ -200,7 +191,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">כותרת *</label>
-                                    <input name="TripDays[${index}].Title" class="form-control" placeholder="לדוגמה: יום פתיחה" value="יום ${dayNumber}" />
+                                    <input name="TripDays[${index}].Title" class="form-control" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="יום ${dayNumber}" required />
                                 </div>
 
                                 <div class="col-md-6 mb-3">
@@ -216,7 +207,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label">תמונה ליום</label>
-                                <input type="file" name="dayImage_${index}" class="form-control" accept="image/*" />
+                                <input type="file" name="dayImages" class="form-control" accept="image/*" />
                                 <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
                             </div>
                         </div>

@@ -47,6 +47,7 @@
                             <tr class="rtl-text">
                                 <th>שם הטיול</th>
                                 <th>מספר ימים</th>
+                                <th>מדריך</th>
                                 <th>תאריך יצירה</th>
                                 <th>סטטוס</th>
                                 <th style="width: 200px;">פעולות</th>
@@ -66,6 +67,29 @@
                                     </td>
                                     <td class="rtl-text">
                                         <span class="badge bg-info">@trip.NumberOfDays ימים</span>
+                                    </td>
+                                    <td>
+                                        @if (trip.Guide != null)
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-user-tie"></i> @trip.Guide.GuideName
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">לא שויך</span>
+                                        }
+                                    </td>
+                                    <td>$@trip.PricePerPerson?.ToString("N2")</td>
+                                    <td>
+                                        @if (trip.IsActive)
+                                        {
+                                            <span class="badge bg-success">פעיל</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">לא פעיל</span>
+                                        }
                                     </td>
                                     <td class="rtl-text">@trip.CreatedAt.ToString("dd/MM/yyyy")</td>
                                     <td class="rtl-text">

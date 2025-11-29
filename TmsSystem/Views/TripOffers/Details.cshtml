@@ -55,6 +55,16 @@
             padding: 20px;
         }
 
+    . bg-purple {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .guide-info-row {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
     .price-card {
         background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         color: white;
@@ -365,6 +375,71 @@
             </div>
         </div>
     </div>
+
+
+</div> <!-- סגירת row קיים -->
+<!-- פרטי מדריך -->
+<div class="row mt-3">
+    <div class="col-md-12">
+        @if (Model.Trip?.Guide != null)
+        {
+            <div class="info-card card">
+                <div class="card-header @(Model.Trip.GuideId == 9 ? "bg-warning text-dark" : "bg-purple text-white")">
+                    <i class="fas fa-user-tie"></i> מדריך מלווה
+                    @if (Model.Trip.GuideId == 9)
+                    {
+                        <span class="badge bg-danger ms-2">לא משוייך</span>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (Model.Trip.GuideId == 9)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>שימו לב:</strong> המדריך המקורי נמחק מהמערכת.  יש לשייך מדריך חדש לטיול.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-user"></i> שם המדריך:</strong> @Model. Trip.Guide.GuideName</p>
+                                @if (!string.IsNullOrEmpty(Model.Trip.Guide.Phone))
+                                {
+                                    <p><strong><i class="fas fa-phone"></i> טלפון:</strong> <a href="tel:@Model. Trip.Guide.Phone">@Model.Trip.Guide.Phone</a></p>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                @if (!string.IsNullOrEmpty(Model.Trip.Guide.Email))
+                                {
+                                    <p><strong><i class="fas fa-envelope"></i> אימייל:</strong> <a href="mailto:@Model.Trip.Guide.Email">@Model.Trip.Guide.Email</a></p>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Trip.Guide.Description))
+                                {
+                                    <p><strong><i class="fas fa-info-circle"></i> תיאור:</strong> @Model.Trip.Guide.Description</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (Model.Trip?.GuideId != null)
+        {
+            <div class="info-card card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-user-tie"></i> מדריך מלווה
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        המדריך לא נטען.  GuideId: @Model.Trip.GuideId
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
 
     <!-- תיאור הטיול -->
     @if (Model.Trip != null && !string.IsNullOrEmpty(Model.Trip.Description))

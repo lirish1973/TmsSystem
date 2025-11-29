@@ -59,6 +59,50 @@
                     <textarea asp-for="Description" class="form-control" rows="3" placeholder="תיאור כללי של הטיול..."></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
+                <!-- שדה מדריך -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="GuideId" class="form-label">
+                            <i class="fas fa-user-tie"></i> מדריך מלווה (אופציונלי)
+                        </label>
+
+                        @if (ViewBag.Guides != null)
+                        {
+                            <select asp-for="GuideId" class="form-select" asp-items="ViewBag.Guides">
+                                <option value="">-- ללא מדריך / נבחר בהמשך --</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <select asp-for="GuideId" class="form-select" disabled>
+                                <option value="">טוען מדריכים...</option>
+                            </select>
+                        }
+
+                        <span asp-validation-for="GuideId" class="text-danger"></span>
+                        <small class="form-text text-muted">
+                            ניתן לשייך מדריך לטיול או להשאיר ללא מדריך
+                        </small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        @if (Model.Guide != null)
+                        {
+                            <label class="form-label">מדריך נוכחי</label>
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-user-circle"></i> <strong>@Model.Guide.GuideName</strong><br>
+                                @if (!string.IsNullOrEmpty(Model.Guide.Phone))
+                                {
+                                    <small>📞 @Model.Guide.Phone</small>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Guide.Email))
+                                {
+                                    <small> | ✉️ @Model.Guide.Email</small>
+                                }
+                            </div>
+                        }
+                    </div>
+
 
                 <hr />
 

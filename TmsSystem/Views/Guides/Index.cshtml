@@ -2,12 +2,23 @@
 
 @{
     ViewData["Title"] = "מדריכים";
+    var activeGuides = Model.Where(g => g.IsActive).ToList();
+    var inactiveGuides = Model.Where(g => !g.IsActive).ToList();
 }
 
 <div class="container-fluid mt-4">
     <div class="row mb-3">
         <div class="col">
             <h2><i class="fas fa-user-tie"></i> רשימת מדריכים</h2>
+            <p class="text-muted">
+                <i class="fas fa-check-circle text-success"></i> @activeGuides.Count פעילים
+                @if (inactiveGuides.Any())
+                {
+                    <span class="ms-2">
+                        <i class="fas fa-times-circle text-secondary"></i> @inactiveGuides.Count לא פעילים
+                    </span>
+                }
+            </p>
         </div>
         <div class="col text-end">
             <a asp-action="Create" class="btn btn-primary">
@@ -20,6 +31,14 @@
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
@@ -37,18 +56,29 @@
                                 <th>טלפון</th>
                                 <th>אימייל</th>
                                 <th>סטטוס</th>
+                                <th>תאריך הצטרפות</th>
                                 <th class="text-center">פעולות</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
+                            @foreach (var item in Model.OrderByDescending(g => g.IsActive).ThenBy(g => g.GuideName))
                             {
-                                <tr>
-                                    <td><strong>@item.GuideName</strong></td>
+                                <tr class="@(!item.IsActive ? "table-secondary" : "")">
+                                    <td>
+                                        <strong class="@(!item.IsActive ? "text-muted" : "")">
+                                            @item.GuideName
+                                        </strong>
+                                        @if (!item.IsActive)
+                                        {
+                                            <i class="fas fa-ban text-danger ms-1" title="מדריך לא פעיל"></i>
+                                        }
+                                    </td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(item.Description))
                                         {
-                                            @(item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)
+                                            <span class="@(!item.IsActive ? "text-muted" : "")">
+                                                @(item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)
+                                            </span>
                                         }
                                         else
                                         {
@@ -58,8 +88,8 @@
                                     <td>
                                         @if (!string.IsNullOrEmpty(item.Phone))
                                         {
-                                            <a href="tel:@item.Phone" class="text-decoration-none">
-                                                <i class="fas fa-phone text-primary"></i> @item.Phone
+                                            <a href="tel:@item. Phone" class="text-decoration-none @(!item.IsActive ? "text-muted" : "")">
+                                                <i class="fas fa-phone @(!item.IsActive ? "text-muted" : "text-primary")"></i> @item.Phone
                                             </a>
                                         }
                                         else
@@ -70,8 +100,8 @@
                                     <td>
                                         @if (!string.IsNullOrEmpty(item.Email))
                                         {
-                                            <a href="mailto:@item.Email" class="text-decoration-none">
-                                                <i class="fas fa-envelope text-primary"></i> @item.Email
+                                            <a href="mailto:@item.Email" class="text-decoration-none @(!item.IsActive ? "text-muted" : "")">
+                                                <i class="fas fa-envelope @(!item.IsActive ? "text-muted" : "text-primary")"></i> @item.Email
                                             </a>
                                         }
                                         else
@@ -82,12 +112,21 @@
                                     <td>
                                         @if (item.IsActive)
                                         {
-                                            <span class="badge bg-success">פעיל</span>
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> פעיל
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">לא פעיל</span>
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle"></i> לא פעיל
+                                            </span>
                                         }
+                                    </td>
+                                    <td>
+                                        <small class="@(!item.IsActive ? "text-muted" : "")">
+                                            @item.CreatedAt.ToString("dd/MM/yyyy")
+                                        </small>
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
@@ -99,8 +138,11 @@
                                                class="btn btn-sm btn-warning text-white" title="עריכה">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            
+                                           
                                             <a asp-action="Delete" asp-route-id="@item.GuideId"
-                                               class="btn btn-sm btn-danger" title="מחיקה">
+                                               class="btn btn-sm btn-danger" title="מחיקה"
+                                               onclick="return confirm('האם אתה בטוח שברצונך למחוק את המדריך @item.GuideName?');">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
@@ -109,6 +151,15 @@
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <!-- מקרא -->
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> <strong>מקרא:</strong>
+                        <span class="badge bg-success ms-2"><i class="fas fa-check-circle"></i> פעיל</span> מדריך זמין לשיוך לטיולים
+                        <span class="badge bg-secondary ms-2"><i class="fas fa-times-circle"></i> לא פעיל</span> מדריך לא זמין לשיוך חדש
+                    </small>
                 </div>
             }
             else
@@ -121,3 +172,35 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function toggleGuideStatus(guideId, activate) {
+            const action = activate ? 'הפעלת' : 'השבתת';
+            const actionText = activate ? 'להפעיל' : 'להשבית';
+
+            if (confirm(`האם אתה בטוח שברצונך ${actionText} את המדריך? `)) {
+                fetch(`/Guides/ToggleStatus/${guideId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: JSON.stringify({ isActive: activate })
+                })
+                .then(response => response. json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('שגיאה: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('שגיאה בעדכון הסטטוס');
+                });
+            }
+        }
+    </script>
+}

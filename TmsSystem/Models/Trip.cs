@@ -40,5 +40,7 @@ namespace TmsSystem.Models
         // 🆕 Navigation למדריך
         [ForeignKey("GuideId")]
         public virtual Guide? Guide { get; set; }
+
+        public virtual ICollection<TripOffer> TripOffers { get; set; } = new List<TripOffer>();
     }
 }
