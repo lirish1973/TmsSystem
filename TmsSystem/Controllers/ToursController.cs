@@ -426,25 +426,100 @@ namespace TmsSystem.Controllers
             return View(tour);
         }
 
+
+
+
+
         // POST: Tours/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var tour = await _context.Tours.FindAsync(id);
-            if (tour != null)
+            System.Diagnostics.Debug.WriteLine($"=== DeleteConfirmed started for TourId: {id} ===");
+
+            try
             {
-                _context.Tours.Remove(tour);
-                await _context.SaveChangesAsync();
+                // בדוק שהסיור קיים
+                var tourExists = await _context.Tours.AnyAsync(t => t.TourId == id);
+                if (!tourExists)
+                {
+                    TempData["ErrorMessage"] = "הסיור לא נמצא במערכת";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Tour {id} exists, starting deletion.. .");
+
+                // 1. מחק Offers
+                var offersDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM offers WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {offersDeleted} offers");
+
+                // 2. מחק ItineraryItems
+                var itemsDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM itineraryitems WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {itemsDeleted} itinerary items");
+
+                // 3. מחק TourIncludes (שם נכון: tourinclude)
+                var includesDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM tourinclude WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {includesDeleted} includes");
+
+                // 4. מחק TourExcludes (שם נכון: tourexclude)
+                var excludesDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM tourexclude WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {excludesDeleted} excludes");
+
+                // 5. מחק Itineraries
+                var itinerariesDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM itineraries WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {itinerariesDeleted} itineraries");
+
+                // 6. לבסוף - מחק את ה-Tour עצמו
+                var toursDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM tours WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {toursDeleted} tours");
+
+                if (toursDeleted > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("✅✅✅ Tour deleted successfully!");
+                    TempData["SuccessMessage"] = "הסיור נמחק בהצלחה";
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ Tour was NOT deleted");
+                    TempData["ErrorMessage"] = "הסיור לא נמחק - נא לנסות שוב";
+                }
+
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"=== ERROR in DeleteConfirmed ===");
+                System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+
+                TempData["ErrorMessage"] = $"אירעה שגיאה במחיקת הסיור: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
 
+
+
+
+        // GET: Tours/Details/5
+        [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
+            System.Diagnostics.Debug.WriteLine($"=== Details called with id: {id} ===");
+
             if (id == null)
             {
+                System.Diagnostics.Debug.WriteLine("ID is null - returning NotFound");
                 return NotFound();
             }
 
@@ -456,11 +531,17 @@ namespace TmsSystem.Controllers
 
             if (tour == null)
             {
+                System.Diagnostics.Debug.WriteLine($"Tour with ID {id} not found");
                 return NotFound();
             }
 
+            System.Diagnostics.Debug.WriteLine($"Tour found: {tour.Title}");
             return View(tour);
         }
+
+
+
+
 
         // POST: CreateTour
         [HttpPost]

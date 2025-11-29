@@ -4,137 +4,152 @@
 
 @if (User.Identity.IsAuthenticated)
 {
-    <!-- תוכן למשתמשים מחוברים -->
-    <div class="row">
-        <div class="col-md-12">
-            <h2>  מערכת יצירת הצעות מחיר</h2>
-            <br />
-            <!-- סטטיסטיקות מהירות -->
-            <div class="row mt-4">
-                <!-- כרטיס משתמשים - רק למנהלים -->
-                @if (User.IsInRole("Admin"))
-                {
-                    <div class="col-md-3">
-                        <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4>@ViewBag.TotalUsers</h4>
-                                    <p>משתמשים</p>
-                                </div>
-                                <i class="bi bi-people display-4"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>}
+    <!-- Hero Section -->
+    <div class="home-hero">
+        <h1>ברוכים הבאים למערכת ניהול הטיולים</h1>
+        <p>נהל את כל הסיורים, הטיולים וההצעות מחיר שלך במקום אחד</p>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn-hero" style="color:white;">
+            <i class="bi bi-speedometer2"></i> מעבר ל-Dashboard
+        </a>
+    </div>
 
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4>@ViewBag.TotalCustomers</h4>
-                                    <p>לקוחות</p>
-                                </div>
-                                <i class="bi bi-person-check display-4"></i>
-                            </div>
-                        </div>
-                    </div>
+    <!-- כרטיסי תפריט ראשי -->
+    <div class="menu-cards">
+        <!-- Dashboard -->
+        <a asp-controller="Dashboard" asp-action="Index" class="menu-card dashboard">
+            <div class="icon">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <h3>Dashboard</h3>
+            <p>צפה בסטטיסטיקות, דוחות ומידע מרוכז על פעילות המערכת</p>
+        </a>
+
+        <!-- סיורים -->
+        <a asp-controller="Tours" asp-action="Index" class="menu-card tours">
+            <div class="icon">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <h3>סיורים</h3>
+            <p>נהל סיורים של יום אחד - צור, ערוך והצג את כל הסיורים הפעילים</p>
+        </a>
+
+        <!-- הצעות מחיר -->
+        <a asp-controller="Offers" asp-action="Index" class="menu-card offers">
+            <div class="icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <h3>הצעות מחיר - סיורים</h3>
+            <p>צור ונהל הצעות מחיר לסיורים וטיולים, שלח ללקוחות</p>
+        </a>
+
+        <!-- טיולים -->
+        <a asp-controller="Trips" asp-action="Index" class="menu-card trips">
+            <div class="icon">
+                <i class="bi bi-map-fill"></i>
+            </div>
+            <h3>טיולים</h3>
+            <p>נהל טיולים של מספר ימים - תכנן מסלולים ומלונות</p>
+        </a>
+
+        <!-- הצעות מחיר -->
+        <a asp-controller="TripOffers" asp-action="Index" class="menu-card offers">
+            <div class="icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <h3>הצעות מחיר - טיולים</h3>
+            <p>צור ונהל הצעות מחיר לסיורים וטיולים, שלח ללקוחות</p>
+        </a>
+
+        <!-- לקוחות -->
+        <a asp-controller="Customers" asp-action="Index" class="menu-card customers">
+            <div class="icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <h3>לקוחות</h3>
+            <p>נהל את מאגר הלקוחות - הוסף, ערוך וצפה בפרטי קשר</p>
+        </a>
+
+        <!-- מדריכים -->
+        <a asp-controller="Guides" asp-action="Index" class="menu-card guides">
+            <div class="icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <h3>מדריכים</h3>
+            <p>נהל את צוות המדריכים - זמינות, התמחויות ופרטי התקשרות</p>
+        </a>
+     
+        <!-- ניהול משתמשים -->
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-controller="Users" asp-action="Index" class="menu-card users" style="background-color:lightslategrey;color:white;">
+                <div class="icon">
+                    <i class="bi bi-person-gear"></i>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4>@ViewBag.TotalTours</h4>
-                                    <p>סיורים</p>
-                                </div>
-                                <i class="bi bi-geo-alt display-4"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4>0</h4>
-                                    <p>הזמנות היום</p>
-                                </div>
-                                <i class="bi bi-calendar-check display-4"></i>
-                            </div>
-                        </div>
-                    </div>
+                <h3 style="color:white;">ניהול משתמשים</h3>
+                <p style="color:white;">פאנל ניהול משתמשים</p>
+            </a>
+        }
+    </div>
+
+    <!-- אזור מידע נוסף -->
+    <div class="row mt-5">
+        <div class="col-md-4 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-lightbulb text-primary" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">טיפים מהירים</h5>
+                    <p class="card-text">השתמש בלחצן החיפוש המהיר כדי למצוא סיורים או לקוחות בקלות</p>
                 </div>
             </div>
-
-            <!-- פעולות מהירות -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h4>פעולות מהירות</h4>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-person-plus display-4 text-primary"></i>
-                                    <h5 class="mt-2">לקוח חדש</h5>
-                                    <a href="@Url.Action("Create", "Customers")" class="btn btn-primary">הוסף לקוח</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-geo-alt-fill display-4 text-success"></i>
-                                    <h5 class="mt-2">סיור חדש</h5>
-                                    <a href="@Url.Action("CreateTour", "Tours")" class="btn btn-success">יצור סיור</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-cash-stack display-4 text-info"></i>
-                                    <h5 class="mt-2">הצעת מחיר</h5>
-                                    <a href="@Url.Action("Create", "Offers")" class="btn btn-info">צור הצעה</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">עדכונים אחרונים</h5>
+                    <p class="card-text">כל הנתונים מסונכרנים בזמן אמת - עבוד בביטחון</p>
                 </div>
             </div>
-
-            <!-- אזור מנהל -->
-            @if (User.IsInRole("Admin"))
-            {
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="alert alert-warning">
-                            <h5><i class="bi bi-shield-check"></i> פאנל מנהל מערכת - ADMIN</h5>
-                            <p>אתה מחובר כמנהל מערכת עם הרשאות מלאות.</p>
-                            <a href="@Url.Action("Index", "Users")" class="btn btn-warning me-2">ניהול משתמשים</a>
-                            <a href="@Url.Action("Register", "Account")" class="btn btn-secondary">הוספת משתמש חדש</a>
-                        </div>
-                    </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-question-circle text-info" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">זקוק לעזרה? </h5>
+                    <p class="card-text">פנה למנהל המערכת או עיין במדריך המשתמש</p>
                 </div>
-            }
+            </div>
         </div>
     </div>
 }
 else
 {
-    <!-- תוכן למשתמשים לא מחוברים -->
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h3>מערכת יצירת הצעות מחיר</h3>
-                </div>
-                <div class="card-body text-center">
-                    <p class="lead">אנא התחבר למערכת כדי לגשת לכל האפשרויות</p>
-                    <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg">כניסה למערכת</a>
-                </div>
+    <!-- דף כניסה למשתמשים לא מחוברים -->
+    <div class="home-hero">
+        <h1>מערכת ניהול טיולים TRYIT</h1>
+        <p>הפתרון המושלם לניהול סיורים, טיולים והצעות מחיר</p>
+        <a asp-controller="Account" asp-action="Login" class="btn-hero" style="color:white;font-size:19px;">
+            <i class="bi bi-box-arrow-in-right"></i> התחבר למערכת
+        </a>
+    </div>
+
+    <div class="text-center mt-5">
+        <h3 class="mb-4">למה לבחור במערכת שלנו?</h3>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <i class="bi bi-speedometer2 text-primary" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">מהירות וביצועים</h5>
+                <p>מערכת קלה ומהירה לשימוש יומיומי</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <i class="bi bi-shield-check text-success" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">אבטחה מלאה</h5>
+                <p>כל הנתונים מאובטחים ומוגנים</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <i class="bi bi-phone text-info" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">תמיכה מלאה</h5>
+                <p>זמינים עבורכם בתמיכה 24/7</p>
             </div>
         </div>
     </div>
