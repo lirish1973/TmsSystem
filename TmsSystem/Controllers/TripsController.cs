@@ -126,9 +126,10 @@ namespace TmsSystem.Controllers
 
 
         // POST: Trips/Create
+        // POST: Trips/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Trip trip, List<IFormFile> dayImages)
+        public async Task<IActionResult> Create(Trip trip, IFormCollection form)
         {
             try
             {
@@ -137,7 +138,6 @@ namespace TmsSystem.Controllers
                 if (!ModelState.IsValid)
                 {
                     await LoadGuidesDropdown(trip.GuideId);
-
                     foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                     {
                         Console.WriteLine($"❌ Validation Error: {error.ErrorMessage}");
@@ -145,7 +145,7 @@ namespace TmsSystem.Controllers
                     return View(trip);
                 }
 
-                // בדיקת תקינות מדריך (אם נבחר)
+                // בדיקת תקינות מדריך
                 if (trip.GuideId.HasValue)
                 {
                     var guideExists = await _context.Guides
@@ -159,43 +159,48 @@ namespace TmsSystem.Controllers
                     }
                     Console.WriteLine($"👨‍✈️ Guide assigned: {trip.GuideId}");
                 }
-                else
-                {
-                    Console.WriteLine("ℹ️ No guide assigned");
-                }
 
                 trip.CreatedAt = DateTime.Now;
 
-                // טיפול בתמונות
-                if (dayImages != null && dayImages.Any(f => f != null && f.Length > 0))
+                // ==================== טיפול בתמונות ====================
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "trips");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var tripDaysList = trip.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TripDay>();
+
+                for (int i = 0; i < tripDaysList.Count; i++)
                 {
-                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "trips");
-                    Directory.CreateDirectory(uploadsFolder);
+                    // חיפוש קובץ עבור יום זה בשם dayImages_0, dayImages_1 וכו'
+                    var fileKey = $"dayImages_{i}";
+                    var files = form.Files.GetFiles(fileKey);
 
-                    var tripDaysList = trip.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TripDay>();
-
-                    int imageIndex = 0;
-                    for (int i = 0; i < tripDaysList.Count && imageIndex < dayImages.Count; i++)
+                    if (files != null && files.Count > 0)
                     {
-                        var file = dayImages[imageIndex];
+                        var file = files[0];
                         if (file != null && file.Length > 0)
                         {
-                            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-                            var filePath = Path.Combine(uploadsFolder, fileName);
-
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            try
                             {
-                                await file.CopyToAsync(stream);
+                                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await file.CopyToAsync(stream);
+                                }
+
+                                tripDaysList[i].ImagePath = $"/uploads/trips/{fileName}";
+                                Console.WriteLine($"✅ Image uploaded for day {i + 1}: {fileName}");
                             }
-
-                            tripDaysList[i].ImagePath = $"/uploads/trips/{fileName}";
-                            Console.WriteLine($"✅ Image uploaded for day {i + 1}: {fileName}");
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"⚠️ Error uploading image for day {i + 1}: {ex.Message}");
+                            }
                         }
-                        imageIndex++;
                     }
-
-                    trip.TripDays = tripDaysList;
                 }
+
+                trip.TripDays = tripDaysList;
 
                 _context.Add(trip);
                 await _context.SaveChangesAsync();
@@ -320,9 +325,13 @@ namespace TmsSystem.Controllers
 
 
         // POST: Trips/Edit/5
+        // POST: Trips/Edit/5
+        // POST: Trips/Edit/5
+        // POST: Trips/Edit/5
+        // POST: Trips/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Trip trip)
+        public async Task<IActionResult> Edit(int id, Trip trip, IFormCollection form)
         {
             if (id != trip.TripId)
                 return NotFound();
@@ -381,7 +390,7 @@ namespace TmsSystem.Controllers
                     Console.WriteLine($"👨‍✈️ Guide validated: {trip.GuideId}");
                 }
 
-                // עדכון שדות בסיסיים - כולל GuideId
+                // ==================== עדכון שדות בסיסיים ====================
                 existingTrip.Title = trip.Title;
                 existingTrip.Description = trip.Description;
                 existingTrip.IsActive = trip.IsActive;
@@ -391,35 +400,159 @@ namespace TmsSystem.Controllers
                 existingTrip.Includes = trip.Includes;
                 existingTrip.Excludes = trip.Excludes;
                 existingTrip.FlightDetails = trip.FlightDetails;
-                existingTrip.GuideId = trip.GuideId; // 👈 עדכון המדריך
+                existingTrip.GuideId = trip.GuideId;
 
                 Console.WriteLine($"👨‍✈️ Existing trip GuideId after manual assignment: {existingTrip.GuideId}");
 
-                // סימון השדה כמעודכן במפורש
                 _context.Entry(existingTrip).Property(t => t.GuideId).IsModified = true;
 
                 Console.WriteLine($"👨‍✈️ GuideId marked as modified: {_context.Entry(existingTrip).Property(t => t.GuideId).IsModified}");
 
-                // ...  שאר הקוד של עדכון TripDays ...
-
+                // ==================== טיפול ב-TripDays ====================
                 var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath ?? "", "uploads", "trips");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
                 var existingDayIds = new HashSet<int>();
 
-                for (int i = 0; i < trip.NumberOfDays; i++)
+                // עדכון ימים קיימים
+                if (trip.TripDays != null && trip.TripDays.Any())
                 {
-                    // ...  כל הקוד של TripDays נשאר אותו דבר ...
+                    foreach (var day in trip.TripDays)
+                    {
+                        var existingDay = existingTrip.TripDays.FirstOrDefault(d => d.TripDayId == day.TripDayId);
+
+                        if (existingDay != null)
+                        {
+                            // עדכון שדות טקסט של היום
+                            existingDay.Title = day.Title;
+                            existingDay.Location = day.Location;
+                            existingDay.Description = day.Description;
+                            existingDay.DisplayOrder = day.DisplayOrder;
+                            existingDay.DayNumber = day.DayNumber;
+
+                            Console.WriteLine($"✏️ Updated TripDay text {day.TripDayId} (Day #{day.DayNumber}): {day.Title}");
+
+                            existingDayIds.Add(day.TripDayId);
+                            _context.Update(existingDay);
+                        }
+                    }
                 }
 
-                // שמירת שינויים
-                Console.WriteLine("[Edit] Saving changes to database.. .");
+                // ==================== טיפול בתמונות חדשות ====================
+                // 🔑 חיפוש לפי displayOrder (0-based) אבל כל יום בטופס מגיע בשם dayImage_0, dayImage_1 וכו'
+                var orderedDays = existingTrip.TripDays.OrderBy(d => d.DayNumber).ToList();
+
+                for (int displayIndex = 0; displayIndex < orderedDays.Count; displayIndex++)
+                {
+                    try
+                    {
+                        // חיפוש קובץ עבור יום זה בשם dayImage_0, dayImage_1 וכו'
+                        var fileKey = $"dayImage_{displayIndex}";
+                        var files = form.Files.GetFiles(fileKey);
+
+                        Console.WriteLine($"🔍 Looking for image {fileKey}...  Found: {(files?.Count > 0 ? files.Count : 0)} files");
+
+                        // בדיקה: האם המשתמש בחר קובץ חדש?
+                        if (files != null && files.Count > 0)
+                        {
+                            var file = files[0];
+
+                            // ✅ אם יש קובץ ולא ריק - העלה אותו
+                            if (file != null && file.Length > 0)
+                            {
+                                var existingDay = orderedDays[displayIndex];
+
+                                Console.WriteLine($"📸 Processing image for day index {displayIndex}, TripDayId: {existingDay.TripDayId}");
+
+                                // ❌ מחיקת תמונה ישנה רק אם הוספנו חדשה
+                                if (!string.IsNullOrEmpty(existingDay.ImagePath))
+                                {
+                                    var oldImagePath = Path.Combine(
+                                        _webHostEnvironment.WebRootPath ?? "",
+                                        existingDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
+                                    );
+
+                                    try
+                                    {
+                                        if (System.IO.File.Exists(oldImagePath))
+                                        {
+                                            System.IO.File.Delete(oldImagePath);
+                                            Console.WriteLine($"🗑️ Deleted old image for day {displayIndex + 1}: {oldImagePath}");
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"⚠️ Could not delete old image: {ex.Message}");
+                                    }
+                                }
+
+                                // הוספת תמונה חדשה
+                                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await file.CopyToAsync(stream);
+                                }
+
+                                existingDay.ImagePath = $"/uploads/trips/{fileName}";
+                                Console.WriteLine($"✅ Updated image for day {displayIndex + 1}: {fileName}");
+                                _context.Update(existingDay);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"ℹ️ No image file for day index {displayIndex} (empty file), keeping existing image");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"ℹ️ No new image for day index {displayIndex}, keeping existing image");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error processing image for day index {displayIndex}: {ex.Message}");
+                    }
+                }
+
+                // ==================== מחיקת ימים שנמחקו ====================
+                var daysToDelete = existingTrip.TripDays.Where(d => !existingDayIds.Contains(d.TripDayId)).ToList();
+                foreach (var dayToDelete in daysToDelete)
+                {
+                    // מחיקת תמונה אם קיימת
+                    if (!string.IsNullOrEmpty(dayToDelete.ImagePath))
+                    {
+                        var imagePath = Path.Combine(
+                            _webHostEnvironment.WebRootPath ?? "",
+                            dayToDelete.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
+                        );
+
+                        try
+                        {
+                            if (System.IO.File.Exists(imagePath))
+                            {
+                                System.IO.File.Delete(imagePath);
+                                Console.WriteLine($"🗑️ Deleted image for removed day {dayToDelete.TripDayId}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠️ Could not delete image: {ex.Message}");
+                        }
+                    }
+
+                    _context.TripDays.Remove(dayToDelete);
+                    Console.WriteLine($"🗑️ Removed TripDay {dayToDelete.TripDayId}: {dayToDelete.Title}");
+                }
+
+                // ==================== שמירת שינויים ====================
+                Console.WriteLine("[Edit] Saving changes to database...");
                 Console.WriteLine($"👨‍✈️ Final GuideId value before save: {existingTrip.GuideId}");
 
                 var changesCount = await _context.SaveChangesAsync();
 
-                Console.WriteLine($"[Edit] Changes saved successfully! {changesCount} records affected");
+                Console.WriteLine($"[Edit] Changes saved successfully!  {changesCount} records affected");
                 Console.WriteLine($"👨‍✈️ GuideId after save: {existingTrip.GuideId}");
 
                 TempData["SuccessMessage"] = $"הטיול '{existingTrip.Title}' עודכן בהצלחה! ";
@@ -467,6 +600,9 @@ namespace TmsSystem.Controllers
                 return View(trip);
             }
         }
+
+
+
 
 
 

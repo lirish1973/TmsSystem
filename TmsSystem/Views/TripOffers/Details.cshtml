@@ -383,7 +383,7 @@
     <div class="col-md-12">
         @if (Model.Trip?.Guide != null)
         {
-            <div class="info-card card">
+            <div class="trip-day-card card">
                 <div class="card-header @(Model.Trip.GuideId == 9 ? "bg-warning text-dark" : "bg-purple text-white")">
                     <i class="fas fa-user-tie"></i> מדריך מלווה
                     @if (Model.Trip.GuideId == 9)
@@ -403,10 +403,10 @@
                     {
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong><i class="fas fa-user"></i> שם המדריך:</strong> @Model. Trip.Guide.GuideName</p>
+                                <p><strong><i class="fas fa-user"></i> שם המדריך:</strong> @Model.Trip.Guide.GuideName</p>
                                 @if (!string.IsNullOrEmpty(Model.Trip.Guide.Phone))
                                 {
-                                    <p><strong><i class="fas fa-phone"></i> טלפון:</strong> <a href="tel:@Model. Trip.Guide.Phone">@Model.Trip.Guide.Phone</a></p>
+                                    <p><strong><i class="fas fa-phone"></i> טלפון:</strong> <a href="tel:@Model.Trip.Guide.Phone">@Model.Trip.Guide.Phone</a></p>
                                 }
                             </div>
                             <div class="col-md-6">
@@ -731,13 +731,13 @@
                                     <p><strong>מספר חשבון:</strong> 39820047</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><strong>שם בעל החשבון:</strong> TRYIT Travel Ltd. </p>
+                                    <p><strong>שם בעל החשבון:</strong> TRYIT- אפריקה אקסטרים בע"מ </p>
                                     <p><strong>ח.פ:</strong> 515323970</p>
                                     <p class="text-blue-dark"><strong>סכום להעברה:</strong> $@Model.TotalPrice.ToString("N2")</strong></p>
                                 </div>
                             </div>
                             <div class="mt-3 p-2 bg-light border-end border-primary border-4">
-                                <p class="mb-0"><strong>לתשומת לבכם:</strong> נא לציין בהעברה את מספר ההצעה: <strong class="text-primary">@Model.OfferNumber</strong></p>
+                                <p class="mb-0"><strong>לתשומת לבכם:</strong> נא לציין בהעברה את מספר ההצעה: <strong class="text-primary">@Model.OfferNumber</strong></p><br/>
                             </div>
                         </div>
                     </div>
@@ -747,7 +747,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <p><i class="fas fa-phone text-blue-primary mr-2"></i><a href="tel:0587818560">058-7818560</a></p>
-                                <p><i class="fas fa-envelope text-blue-primary mr-2"></i><a href="mailto:info@tryit.co.il">info@tryit. co.il</a></p>
+                                <p><i class="fas fa-envelope text-blue-primary mr-2"></i><a href="mailto:info@tryit.co.il">info@tryit.co.il</a></p>
                             </div>
                             <div class="col-md-6">
                                 <p><i class="fas fa-globe text-blue-primary mr-2"></i><a href="https://www.tryit.co.il" target="_blank">www.tryit.co.il</a></p>
@@ -783,7 +783,7 @@
     <!-- כפתורים תחתונים -->
     <div class="row mt-4 mb-4 no-print">
         <div class="col-12 text-center">
-            <a asp-action="Edit" asp-route-id="@Model. TripOfferId" class="btn btn-warning btn-lg">
+            <a asp-action="Edit" asp-route-id="@Model.TripOfferId" class="btn btn-warning btn-lg">
                 <i class="fas fa-edit"></i> עריכה
             </a>
             <button type="button" class="btn btn-success btn-lg" onclick="sendEmailOffer(@Model.TripOfferId)">

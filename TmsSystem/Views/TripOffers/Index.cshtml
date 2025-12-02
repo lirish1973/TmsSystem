@@ -56,7 +56,7 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show">
-        <strong><i class="fas fa-check-circle"></i> הצלחה! </strong> @TempData["SuccessMessage"]
+        <strong><i class="fas fa-check-circle"></i> הצלחה!  </strong> @TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
@@ -133,7 +133,7 @@
                         <tbody>
                             @foreach (var offer in Model)
                             {
-                                <tr data-offer-number="@offer. OfferNumber"
+                                <tr data-offer-number="@offer.OfferNumber"
                                     data-customer="@(offer.Customer?.DisplayName ?? "")"
                                     data-trip="@(offer.Trip?.Title ?? "")"
                                     data-status="@offer.Status"
@@ -203,6 +203,14 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
+                                            <!-- 🆕 כפתור מחיקה -->
+                                            <button type="button"
+                                                    class="btn btn-sm btn-danger"
+                                                    title="מחיקה"
+                                                    onclick="deleteOffer(@offer.TripOfferId, '@offer.OfferNumber', event)">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+
                                             <!-- כפתור שינוי סטטוס -->
                                             <div class="btn-group" role="group">
                                                 <button type="button"
@@ -236,8 +244,6 @@
                                                     </li>
                                                 </ul>
                                             </div>
-
-                                           
                                         </div>
                                     </td>
                                 </tr>
@@ -268,18 +274,18 @@
     <script>
         // 🔍 פונקציית חיפוש וסינון
         function filterTable() {
-            const searchInput = document.getElementById('searchInput').value. toLowerCase();
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
             const monthFilter = document.getElementById('monthFilter').value;
 
             const table = document.getElementById('offersTable');
-            const rows = table. getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
             let visibleCount = 0;
 
             for (let row of rows) {
-                const offerNumber = row.getAttribute('data-offer-number'). toLowerCase();
+                const offerNumber = row.getAttribute('data-offer-number').toLowerCase();
                 const customer = row.getAttribute('data-customer').toLowerCase();
-                const trip = row. getAttribute('data-trip').toLowerCase();
+                const trip = row.getAttribute('data-trip').toLowerCase();
                 const status = row.getAttribute('data-status');
                 const date = row.getAttribute('data-date');
 
@@ -300,7 +306,7 @@
                     row.style.display = '';
                     visibleCount++;
                 } else {
-                    row.style. display = 'none';
+                    row.style.display = 'none';
                 }
             }
 
@@ -310,14 +316,13 @@
 
         // 🧹 ניקוי כל הסינונים
         function clearFilters() {
-            document.getElementById('searchInput').value = '';
+            document. getElementById('searchInput').value = '';
             document.getElementById('statusFilter').value = '';
-            document.getElementById('monthFilter').value = '';
+            document. getElementById('monthFilter').value = '';
             filterTable();
         }
 
         // 🏷️ עדכון סטטוס
-                // 🏷️ עדכון סטטוס - גרסה מתוקנת
         function updateStatus(offerId, newStatus, event) {
             event.preventDefault();
 
@@ -329,7 +334,7 @@
             };
 
             if (confirm(`האם לשנות את הסטטוס ל'${statusNames[newStatus]}'?`)) {
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const token = document.querySelector('input[name="__RequestVerificationToken"]'). value;
 
                 // שליחת FormData במקום JSON
                 const formData = new FormData();
@@ -343,42 +348,95 @@
                     method: 'POST',
                     body: formData
                 })
-                . then(response => {
-                    console.log('📥 Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response. status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('📊 Response data:', data);
+                    .then(response => {
+                        console.log('📥 Response status:', response.status);
+                        if (! response.ok) {
+                            throw new Error(`HTTP error! status: ${response. status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('📊 Response data:', data);
 
-                    if (data.success) {
-                        // עדכון הסטטוס בדף ללא רענון
-                        const badge = document.getElementById(`status-badge-${offerId}`);
-                        const row = badge.closest('tr');
+                        if (data.success) {
+                            // עדכון הסטטוס בדף ללא רענון
+                            const badge = document.getElementById(`status-badge-${offerId}`);
+                            const row = badge.closest('tr');
 
-                        // עדכון המראה של ה-badge
-                        badge. className = 'badge';
-                        badge.classList.add(getBadgeClass(newStatus));
-                        badge.textContent = statusNames[newStatus];
+                            // עדכון המראה של ה-badge
+                            badge.className = 'badge';
+                            badge.classList.add(getBadgeClass(newStatus));
+                            badge.textContent = statusNames[newStatus];
 
-                        // עדכון ה-data attribute לסינון
-                        row.setAttribute('data-status', newStatus);
+                            // עדכון ה-data attribute לסינון
+                            row.setAttribute('data-status', newStatus);
 
-                        // הצגת הודעה
-                        showAlert('success', data. message);
-                    } else {
-                        showAlert('danger', 'שגיאה: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Error:', error);
-                    showAlert('danger', 'שגיאה בעדכון הסטטוס: ' + error.message);
-                });
+                            // הצגת הודעה
+                            showAlert('success', data.message);
+                        } else {
+                            showAlert('danger', 'שגיאה: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Error:', error);
+                        showAlert('danger', 'שגיאה בעדכון הסטטוס: ' + error.message);
+                    });
             }
             return false;
         }
+
+
+
+        // 🗑️ מחיקת הצעה
+        function deleteOffer(offerId, offerNumber, event) {
+            event.preventDefault();
+
+            if (confirm(`האם אתה בטוח שברצונך למחוק את הצעת המחיר ${offerNumber}?\n\nפעולה זו לא ניתנת לביטול! `)) {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const formData = new FormData();
+                formData. append('id', offerId);
+                formData.append('__RequestVerificationToken', token);
+
+                console.log('🗑️ Deleting offer:', offerId);
+
+                fetch('/TripOffers/Delete', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        console.log('📥 Delete response status:', response.status);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('📊 Delete response data:', data);
+
+                        if (data.success) {
+                            // הסרת השורה מהטבלה
+                            const row = document.querySelector(`button[onclick*="deleteOffer(${offerId}"]`).closest('tr');
+                            row.style.opacity = '0. 5';
+
+                            setTimeout(() => {
+                                row. remove();
+                                filterTable(); // עדכון המונה
+                                showAlert('success', 'הצעת המחיר נמחקה בהצלחה! ');
+                            }, 300);
+                        } else {
+                            showAlert('danger', 'שגיאה: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Error:', error);
+                        showAlert('danger', 'שגיאה במחיקת הצעת המחיר: ' + error.message);
+                    });
+            }
+            return false;
+        }
+
+
 
         // פונקציית עזר לקבלת class של badge
         function getBadgeClass(status) {
@@ -405,15 +463,6 @@
             setTimeout(() => {
                 alertDiv.remove();
             }, 3000);
-        }
-
-        // 📧 שליחת מייל
-        function sendEmail(offerId) {
-            if (confirm('האם לשלוח את הצעת המחיר ללקוח במייל?')) {
-                console.log('Sending email for offer:', offerId);
-                // כאן תוסיף את הקוד לשליחת מייל
-                showAlert('info', 'תכונה בפיתוח - שליחת מייל להצעה מספר: ' + offerId);
-            }
         }
 
         // חיפוש בזמן אמת בעת הקלדה

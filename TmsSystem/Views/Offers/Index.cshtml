@@ -161,12 +161,7 @@
                                         <a href="/offers/@offer.OfferId/preview-html" class="btn btn-outline-info flex-fill btn-sm" title="הצג HTML" target="_blank">
                                             <i class="fas fa-file-code"></i>HTML
                                         </a>
-                                        <button class="btn btn-primary send-offer-btn"
-                                                data-offer-id="@offer.OfferId"
-                                                data-email="@(offer.Customer?.Email ?? "")"
-                                                onclick="sendOfferEmail(this)">
-                                            <i class="fas fa-envelope"></i> שלח במייל
-                                        </button>
+                                       
                                     </div>
                                     <div class="text-muted text-center w-100" style="font-size:0.8em;">
                                         נוצר ב: @offer.CreatedAt.ToString("dd/MM/yyyy")

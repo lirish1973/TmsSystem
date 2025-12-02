@@ -76,7 +76,55 @@ namespace TmsSystem.Controllers
         }
 
 
+        // 🗑️ DELETE: TripOffers/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                Console.WriteLine($"🗑️ Starting delete process for TripOffer ID: {id}");
 
+                var tripOffer = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip)
+                    .FirstOrDefaultAsync(to => to.TripOfferId == id);
+
+                if (tripOffer == null)
+                {
+                    Console.WriteLine($"❌ TripOffer {id} not found");
+                    return Json(new { success = false, message = "הצעת המחיר לא נמצאה" });
+                }
+
+                Console.WriteLine($"✅ Found TripOffer: {tripOffer.OfferNumber}");
+                Console.WriteLine($"📊 Deleting offer for customer: {tripOffer.Customer?.DisplayName}");
+
+                // מחיקת ההצעה
+                _context.TripOffers.Remove(tripOffer);
+
+                Console.WriteLine("💾 Saving changes to database...");
+                var affectedRows = await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ TripOffer deleted successfully!  {affectedRows} rows affected");
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"הצעת המחיר '{tripOffer.OfferNumber}' נמחקה בהצלחה!"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error deleting TripOffer {id}: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
+
+                return Json(new
+                {
+                    success = false,
+                    message = $"שגיאה במחיקת הצעת המחיר: {ex.Message}"
+                });
+            }
+        }
 
         // GET: TripOffers/Details/5
         public async Task<IActionResult> Details(int? id)
