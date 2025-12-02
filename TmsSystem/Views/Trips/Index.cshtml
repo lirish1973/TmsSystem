@@ -48,9 +48,9 @@
                                 <th>שם הטיול</th>
                                 <th>מספר ימים</th>
                                 <th>מדריך</th>
-                                <th>תאריך יצירה</th>
+                                <th>מחיר</th>
                                 <th>סטטוס</th>
-                                <th style="width: 200px;">פעולות</th>
+                                <th style="width: 200px;">תאריך יצירה</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -71,7 +71,7 @@
                                     <td>
                                         @if (trip.Guide != null)
                                         {
-                                            <span class="badge bg-info">
+                                            <span class="badge bg-primary">
                                                 <i class="fas fa-user-tie"></i> @trip.Guide.GuideName
                                             </span>
                                         }
@@ -92,16 +92,7 @@
                                         }
                                     </td>
                                     <td class="rtl-text">@trip.CreatedAt.ToString("dd/MM/yyyy")</td>
-                                    <td class="rtl-text">
-                                        @if (trip.IsActive)
-                                        {
-                                            <span class="badge bg-success">פעיל</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">לא פעיל</span>
-                                        }
-                                    </td>
+                                 
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a asp-controller="Trips" asp-action="Details" asp-route-id="@trip.TripId"

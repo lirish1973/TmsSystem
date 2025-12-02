@@ -34,7 +34,10 @@ namespace TmsSystem.Controllers
         // GET: Trips
         public async Task<IActionResult> Index(string filter)
         {
-            var tripsQuery = _context.Trips.Include(t => t.TripDays).AsQueryable();
+            var tripsQuery = _context.Trips
+                .Include(t => t.TripDays)
+                .Include(t => t.Guide)  // 👈 להוסיף את זה!
+                .AsQueryable();
 
             if (filter == "active")
             {
