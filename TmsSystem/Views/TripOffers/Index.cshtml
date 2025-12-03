@@ -189,6 +189,39 @@
                                         <br><small class="text-muted">@offer.CreatedAt.ToString("HH:mm")</small>
                                     </td>
                                     <td>
+                                        <!-- כפתור שינוי סטטוס -->
+                                        <div class="btn-group" role="group">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-secondary dropdown-toggle"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    title="שינוי סטטוס">
+                                                <i class="fas fa-flag"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Pending', event)">
+                                                        <i class="fas fa-clock text-warning"></i> ממתין
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Approved', event)">
+                                                        <i class="fas fa-check text-success"></i> אשר
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Rejected', event)">
+                                                        <i class="fas fa-times text-danger"></i> דחה
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Cancelled', event)">
+                                                        <i class="fas fa-ban text-muted"></i> בטל
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                       
                                         <div class="btn-group" role="group">
                                             <a asp-action="Details"
                                                asp-route-id="@offer.TripOfferId"
@@ -210,40 +243,8 @@
                                                     onclick="deleteOffer(@offer.TripOfferId, '@offer.OfferNumber', event)">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
-
-                                            <!-- כפתור שינוי סטטוס -->
-                                            <div class="btn-group" role="group">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-secondary dropdown-toggle"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-expanded="false"
-                                                        title="שינוי סטטוס">
-                                                    <i class="fas fa-flag"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Pending', event)">
-                                                            <i class="fas fa-clock text-warning"></i> ממתין
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Approved', event)">
-                                                            <i class="fas fa-check text-success"></i> אשר
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Rejected', event)">
-                                                            <i class="fas fa-times text-danger"></i> דחה
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="updateStatus(@offer.TripOfferId, 'Cancelled', event)">
-                                                            <i class="fas fa-ban text-muted"></i> בטל
-                                                        </a>
-                                                    </li>
-                                                </ul>
                                             </div>
+                                           
                                         </div>
                                     </td>
                                 </tr>

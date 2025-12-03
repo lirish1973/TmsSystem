@@ -482,7 +482,7 @@ namespace TmsSystem.Services
                 </div>
                 <div class='bank-row'>
                     <span class='bank-label'>שם בעל החשבון:</span>
-                    <span class='bank-value'>TRYIT Travel Ltd. </span>
+                    <span class='bank-value'>TRYIT -  אפריקה אקסטרים בעמ </span>
                 </div>
                 <div class='bank-row'>
                     <span class='bank-label'>ח.פ:</span>
@@ -502,7 +502,7 @@ namespace TmsSystem.Services
             sb.Append($@"
         <div class='footer'>
             <div class='contact-info'>
-                <h3>צור קשר</h3>
+                 <img src='https://www.tryit.co.il/wp-content/uploads/2025/08/cropped-try-it-logo.png' style='width:150px;'/>
                 <p>mailto:info@tryit.co.il</p>
                 <p> לפרטים נוספים ולאישור הזמנה</p>
             </div>
@@ -863,7 +863,7 @@ namespace TmsSystem.Services
                     </div>
                     <div class='bank-row'>
                         <span class='bank-label'>שם בעל החשבון:</span>
-                        <span class='bank-value'>TRYIT Travel Ltd. </span>
+                        <span class='bank-value'>TRYIT - אפריקה אקסטרים בעמ</span>
                     </div>
                     <div class='bank-row'>
                         <span class='bank-label'>ח.פ:</span>
