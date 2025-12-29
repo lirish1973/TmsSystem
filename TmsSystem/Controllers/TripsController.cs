@@ -812,20 +812,35 @@ namespace TmsSystem.Controllers
                             {
                                 // Validate the path to prevent directory traversal
                                 var imagePath = originalDay.ImagePath.TrimStart('/');
-                                if (imagePath.Contains("..") || imagePath.Contains("~"))
-                                {
-                                    Console.WriteLine($"⚠️ Invalid image path detected: {originalDay.ImagePath}");
-                                    continue;
-                                }
-
+                                
+                                // Build the full path
                                 var originalImagePath = Path.Combine(
                                     _webHostEnvironment.WebRootPath,
                                     imagePath.Replace('/', Path.DirectorySeparatorChar)
                                 );
 
+                                // Validate the resolved path to prevent directory traversal
+                                string normalizedPath;
+                                string normalizedUploadsFolder;
+                                
+                                try
+                                {
+                                    normalizedPath = Path.GetFullPath(originalImagePath);
+                                    normalizedUploadsFolder = Path.GetFullPath(uploadsFolder);
+                                    
+                                    // Ensure the normalized uploads folder ends with directory separator
+                                    if (!normalizedUploadsFolder.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                                    {
+                                        normalizedUploadsFolder += Path.DirectorySeparatorChar;
+                                    }
+                                }
+                                catch (Exception pathEx)
+                                {
+                                    Console.WriteLine($"⚠️ Invalid image path: {originalDay.ImagePath} - {pathEx.Message}");
+                                    continue;
+                                }
+
                                 // Ensure the path is within the expected uploads folder
-                                var normalizedPath = Path.GetFullPath(originalImagePath);
-                                var normalizedUploadsFolder = Path.GetFullPath(uploadsFolder);
                                 if (!normalizedPath.StartsWith(normalizedUploadsFolder, StringComparison.OrdinalIgnoreCase))
                                 {
                                     Console.WriteLine($"⚠️ Image path outside allowed directory: {originalDay.ImagePath}");
@@ -877,7 +892,7 @@ namespace TmsSystem.Controllers
 
                 Console.WriteLine($"✅ Cloned trip saved with ID: {clonedTrip.TripId}");
 
-                TempData["SuccessMessage"] = $"הטיול '{originalTrip.Title}' שוכפל בהצלחה! ";
+                TempData["SuccessMessage"] = $"הטיול '{originalTrip.Title}' שוכפל בהצלחה!";
                 return RedirectToAction(nameof(Edit), new { id = clonedTrip.TripId });
             }
             catch (Exception ex)
