@@ -14,7 +14,7 @@
         }
 
     /* יישור טקסט לימין - כולל כל האלמנטים */
-    . rtl-content {
+    .rtl-content {
         direction: rtl !important;
         text-align: right !important;
     }
@@ -23,7 +23,7 @@
         direction: rtl !important;
         text-align: right !important;
         white-space: pre-wrap;
-        line-height: 1. 8;
+        line-height: 1.8;
         font-size: 1.05rem;
         padding: 20px;
         background-color: #f8f9fa;
@@ -33,7 +33,7 @@
     }
 
     /* וודא שכל הכותרות והפסקאות מיושרות לימין */
-    . card-header h4,
+    .card-header h4,
     .card-header h5,
     .card-body p,
     .card-body div {
@@ -41,7 +41,7 @@
         text-align: right !important;
     }
 
-    . price-item {
+    .price-item {
         padding: 8px 0;
         border-bottom: 1px solid #e9ecef;
     }
@@ -134,7 +134,7 @@
                                         <div class="mb-3">
                                             <strong class="rtl-content"><i class="fas fa-phone text-info"></i> טלפון:</strong>
                                             <p class="mb-0 rtl-content">
-                                                <a href="tel:@Model. Guide.Phone" class="text-decoration-none">@Model.Guide.Phone</a>
+                                                <a href="tel:@Model.Guide.Phone" class="text-decoration-none">@Model.Guide.Phone</a>
                                             </p>
                                         </div>
                                     }
@@ -153,7 +153,7 @@
                                     {
                                         <div class="mb-3">
                                             <strong class="rtl-content"><i class="fas fa-info-circle text-info"></i> תיאור:</strong>
-                                            <p class="mb-0 rtl-content small">@Model.  Guide.Description</p>
+                                            <p class="mb-0 rtl-content small">@Model.Guide.Description</p>
                                         </div>
                                     }
                                 </div>
@@ -180,7 +180,7 @@
                                         if (!string.IsNullOrWhiteSpace(line))
                                         {
                                             <div class="price-item rtl-content">
-                                                <i class="fas fa-check text-success me-2"></i> @line. Trim()
+                                                <i class="fas fa-check text-success me-2"></i> @line.Trim()
                                             </div>
                                         }
                                     }
@@ -202,7 +202,7 @@
                                         if (!string.IsNullOrWhiteSpace(line))
                                         {
                                             <div class="price-item rtl-content">
-                                                <i class="fas fa-times text-danger me-2"></i> @line. Trim()
+                                                <i class="fas fa-times text-danger me-2"></i> @line.Trim()
                                             </div>
                                         }
                                     }

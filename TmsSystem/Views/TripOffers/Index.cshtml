@@ -317,9 +317,9 @@
 
         // 🧹 ניקוי כל הסינונים
         function clearFilters() {
-            document. getElementById('searchInput').value = '';
+            document.getElementById('searchInput').value = '';
             document.getElementById('statusFilter').value = '';
-            document. getElementById('monthFilter').value = '';
+            document.getElementById('monthFilter').value = '';
             filterTable();
         }
 
@@ -335,7 +335,7 @@
             };
 
             if (confirm(`האם לשנות את הסטטוס ל'${statusNames[newStatus]}'?`)) {
-                const token = document.querySelector('input[name="__RequestVerificationToken"]'). value;
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
                 // שליחת FormData במקום JSON
                 const formData = new FormData();
@@ -352,7 +352,7 @@
                     .then(response => {
                         console.log('📥 Response status:', response.status);
                         if (! response.ok) {
-                            throw new Error(`HTTP error! status: ${response. status}`);
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         return response.json();
                     })
@@ -396,7 +396,7 @@
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
                 const formData = new FormData();
-                formData. append('id', offerId);
+                formData.append('id', offerId);
                 formData.append('__RequestVerificationToken', token);
 
                 console.log('🗑️ Deleting offer:', offerId);
@@ -418,10 +418,10 @@
                         if (data.success) {
                             // הסרת השורה מהטבלה
                             const row = document.querySelector(`button[onclick*="deleteOffer(${offerId}"]`).closest('tr');
-                            row.style.opacity = '0. 5';
+                            row.style.opacity = '0.5';
 
                             setTimeout(() => {
-                                row. remove();
+                                row.remove();
                                 filterTable(); // עדכון המונה
                                 showAlert('success', 'הצעת המחיר נמחקה בהצלחה! ');
                             }, 300);

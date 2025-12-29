@@ -31,7 +31,7 @@
         margin-top: 10px;
     }
 
-    . info-card {
+    .info-card {
         border: none;
         border-radius: 15px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -45,17 +45,17 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
-        .info-card . card-header {
+        .info-card .card-header {
             font-weight: bold;
             font-size: 1.2rem;
             padding: 15px 20px;
         }
 
-        .info-card . card-body {
+        .info-card .card-body {
             padding: 20px;
         }
 
-    . bg-purple {
+    .bg-purple {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
@@ -143,19 +143,19 @@
         background-color: #0066cc !important;
     }
 
-    . bg-blue-secondary {
+    .bg-blue-secondary {
         background-color: #4a90e2 !important;
     }
 
-    . bg-light-blue {
+    .bg-light-blue {
         background-color: #e6f2ff !important;
     }
 
-    . bg-light-blue-terms {
+    .bg-light-blue-terms {
         background-color: #f0f7ff !important;
     }
 
-    . text-blue-primary {
+    .text-blue-primary {
         color: #0066cc !important;
     }
 
@@ -167,15 +167,15 @@
         color: #003d7a !important;
     }
 
-    . text-orange {
+    .text-orange {
         color: #ff8c00 !important;
     }
 
-    . terms-content {
+    .terms-content {
         padding: 15px;
     }
 
-    . term-item {
+    .term-item {
         padding: 12px;
         margin-bottom: 10px;
         background-color: white;
@@ -330,8 +330,8 @@
                     @if (Model.Customer != null)
                     {
                         <p><strong><i class="fas fa-user"></i> שם:</strong> @Model.Customer.DisplayName</p>
-                        <p><strong><i class="fas fa-envelope"></i> אימייל:</strong> <a href="mailto:@Model. Customer.Email">@Model.Customer.Email</a></p>
-                        <p><strong><i class="fas fa-phone"></i> טלפון:</strong> <a href="tel:@Model. Customer.Phone">@Model.Customer.Phone</a></p>
+                        <p><strong><i class="fas fa-envelope"></i> אימייל:</strong> <a href="mailto:@Model.Customer.Email">@Model.Customer.Email</a></p>
+                        <p><strong><i class="fas fa-phone"></i> טלפון:</strong> <a href="tel:@Model.Customer.Phone">@Model.Customer.Phone</a></p>
                         @if (!string.IsNullOrEmpty(Model.Customer.CompanyName))
                         {
                             <p><strong><i class="fas fa-building"></i> חברה:</strong> @Model.Customer.CompanyName</p>
@@ -590,14 +590,14 @@
                             @if (Model.SingleRoomSupplement.HasValue && Model.SingleRooms > 0)
                             {
                                 <tr>
-                                    <td><i class="fas fa-bed"></i> תוספת חדר יחיד (@Model.SingleRooms חדרים x $@Model.SingleRoomSupplement.Value. ToString("N2"))</td>
+                                    <td><i class="fas fa-bed"></i> תוספת חדר יחיד (@Model.SingleRooms חדרים x $@Model.SingleRoomSupplement.Value.ToString("N2"))</td>
                                     <td class="text-end"><strong>$@((Model.SingleRoomSupplement.Value * Model.SingleRooms).ToString("N2"))</strong></td>
                                 </tr>
                             }
                             @if (Model.InsuranceIncluded && Model.InsurancePrice.HasValue)
                             {
                                 <tr>
-                                    <td><i class="fas fa-shield-alt"></i> ביטוח נסיעות (@Model. Participants x $@Model.InsurancePrice.Value.ToString("N2"))</td>
+                                    <td><i class="fas fa-shield-alt"></i> ביטוח נסיעות (@Model.Participants x $@Model.InsurancePrice.Value.ToString("N2"))</td>
                                     <td class="text-end"><strong>$@((Model.InsurancePrice.Value * Model.Participants).ToString("N2"))</strong></td>
                                 </tr>
                             }
@@ -829,7 +829,7 @@
 
         // הדפסה מותאמת
         window.onbeforeprint = function() {
-            document.title = 'הצעת_מחיר_@Model. OfferNumber';
+            document.title = 'הצעת_מחיר_@Model.OfferNumber';
         };
     </script>
 }
