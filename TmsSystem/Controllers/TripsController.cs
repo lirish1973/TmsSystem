@@ -854,8 +854,8 @@ namespace TmsSystem.Controllers
                                     var newFileName = $"{Guid.NewGuid()}{extension}";
                                     var newImagePath = Path.Combine(uploadsFolder, newFileName);
 
-                                    // Copy the image file
-                                    System.IO.File.Copy(originalImagePath, newImagePath);
+                                    // Copy the image file (overwrite if exists, though Guid makes collision extremely unlikely)
+                                    System.IO.File.Copy(originalImagePath, newImagePath, overwrite: true);
 
                                     clonedDay.ImagePath = $"/uploads/trips/{newFileName}";
                                     Console.WriteLine($"✅ Cloned image for day {originalDay.DayNumber}: {newFileName}");
