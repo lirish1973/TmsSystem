@@ -737,6 +737,131 @@ namespace TmsSystem.Controllers
             }
         }
 
+        // POST: Trips/Clone/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Clone(int id)
+        {
+            try
+            {
+                Console.WriteLine($"🔄 Starting clone process for Trip ID: {id}");
+
+                // Load the original trip with all related data
+                var originalTrip = await _context.Trips
+                    .Include(t => t.TripDays.OrderBy(d => d.DayNumber))
+                    .Include(t => t.Guide)
+                    .AsNoTracking() // Important: don't track the original
+                    .FirstOrDefaultAsync(t => t.TripId == id);
+
+                if (originalTrip == null)
+                {
+                    Console.WriteLine($"❌ Trip {id} not found");
+                    TempData["ErrorMessage"] = "הטיול לא נמצא";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                Console.WriteLine($"✅ Original trip found: {originalTrip.Title}");
+
+                // Create a new trip with copied properties
+                var clonedTrip = new Trip
+                {
+                    Title = $"{originalTrip.Title} (עותק)",
+                    Description = originalTrip.Description,
+                    NumberOfDays = originalTrip.NumberOfDays,
+                    GuideId = originalTrip.GuideId,
+                    PricePerPerson = originalTrip.PricePerPerson,
+                    PriceDescription = originalTrip.PriceDescription,
+                    Includes = originalTrip.Includes,
+                    Excludes = originalTrip.Excludes,
+                    FlightDetails = originalTrip.FlightDetails,
+                    IsActive = originalTrip.IsActive,
+                    CreatedAt = DateTime.Now
+                };
+
+                Console.WriteLine($"✅ Created cloned trip object: {clonedTrip.Title}");
+
+                // Clone TripDays with image duplication
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "trips");
+                Directory.CreateDirectory(uploadsFolder);
+
+                if (originalTrip.TripDays != null && originalTrip.TripDays.Any())
+                {
+                    Console.WriteLine($"📋 Cloning {originalTrip.TripDays.Count} trip days");
+
+                    clonedTrip.TripDays = new List<TripDay>();
+
+                    foreach (var originalDay in originalTrip.TripDays.OrderBy(d => d.DayNumber))
+                    {
+                        var clonedDay = new TripDay
+                        {
+                            DayNumber = originalDay.DayNumber,
+                            Title = originalDay.Title,
+                            Location = originalDay.Location,
+                            Description = originalDay.Description,
+                            DisplayOrder = originalDay.DisplayOrder,
+                            ImagePath = null // Will be set below if image exists
+                        };
+
+                        // Clone the image file if it exists
+                        if (!string.IsNullOrEmpty(originalDay.ImagePath))
+                        {
+                            try
+                            {
+                                var originalImagePath = Path.Combine(
+                                    _webHostEnvironment.WebRootPath,
+                                    originalDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
+                                );
+
+                                if (System.IO.File.Exists(originalImagePath))
+                                {
+                                    // Generate new filename for the cloned image
+                                    var extension = Path.GetExtension(originalImagePath);
+                                    var newFileName = $"{Guid.NewGuid()}{extension}";
+                                    var newImagePath = Path.Combine(uploadsFolder, newFileName);
+
+                                    // Copy the image file
+                                    System.IO.File.Copy(originalImagePath, newImagePath);
+
+                                    clonedDay.ImagePath = $"/uploads/trips/{newFileName}";
+                                    Console.WriteLine($"✅ Cloned image for day {originalDay.DayNumber}: {newFileName}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"⚠️ Original image not found: {originalImagePath}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"⚠️ Error cloning image for day {originalDay.DayNumber}: {ex.Message}");
+                                // Continue without the image
+                            }
+                        }
+
+                        clonedTrip.TripDays.Add(clonedDay);
+                    }
+
+                    Console.WriteLine($"✅ All trip days cloned successfully");
+                }
+
+                // Save the cloned trip to database
+                _context.Trips.Add(clonedTrip);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ Cloned trip saved with ID: {clonedTrip.TripId}");
+
+                TempData["SuccessMessage"] = $"הטיול '{originalTrip.Title}' שוכפל בהצלחה! ";
+                return RedirectToAction(nameof(Edit), new { id = clonedTrip.TripId });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error cloning trip {id}: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+
+                TempData["ErrorMessage"] = $"שגיאה בשכפול הטיול: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
         private bool TripExists(int id)
         {
             return _context.Trips.Any(e => e.TripId == id);

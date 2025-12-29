@@ -60,6 +60,14 @@
                     <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning">
                         <i class="fas fa-edit"></i> עריכה
                     </a>
+                    <form asp-controller="Trips" asp-action="Clone" asp-route-id="@Model.TripId" 
+                          method="post" style="display: inline;"
+                          onsubmit="return confirm('האם אתה בטוח שברצונך לשכפל את הטיול \'@Model.Title\'?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-copy"></i> שכפול טיול
+                        </button>
+                    </form>
                     <a asp-controller="Trips" asp-action="Index" class="btn btn-light">
                         <i class="fas fa-arrow-right"></i> חזרה
                     </a>
@@ -279,9 +287,17 @@
         <a asp-controller="Trips" asp-action="Index" class="btn btn-secondary btn-lg me-2">
             <i class="fas fa-arrow-right"></i> חזרה לרשימת הטיולים
         </a>
-        <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning btn-lg">
+        <a asp-controller="Trips" asp-action="Edit" asp-route-id="@Model.TripId" class="btn btn-warning btn-lg me-2">
             <i class="fas fa-edit"></i> ערוך טיול
         </a>
+        <form asp-controller="Trips" asp-action="Clone" asp-route-id="@Model.TripId" 
+              method="post" style="display: inline;"
+              onsubmit="return confirm('האם אתה בטוח שברצונך לשכפל את הטיול \'@Model.Title\'?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-copy"></i> שכפול טיול
+            </button>
+        </form>
     </div>
 </div>
 
