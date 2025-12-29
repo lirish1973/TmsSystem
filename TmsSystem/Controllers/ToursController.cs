@@ -623,5 +623,136 @@ namespace TmsSystem.Controllers
             // החזרה למסך הרשימה
             return RedirectToAction(nameof(Index));
         }
+
+        // POST: Tours/Clone/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Clone(int id)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔄 Starting clone process for Tour ID: {id}");
+
+                // Load the original tour with all related data
+                var originalTour = await _context.Tours
+                    .Include(t => t.Schedule)
+                    .Include(t => t.Includes)
+                    .Include(t => t.Excludes)
+                    .AsNoTracking() // Important: don't track the original
+                    .FirstOrDefaultAsync(t => t.TourId == id);
+
+                if (originalTour == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Tour {id} not found");
+                    TempData["ErrorMessage"] = "הסיור לא נמצא";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                System.Diagnostics.Debug.WriteLine($"✅ Original tour found: {originalTour.Title}");
+
+                // Create a new tour with copied properties
+                var clonedTour = new Tour
+                {
+                    Title = $"{originalTour.Title} (עותק)",
+                    Description = originalTour.Description,
+                    CreatedAt = DateTime.Now
+                };
+
+                System.Diagnostics.Debug.WriteLine($"✅ Created cloned tour object: {clonedTour.Title}");
+
+                // Save the cloned tour first to get TourId
+                _context.Tours.Add(clonedTour);
+                await _context.SaveChangesAsync();
+
+                System.Diagnostics.Debug.WriteLine($"✅ Cloned tour saved with ID: {clonedTour.TourId}");
+
+                // Create Itinerary for the cloned tour
+                var clonedItinerary = new Itinerary
+                {
+                    TourId = clonedTour.TourId,
+                    Name = $"לוח זמנים - {clonedTour.Title}"
+                };
+                _context.Itineraries.Add(clonedItinerary);
+                await _context.SaveChangesAsync();
+
+                System.Diagnostics.Debug.WriteLine($"✅ Cloned itinerary created with ID: {clonedItinerary.ItineraryId}");
+
+                // Clone Schedule (ItineraryItems)
+                if (originalTour.Schedule != null && originalTour.Schedule.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"📋 Cloning {originalTour.Schedule.Count} schedule items");
+
+                    foreach (var originalItem in originalTour.Schedule)
+                    {
+                        var clonedItem = new ItineraryItem
+                        {
+                            TourId = clonedTour.TourId,
+                            ItineraryId = clonedItinerary.ItineraryId,
+                            StartTime = originalItem.StartTime,
+                            EndTime = originalItem.EndTime,
+                            Location = originalItem.Location,
+                            Description = originalItem.Description
+                        };
+                        _context.ItineraryItems.Add(clonedItem);
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"✅ All schedule items cloned");
+                }
+
+                // Clone TourIncludes
+                if (originalTour.Includes != null && originalTour.Includes.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"📋 Cloning {originalTour.Includes.Count} include items");
+
+                    foreach (var originalInclude in originalTour.Includes)
+                    {
+                        var clonedInclude = new TourInclude
+                        {
+                            TourId = clonedTour.TourId,
+                            Text = originalInclude.Text,
+                            Description = originalInclude.Description
+                        };
+                        _context.TourIncludes.Add(clonedInclude);
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"✅ All include items cloned");
+                }
+
+                // Clone TourExcludes
+                if (originalTour.Excludes != null && originalTour.Excludes.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"📋 Cloning {originalTour.Excludes.Count} exclude items");
+
+                    foreach (var originalExclude in originalTour.Excludes)
+                    {
+                        var clonedExclude = new TourExclude
+                        {
+                            TourId = clonedTour.TourId,
+                            Text = originalExclude.Text,
+                            Description = originalExclude.Description
+                        };
+                        _context.TourExcludes.Add(clonedExclude);
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"✅ All exclude items cloned");
+                }
+
+                // Save all cloned related data
+                await _context.SaveChangesAsync();
+
+                System.Diagnostics.Debug.WriteLine($"✅ All cloned data saved successfully");
+
+                TempData["SuccessMessage"] = $"הסיור '{originalTour.Title}' שוכפל בהצלחה!";
+                return RedirectToAction(nameof(Edit), new { id = clonedTour.TourId });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error cloning tour {id}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                TempData["ErrorMessage"] = $"שגיאה בשכפול הסיור: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
 }

@@ -111,6 +111,14 @@
                             <a asp-action="Edit" asp-route-id="@tour.TourId" class="btn btn-sm btn-info text-white mb-1" title="עריכת הסיור">
                                 <i class="fas fa-edit"></i> עריכה
                             </a>
+                            <form asp-controller="Tours" asp-action="Clone" asp-route-id="@tour.TourId" 
+                                  method="post" style="display: inline;"
+                                  onsubmit="return confirm('האם אתה בטוח שברצונך לשכפל את הסיור \'@tour.Title\'?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success text-white mb-1" title="שכפול סיור">
+                                    <i class="fas fa-copy"></i> שכפול
+                                </button>
+                            </form>
                             <a asp-action="Delete" asp-route-id="@tour.TourId" class="btn btn-sm btn-danger"
                                onclick="return confirm('האם אתה בטוח שברצונך למחוק את הסיור?');" title="מחיקת הסיור">
                                 <i class="fas fa-trash-alt"></i> מחיקה

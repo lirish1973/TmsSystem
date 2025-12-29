@@ -19,6 +19,14 @@
                     <a asp-action="Edit" asp-route-id="@Model.TourId" class="btn btn-info text-white">
                         <i class="fas fa-edit"></i> עריכה
                     </a>
+                    <form asp-controller="Tours" asp-action="Clone" asp-route-id="@Model.TourId" 
+                          method="post" style="display: inline;"
+                          onsubmit="return confirm('האם אתה בטוח שברצונך לשכפל את הסיור \'@Model.Title\'?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success text-white" title="שכפול סיור">
+                            <i class="fas fa-copy"></i> שכפול
+                        </button>
+                    </form>
                 </div>
             </div>
 
