@@ -103,6 +103,14 @@
                                                class="btn btn-sm btn-warning text-white" title="עריכה">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <form asp-controller="Trips" asp-action="Clone" asp-route-id="@trip.TripId" 
+                                                  method="post" style="display: inline;"
+                                                  onsubmit="return confirm('האם אתה בטוח שברצונך לשכפל את הטיול \'@trip.Title\'?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-success text-white" title="שכפול טיול">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </form>
                                             <a asp-controller="Trips" asp-action="Delete" asp-route-id="@trip.TripId"
                                                class="btn btn-sm btn-danger text-white" title="מחיקה">
                                                 <i class="fas fa-trash"></i>
