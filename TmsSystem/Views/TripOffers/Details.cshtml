@@ -314,6 +314,10 @@
                 <button type="button" class="btn btn-success btn-lg" onclick="sendEmailOffer(@Model.TripOfferId)">
                     <i class="fas fa-envelope"></i> שליחה במייל
                 </button>
+                <button type="button" class="btn btn-primary btn-lg" onclick="saveOffer(@Model.TripOfferId)">
+                    <i class="fas fa-save"></i> שמירה
+                </button>
+
             </div>
         </div>
     </div>
@@ -831,5 +835,29 @@
         window.onbeforeprint = function() {
             document.title = 'הצעת_מחיר_@Model.OfferNumber';
         };
+        
+           function saveOffer(offerId) {
+               if (confirm('האם לשמור את הצעת המחיר?')) {
+                   fetch(`/TripOffers/Save/${offerId}`, {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json'
+                       }
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           alert('הצעת המחיר נשמרה בהצלחה ✅');
+                       } else {
+                           alert('שגיאה בשמירה: ' + data.message);
+                       }
+                   })
+                   .catch(error => {
+                       console.error('Error:', error);
+                       alert('שגיאה בתהליך השמירה');
+                   });
+               }
+           }
     </script>
+
 }
