@@ -782,7 +782,10 @@ namespace TmsSystem.Controllers
 
                 // Clone TripDays with image duplication
                 var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "trips");
-                Directory.CreateDirectory(uploadsFolder);
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
 
                 if (originalTrip.TripDays != null && originalTrip.TripDays.Any())
                 {
@@ -807,10 +810,27 @@ namespace TmsSystem.Controllers
                         {
                             try
                             {
+                                // Validate the path to prevent directory traversal
+                                var imagePath = originalDay.ImagePath.TrimStart('/');
+                                if (imagePath.Contains("..") || imagePath.Contains("~"))
+                                {
+                                    Console.WriteLine($"⚠️ Invalid image path detected: {originalDay.ImagePath}");
+                                    continue;
+                                }
+
                                 var originalImagePath = Path.Combine(
                                     _webHostEnvironment.WebRootPath,
-                                    originalDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
+                                    imagePath.Replace('/', Path.DirectorySeparatorChar)
                                 );
+
+                                // Ensure the path is within the expected uploads folder
+                                var normalizedPath = Path.GetFullPath(originalImagePath);
+                                var normalizedUploadsFolder = Path.GetFullPath(uploadsFolder);
+                                if (!normalizedPath.StartsWith(normalizedUploadsFolder, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Console.WriteLine($"⚠️ Image path outside allowed directory: {originalDay.ImagePath}");
+                                    continue;
+                                }
 
                                 if (System.IO.File.Exists(originalImagePath))
                                 {
@@ -830,9 +850,17 @@ namespace TmsSystem.Controllers
                                     Console.WriteLine($"⚠️ Original image not found: {originalImagePath}");
                                 }
                             }
+                            catch (UnauthorizedAccessException ex)
+                            {
+                                Console.WriteLine($"⚠️ Access denied while cloning image for day {originalDay.DayNumber}: {ex.Message}");
+                            }
+                            catch (IOException ex)
+                            {
+                                Console.WriteLine($"⚠️ I/O error cloning image for day {originalDay.DayNumber}: {ex.Message}");
+                            }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"⚠️ Error cloning image for day {originalDay.DayNumber}: {ex.Message}");
+                                Console.WriteLine($"⚠️ Unexpected error cloning image for day {originalDay.DayNumber}: {ex.Message}");
                                 // Continue without the image
                             }
                         }
