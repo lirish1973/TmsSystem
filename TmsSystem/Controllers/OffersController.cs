@@ -43,6 +43,7 @@ namespace TmsSystem.Controllers
                     .ToListAsync(),
 
                 Customers = await _context.Customers
+                    .Where(c => !c.IsDeleted)
                     .Select(c => new CustomerSelectViewModel
                     {
                         CustomerId = c.CustomerId,
@@ -820,7 +821,7 @@ namespace TmsSystem.Controllers
             try
             {
                 model.Customers = await _context.Customers
-                    .Where(c => c.CustomerId > 0)
+                    .Where(c => c.CustomerId > 0 && !c.IsDeleted)
                     .Select(c => new CustomerSelectViewModel
                     {
                         CustomerId = c.CustomerId,
@@ -871,7 +872,7 @@ namespace TmsSystem.Controllers
         public async Task<IActionResult> TestData()
         {
             var offers = await _context.Offers.ToListAsync();
-            var customers = await _context.Customers.ToListAsync();
+            var customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
             var guides = await _context.Guides.ToListAsync();
             var tours = await _context.Tours.ToListAsync();
 

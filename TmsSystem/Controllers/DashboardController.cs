@@ -28,7 +28,7 @@ namespace TmsSystem.Controllers
                 }
 
                 // לקוחות
-                ViewBag.TotalCustomers = await _context.Customers.CountAsync();
+                ViewBag.TotalCustomers = await _context.Customers.CountAsync(c => !c.IsDeleted);
 
                 // 🆕 מדריכים
                 ViewBag.TotalGuides = await _context.Guides.CountAsync(g => g.IsActive);

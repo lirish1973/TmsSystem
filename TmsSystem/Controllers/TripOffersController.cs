@@ -170,6 +170,7 @@ namespace TmsSystem.Controllers
             var viewModel = new CreateTripOfferViewModel
             {
                 Customers = await _context.Customers
+                    .Where(c => !c.IsDeleted)
                     .OrderBy(c => c.FullName)
                     .ToListAsync(),
 
@@ -198,7 +199,7 @@ namespace TmsSystem.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    model.Customers = await _context.Customers.ToListAsync();
+                    model.Customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
                     model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                     model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                     return View(model);
@@ -270,7 +271,7 @@ namespace TmsSystem.Controllers
                                ?? dbEx.Message;
 
                 ModelState.AddModelError("", $"שגיאה בשמירה: {errorMsg}");
-                model.Customers = await _context.Customers.ToListAsync();
+                model.Customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
                 model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                 model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                 return View(model);
@@ -281,7 +282,7 @@ namespace TmsSystem.Controllers
                 Console.WriteLine($"🔥 InnerException: {ex.InnerException?.Message}");
 
                 ModelState.AddModelError("", $"שגיאה: {ex.InnerException?.Message ?? ex.Message}");
-                model.Customers = await _context.Customers.ToListAsync();
+                model.Customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
                 model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                 model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                 return View(model);
@@ -330,7 +331,7 @@ namespace TmsSystem.Controllers
                     AdditionalNotes = tripOffer.AdditionalNotes,
 
                     // טעינת הרשימות
-                    Customers = await _context.Customers.OrderBy(c => c.FullName).ToListAsync(),
+                    Customers = await _context.Customers.Where(c => !c.IsDeleted).OrderBy(c => c.FullName).ToListAsync(),
                     Trips = await _context.Trips.Where(t => t.IsActive).OrderBy(t => t.Title).ToListAsync(),
                     PaymentMethods = await _context.PaymentMethods.OrderBy(p => p.PaymentName).ToListAsync()
                 };
@@ -358,7 +359,7 @@ namespace TmsSystem.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    model.Customers = await _context.Customers.ToListAsync();
+                    model.Customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
                     model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                     model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                     return View(model);
@@ -420,7 +421,7 @@ namespace TmsSystem.Controllers
                                ?? dbEx.Message;
 
                 ModelState.AddModelError("", $"שגיאה בעדכון: {errorMsg}");
-                model.Customers = await _context.Customers.ToListAsync();
+                model.Customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
                 model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                 model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                 return View(model);
@@ -429,7 +430,7 @@ namespace TmsSystem.Controllers
             {
                 Console.WriteLine($"❌ Exception: {ex.Message}");
                 ModelState.AddModelError("", $"שגיאה: {ex.Message}");
-                model.Customers = await _context.Customers.ToListAsync();
+                model.Customers = await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
                 model.Trips = await _context.Trips.Where(t => t.IsActive).ToListAsync();
                 model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
                 return View(model);
