@@ -10,10 +10,25 @@
     <div class="mb-3 text-end d-flex justify-content-between align-items-center">
         <div>
             <label class="me-2">סנן לקוחות:</label>
-            <select id="filterSelect" class="form-select d-inline-block w-auto" onchange="location.href='?filter=' + this.value">
-                <option value="active" selected="@(ViewBag.CurrentFilter == "active" ? "selected" : null)">פעילים</option>
-                <option value="inactive" selected="@(ViewBag.CurrentFilter == "inactive" ? "selected" : null)">לא פעילים</option>
-                <option value="all" selected="@(ViewBag.CurrentFilter == "all" ? "selected" : null)">כולם</option>
+            <select id="filterSelect" class="form-select d-inline-block w-auto">
+                @if (ViewBag.CurrentFilter == "active")
+                {
+                    <option value="active" selected>פעילים</option>
+                    <option value="inactive">לא פעילים</option>
+                    <option value="all">כולם</option>
+                }
+                else if (ViewBag.CurrentFilter == "inactive")
+                {
+                    <option value="active">פעילים</option>
+                    <option value="inactive" selected>לא פעילים</option>
+                    <option value="all">כולם</option>
+                }
+                else
+                {
+                    <option value="active">פעילים</option>
+                    <option value="inactive">לא פעילים</option>
+                    <option value="all" selected>כולם</option>
+                }
             </select>
         </div>
         <a asp-action="Create" class="btn btn-success">הוסף לקוח חדש</a>
@@ -71,3 +86,11 @@
         </tbody>
     </table>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('filterSelect').addEventListener('change', function() {
+            window.location.href = '?filter=' + this.value;
+        });
+    </script>
+}
