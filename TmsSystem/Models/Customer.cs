@@ -29,6 +29,8 @@ namespace TmsSystem.Models
         [DataType(DataType.Date)]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        public bool IsDeleted { get; set; } = false;
+
         [NotMapped]
         public string DisplayName => FullName ?? CustomerName ?? Email;
     }

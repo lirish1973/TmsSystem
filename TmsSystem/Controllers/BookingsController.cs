@@ -18,7 +18,7 @@ namespace TmsSystem.Controllers
         public IActionResult Create()
         {
             // אפשר למלא dropdowns של לקוחות/סיורים
-            ViewBag.Customers = _context.Customers.ToList();
+            ViewBag.Customers = _context.Customers.Where(c => !c.IsDeleted).ToList();
             ViewBag.Tours = _context.Tours.ToList();
             return View(new CreateBookingViewModel());
         }
@@ -29,7 +29,7 @@ namespace TmsSystem.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Customers = _context.Customers.ToList();
+                ViewBag.Customers = _context.Customers.Where(c => !c.IsDeleted).ToList();
                 ViewBag.Tours = _context.Tours.ToList();
                 return View(model);
             }

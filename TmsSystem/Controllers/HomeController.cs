@@ -20,7 +20,7 @@ namespace TmsSystem.Controllers
         {
             // העברת נתונים סטטיסטיים לדף
             ViewBag.TotalUsers = _userManager.Users.Count();
-            ViewBag.TotalCustomers = _context.Customers.Count();
+            ViewBag.TotalCustomers = _context.Customers.Count(c => !c.IsDeleted);
             ViewBag.TotalTours = _context.Tours.Count();
 
             // בדיקת תפקיד המשתמש הנוכחי

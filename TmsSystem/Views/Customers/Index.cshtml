@@ -7,7 +7,15 @@
 <div class="container-xxl mt-4" dir="rtl">
     <h2 class="mb-4 text-end">רשימת לקוחות</h2>
 
-    <div class="mb-3 text-end">
+    <div class="mb-3 text-end d-flex justify-content-between align-items-center">
+        <div>
+            <label class="me-2">סנן לקוחות:</label>
+            <select id="filterSelect" class="form-select d-inline-block w-auto" onchange="location.href='?filter=' + this.value">
+                <option value="active" selected="@(ViewBag.CurrentFilter == "active" ? "selected" : null)">פעילים</option>
+                <option value="inactive" selected="@(ViewBag.CurrentFilter == "inactive" ? "selected" : null)">לא פעילים</option>
+                <option value="all" selected="@(ViewBag.CurrentFilter == "all" ? "selected" : null)">כולם</option>
+            </select>
+        </div>
         <a asp-action="Create" class="btn btn-success">הוסף לקוח חדש</a>
     </div>
 
@@ -22,13 +30,14 @@
                 <th>שם מלא</th>
                 <th>תעודת זהות</th>
                 <th>כתובת</th>
+                <th>סטטוס</th>
                 <th>פעולות</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var customer in Model)
             {
-                <tr>
+                <tr class="@(customer.IsDeleted ? "table-secondary" : "")">
                     <td>@customer.CustomerName</td>
                     <td>@customer.CreatedAt.ToString("yyyy-MM-dd")</td>
                     <td>@customer.CompanyName</td>
@@ -38,11 +47,24 @@
                     <td>@customer.IDNumber</td>
                     <td>@customer.Address</td>
                     <td>
+                        @if (customer.IsDeleted)
+                        {
+                            <span class="badge bg-danger">לא פעיל</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">פעיל</span>
+                        }
+                    </td>
+                    <td>
                         <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-primary">עריכה</a>
-                        <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" style="display:inline-block"
-                              onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את הלקוח?');">
-                            <button type="submit" class="btn btn-sm btn-danger">מחק</button>
-                        </form>
+                        @if (!customer.IsDeleted)
+                        {
+                            <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" style="display:inline-block"
+                                  onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את הלקוח?');">
+                                <button type="submit" class="btn btn-sm btn-danger">מחק</button>
+                            </form>
+                        }
                     </td>
                 </tr>
             }

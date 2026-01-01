@@ -15,9 +15,26 @@ namespace TmsSystem.Controllers
         }
 
         // GET: Customers
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string filter = "active")
         {
-            var customers = await _context.Customers.ToListAsync();
+            IQueryable<Customer> query = _context.Customers;
+
+            switch (filter.ToLower())
+            {
+                case "all":
+                    // Show all customers
+                    break;
+                case "inactive":
+                    query = query.Where(c => c.IsDeleted);
+                    break;
+                case "active":
+                default:
+                    query = query.Where(c => !c.IsDeleted);
+                    break;
+            }
+
+            ViewBag.CurrentFilter = filter;
+            var customers = await query.ToListAsync();
             return View(customers);
         }
 
@@ -86,7 +103,7 @@ namespace TmsSystem.Controllers
             var customer = await _context.Customers.FindAsync(id);
             if (customer != null)
             {
-                _context.Customers.Remove(customer);
+                customer.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
