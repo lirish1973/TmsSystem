@@ -1,0 +1,183 @@
+@model IEnumerable<TmsSystem.Models.ImageGallery>
+
+@{
+    ViewData["Title"] = "ספריית תמונות";
+}
+
+<style>
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .gallery-item {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: white;
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .gallery-item-info {
+        padding: 15px;
+    }
+
+    .gallery-item-actions {
+        display: flex;
+        gap: 10px;
+        padding: 10px 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .upload-section {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- Upload Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3><i class="fas fa-images"></i> ספריית תמונות לטיולים</h3>
+        </div>
+        <div class="card-body">
+            <div class="upload-section">
+                <h4 class="text-center mb-4"><i class="fas fa-cloud-upload-alt"></i> העלאת תמונה חדשה</h4>
+                <form asp-action="Upload" method="post" enctype="multipart/form-data" class="row g-3">
+                    @Html.AntiForgeryToken()
+                    <div class="col-md-6">
+                        <label for="file" class="form-label">בחר תמונה *</label>
+                        <input type="file" class="form-control" id="file" name="file" accept="image/*" required>
+                        <small class="form-text text-muted">פורמטים נתמכים: JPG, PNG, GIF, WEBP</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="description" class="form-label">תיאור (אופציונלי)</label>
+                        <input type="text" class="form-control" id="description" name="description" placeholder="תיאור קצר של התמונה">
+                    </div>
+                    <div class="col-12 text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload"></i> העלה תמונה
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle"></i> @TempData["InfoMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Gallery Grid -->
+            @if (Model != null && Model.Any())
+            {
+                <div class="text-end mb-3">
+                    <span class="badge bg-info">סך הכל: @Model.Count() תמונות</span>
+                </div>
+
+                <div class="gallery-grid">
+                    @foreach (var image in Model)
+                    {
+                        <div class="gallery-item">
+                            <img src="@image.FilePath" alt="@image.FileName" loading="lazy">
+                            <div class="gallery-item-info">
+                                <h6 class="mb-1">@(string.IsNullOrEmpty(image.Description) ? image.FileName : image.Description)</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> @image.UploadedAt.ToString("dd/MM/yyyy")
+                                </small>
+                                @if (image.UsageCount > 0)
+                                {
+                                    <br />
+                                    <small class="text-info">
+                                        <i class="fas fa-link"></i> בשימוש: @image.UsageCount פעמים
+                                    </small>
+                                }
+                            </div>
+                            <div class="gallery-item-actions">
+                                <button type="button" class="btn btn-sm btn-outline-danger flex-fill delete-image-btn" data-image-id="@image.ImageId" data-image-name="@(string.IsNullOrEmpty(image.Description) ? image.FileName : image.Description)">
+                                    <i class="fas fa-trash"></i> מחק
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> אין תמונות בספרייה. העלה תמונה ראשונה כדי להתחיל.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Form (Hidden) -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Delete image handler
+            $('.delete-image-btn').on('click', function () {
+                var imageId = $(this).data('image-id');
+                var imageName = $(this).data('image-name');
+
+                if (confirm('האם אתה בטוח שברצונך למחוק את התמונה "' + imageName + '"?\n\nאם התמונה בשימוש בטיולים, היא תוחלף בתמונת ברירת מחדל.')) {
+                    var form = $('#deleteForm');
+                    form.attr('action', '@Url.Action("Delete", "ImageGallery")/' + imageId);
+                    form.submit();
+                }
+            });
+
+            // Preview image before upload
+            $('#file').on('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        console.log('Image selected:', file.name);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+}
