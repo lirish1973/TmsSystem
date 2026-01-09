@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Deployment files
+deployment.tar.gz
+publish/
+github_deploy_key*
+github_deploy_private_key.txt
+copy-log.txt
+*.tar.gz
