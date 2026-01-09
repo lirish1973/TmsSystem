@@ -188,7 +188,10 @@
 
     <script>
         $(document).ready(function () {
-            var currentDayIndex = -1; // Track which day we're selecting an image for
+            // Use namespace to avoid global variable conflicts
+            var TripImageGallery = {
+                currentDayIndex: -1
+            };
 
             // Load gallery images
             function loadGalleryImages() {
@@ -239,18 +242,18 @@
 
             // Select image from gallery
             function selectImageFromGallery(imagePath) {
-                if (currentDayIndex < 0) {
-                    alert('שגיאה: לא נבחר יום');
+                if (TripImageGallery.currentDayIndex < 0) {
+                    console.error('No day selected');
                     return;
                 }
 
-                var card = $(`.trip-day-card`).eq(currentDayIndex);
+                var card = $(`.trip-day-card`).eq(TripImageGallery.currentDayIndex);
                 
                 // Update the hidden ImagePath field
                 card.find('.image-path-input').val(imagePath);
 
                 // Show preview
-                var preview = card.find(`.gallery-preview-${currentDayIndex}`);
+                var preview = card.find(`.gallery-preview-${TripImageGallery.currentDayIndex}`);
                 preview.find('img').attr('src', imagePath);
                 preview.show();
 
@@ -260,14 +263,14 @@
                 // Close modal
                 $('#imageGalleryModal').modal('hide');
                 
-                console.log(`Image from gallery selected for day ${currentDayIndex}: ${imagePath}`);
+                console.log(`Image from gallery selected for day ${TripImageGallery.currentDayIndex}: ${imagePath}`);
             }
 
             // Open gallery modal - using event delegation
             $(document).on('click', '.select-from-gallery-btn', function(e) {
                 e.preventDefault();
-                currentDayIndex = $(this).data('day-index');
-                console.log('Opening gallery for day index:', currentDayIndex);
+                TripImageGallery.currentDayIndex = $(this).data('day-index');
+                console.log('Opening gallery for day index:', TripImageGallery.currentDayIndex);
                 
                 // Load gallery images
                 loadGalleryImages();
