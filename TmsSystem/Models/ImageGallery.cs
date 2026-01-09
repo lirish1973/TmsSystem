@@ -25,7 +25,7 @@ namespace TmsSystem.Models
         public string? Description { get; set; }
 
         [Column("UploadedAt")]
-        public DateTime UploadedAt { get; set; } = DateTime.Now;
+        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
         [Column("FileSize")]
         public long FileSize { get; set; }

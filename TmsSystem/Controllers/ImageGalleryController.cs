@@ -11,11 +11,16 @@ namespace TmsSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<ImageGalleryController> _logger;
 
-        public ImageGalleryController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public ImageGalleryController(
+            ApplicationDbContext context, 
+            IWebHostEnvironment webHostEnvironment,
+            ILogger<ImageGalleryController> logger)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
         }
 
         // GET: ImageGallery
@@ -73,7 +78,7 @@ namespace TmsSystem.Controllers
                     FilePath = $"/uploads/gallery/{fileName}",
                     Description = description,
                     FileSize = file.Length,
-                    UploadedAt = DateTime.Now,
+                    UploadedAt = DateTime.UtcNow,
                     IsActive = true,
                     UsageCount = 0
                 };
@@ -81,14 +86,14 @@ namespace TmsSystem.Controllers
                 _context.ImageGalleries.Add(imageGallery);
                 await _context.SaveChangesAsync();
 
-                Console.WriteLine($"✅ Image uploaded: {fileName}");
+                _logger.LogInformation("Image uploaded successfully: {FileName}", fileName);
                 TempData["SuccessMessage"] = "התמונה הועלתה בהצלחה לספרייה";
 
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error uploading image: {ex.Message}");
+                _logger.LogError(ex, "Error uploading image");
                 TempData["ErrorMessage"] = $"שגיאה בהעלאת תמונה: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
@@ -122,7 +127,8 @@ namespace TmsSystem.Controllers
                         tripDay.ImagePath = "/images/placeholder-image.svg";
                     }
 
-                    Console.WriteLine($"⚠️ Image used in {tripsUsingImage.Count} trip days, replaced with placeholder");
+                    _logger.LogWarning("Image {ImageId} was used in {Count} trip days, replaced with placeholder", 
+                        id, tripsUsingImage.Count);
                     TempData["InfoMessage"] = $"התמונה הייתה בשימוש ב-{tripsUsingImage.Count} ימי טיול והוחלפה בתמונת ברירת מחדל";
                 }
 
@@ -135,7 +141,7 @@ namespace TmsSystem.Controllers
                 if (System.IO.File.Exists(physicalPath))
                 {
                     System.IO.File.Delete(physicalPath);
-                    Console.WriteLine($"🗑️ Deleted physical file: {physicalPath}");
+                    _logger.LogInformation("Deleted physical file: {PhysicalPath}", physicalPath);
                 }
 
                 // Mark as inactive (soft delete)
@@ -147,7 +153,7 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error deleting image: {ex.Message}");
+                _logger.LogError(ex, "Error deleting image {ImageId}", id);
                 TempData["ErrorMessage"] = $"שגיאה במחיקת תמונה: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }

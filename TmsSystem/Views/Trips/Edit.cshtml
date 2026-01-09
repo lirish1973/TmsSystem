@@ -301,7 +301,10 @@
         $(document).ready(function () {
             console.log('Edit page loaded.Current days: ' + @orderedDays.Count);
 
-            var currentDayIndex = -1; // Track which day we're selecting an image for
+            // Use namespace to avoid global variable conflicts
+            var TripImageGallery = {
+                currentDayIndex: -1
+            };
 
             // Load gallery images
             function loadGalleryImages() {
@@ -352,12 +355,12 @@
 
             // Select image from gallery
             function selectImageFromGallery(imagePath) {
-                if (currentDayIndex < 0) {
-                    alert('שגיאה: לא נבחר יום');
+                if (TripImageGallery.currentDayIndex < 0) {
+                    console.error('No day selected');
                     return;
                 }
 
-                var card = $(`.trip-day-card[data-day-index="${currentDayIndex}"]`);
+                var card = $(`.trip-day-card[data-day-index="${TripImageGallery.currentDayIndex}"]`);
                 
                 // Update the hidden ImagePath field
                 card.find('.image-path-input').val(imagePath);
@@ -375,16 +378,13 @@
                             <label class="form-label">תמונה שנבחרה</label>
                             <div class="position-relative">
                                 <img src="${imagePath}" alt="תמונה מהספרייה" class="img-thumbnail current-image" style="max-height: 200px; max-width: 100%; display: block;" />
-                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn" data-day-index="${currentDayIndex}" style="z-index: 10;">
+                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn" data-day-index="${TripImageGallery.currentDayIndex}" style="z-index: 10;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
                     `;
                     card.find('.row').first().prepend(imagePreviewHtml);
-                    
-                    // Re-attach delete handler
-                    attachDeleteHandler();
                 }
 
                 // Clear file input if any
@@ -393,14 +393,14 @@
                 // Close modal
                 $('#imageGalleryModal').modal('hide');
                 
-                console.log(`Image from gallery selected for day ${currentDayIndex}: ${imagePath}`);
+                console.log(`Image from gallery selected for day ${TripImageGallery.currentDayIndex}: ${imagePath}`);
             }
 
             // Open gallery modal
             $(document).on('click', '.select-from-gallery-btn', function(e) {
                 e.preventDefault();
-                currentDayIndex = $(this).data('day-index');
-                console.log('Opening gallery for day index:', currentDayIndex);
+                TripImageGallery.currentDayIndex = $(this).data('day-index');
+                console.log('Opening gallery for day index:', TripImageGallery.currentDayIndex);
                 
                 // Load gallery images
                 loadGalleryImages();
@@ -409,22 +409,17 @@
                 $('#imageGalleryModal').modal('show');
             });
 
-            // Delete image handler
-            function attachDeleteHandler() {
-                $('.delete-image-btn').off('click').on('click', function(e) {
-                    e.preventDefault();
-                    var dayIndex = $(this).data('day-index');
-                    var card = $(this).closest('.trip-day-card');
+            // Delete image handler using event delegation
+            $(document).on('click', '.delete-image-btn', function(e) {
+                e.preventDefault();
+                var dayIndex = $(this).data('day-index');
+                var card = $(this).closest('.trip-day-card');
 
-                    if (confirm('האם אתה בטוח שברצונך למחוק את התמונה?')) {
-                        $(this).closest('.current-image-container').hide();
-                        card.find('.image-path-input').val('');
-                        alert('התמונה תימחק בעת שמירת השינויים');
-                    }
-                });
-            }
-
-            attachDeleteHandler();
+                if (confirm('האם אתה בטוח שברצונך למחוק את התמונה?')) {
+                    $(this).closest('.current-image-container').hide();
+                    card.find('.image-path-input').val('');
+                }
+            });
 
             // שינוי מספר ימים
             $('#numberOfDays').change(function () {
