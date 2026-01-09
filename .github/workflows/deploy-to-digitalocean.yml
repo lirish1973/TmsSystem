@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:  # מאפשר הפעלה ידנית מ-GitHub UI
 
+env:
+  BACKUP_RETENTION_COUNT: 5  # מספר גיבויים לשמור
+
 jobs:
   deploy:
     name: Build and Deploy to DigitalOcean
@@ -56,20 +59,22 @@ jobs:
             # הגדרות
             APP_DIR="/var/www/TmsSystem/TmsSystem"
             BACKUP_DIR="/var/www/TmsSystem/backups"
+            BACKUP_RETENTION=${{ env.BACKUP_RETENTION_COUNT }}
             TIMESTAMP=$(date +%Y%m%d_%H%M%S)
             
             # יצירת תיקיות במידת הצורך
-            sudo mkdir -p $APP_DIR
-            sudo mkdir -p $BACKUP_DIR
+            sudo mkdir -p "$APP_DIR"
+            sudo mkdir -p "$BACKUP_DIR"
             
             # גיבוי הגרסה הקיימת
             if [ -d "$APP_DIR" ] && [ "$(ls -A $APP_DIR)" ]; then
               echo "Creating backup of existing deployment..."
-              sudo tar -czf $BACKUP_DIR/backup_$TIMESTAMP.tar.gz -C $APP_DIR .
+              sudo tar -czf "$BACKUP_DIR/backup_$TIMESTAMP.tar.gz" -C "$APP_DIR" .
               
-              # שמירת רק 5 הגיבויים האחרונים
-              cd $BACKUP_DIR
-              ls -t backup_*.tar.gz | tail -n +6 | xargs -r sudo rm
+              # שמירת מספר מוגדר של גיבויים אחרונים (ברירת מחדל: 5)
+              cd "$BACKUP_DIR"
+              KEEP_COUNT=$((BACKUP_RETENTION + 1))
+              ls -t backup_*.tar.gz | tail -n +$KEEP_COUNT | xargs -r sudo rm
             fi
             
             # עצירת השירות (אם קיים)
@@ -81,7 +86,7 @@ jobs:
             # ניקוי התיקייה הישנה - בטוח יותר
             if [ -d "$APP_DIR" ] && [ "$APP_DIR" = "/var/www/TmsSystem/TmsSystem" ]; then
               echo "Cleaning old deployment files..."
-              sudo find $APP_DIR -mindepth 1 -delete
+              sudo find "$APP_DIR" -mindepth 1 -delete
             else
               echo "Error: APP_DIR validation failed"
               exit 1
@@ -89,14 +94,11 @@ jobs:
             
             # חילוץ הגרסה החדשה
             echo "Extracting new deployment..."
-            sudo tar -xzf /tmp/deployment.tar.gz -C $APP_DIR
+            sudo tar -xzf /tmp/deployment.tar.gz -C "$APP_DIR"
             
             # הגדרת הרשאות
-            sudo chown -R www-data:www-data $APP_DIR
-            sudo chmod -R 755 $APP_DIR
-            
-            # מתן הרשאות הרצה לקובץ ה-DLL
-            sudo chmod +x $APP_DIR/TmsSystem.dll
+            sudo chown -R www-data:www-data "$APP_DIR"
+            sudo chmod -R 755 "$APP_DIR"
             
             # ניקוי קובץ הפריסה הזמני
             rm -f /tmp/deployment.tar.gz
