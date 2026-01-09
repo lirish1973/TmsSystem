@@ -484,16 +484,16 @@ namespace TmsSystem.Controllers
                             // ✅ אם יש קובץ ולא ריק - העלה אותו
                             if (file != null && file.Length > 0)
                             {
-                                var existingDay = orderedDays[displayIndex];
+                                var IsExistingDay = orderedDays[displayIndex];
 
-                                Console.WriteLine($"📸 Processing image for day index {displayIndex}, TripDayId: {existingDay.TripDayId}");
+                                Console.WriteLine($"📸 Processing image for day index {displayIndex}, TripDayId: {IsExistingDay.TripDayId}");
 
                                 // ❌ מחיקת תמונה ישנה רק אם הוספנו חדשה
-                                if (!string.IsNullOrEmpty(existingDay.ImagePath))
+                                if (!string.IsNullOrEmpty(IsExistingDay.ImagePath))
                                 {
                                     var oldImagePath = Path.Combine(
                                         _webHostEnvironment.WebRootPath ?? "",
-                                        existingDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
+                                        IsExistingDay.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
                                     );
 
                                     try

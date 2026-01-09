@@ -173,7 +173,7 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
- //app.Urls.Clear();
- //app.Urls.Add("http://0.0.0.0:5000"); // HTTP - uncomment if needed
+ app.Urls.Clear();
+ app.Urls.Add("http://0.0.0.0:5000"); // HTTP - uncomment if needed
 
 app.Run();
