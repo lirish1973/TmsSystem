@@ -114,14 +114,21 @@ echo -e "${YELLOW}שלב 4: הגדרת Firewall (אופציונלי)${NC}"
 # בדיקה אם ufw מותקן
 if command -v ufw &> /dev/null; then
     echo "האם להגדיר חומת אש (UFW)? (y/n)"
-    read -r setup_firewall
+    read -r -n 1 setup_firewall
+    echo ""
     
-    if [[ $setup_firewall == "y" || $setup_firewall == "Y" ]]; then
+    # בדיקת תקינות הקלט
+    if [[ $setup_firewall =~ ^[Yy]$ ]]; then
+        echo "מגדיר חומת אש..."
         sudo ufw allow 5000/tcp
         sudo ufw allow 80/tcp
         sudo ufw allow 443/tcp
         sudo ufw allow 22/tcp
         echo -e "${GREEN}✓ Firewall הוגדר${NC}"
+    elif [[ $setup_firewall =~ ^[Nn]$ ]]; then
+        echo -e "${YELLOW}מדלג על הגדרת Firewall${NC}"
+    else
+        echo -e "${YELLOW}⚠ קלט לא תקין, מדלג על הגדרת Firewall${NC}"
     fi
 else
     echo -e "${YELLOW}⚠ UFW לא מותקן, מדלג...${NC}"
