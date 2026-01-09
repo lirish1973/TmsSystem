@@ -170,6 +170,13 @@ namespace TmsSystem.Controllers
 
                 for (int i = 0; i < tripDaysList.Count; i++)
                 {
+                    // בדיקה אם נבחרה תמונה מהספרייה (ImagePath כבר מאוכלס)
+                    if (!string.IsNullOrEmpty(tripDaysList[i].ImagePath))
+                    {
+                        Console.WriteLine($"✅ Image from gallery selected for day {i + 1}: {tripDaysList[i].ImagePath}");
+                        continue; // דלג על העלאת קובץ כי כבר יש תמונה מהספרייה
+                    }
+
                     // חיפוש קובץ עבור יום זה בשם dayImages_0, dayImages_1 וכו'
                     var fileKey = $"dayImages_{i}";
                     var files = form.Files.GetFiles(fileKey);
@@ -447,6 +454,22 @@ namespace TmsSystem.Controllers
                 {
                     try
                     {
+                        var existingDay = orderedDays[displayIndex];
+                        
+                        // בדיקה אם נבחרה תמונה מהספרייה (ImagePath מהטופס)
+                        var dayFromForm = trip.TripDays?.OrderBy(d => d.DayNumber).ElementAtOrDefault(displayIndex);
+                        if (dayFromForm != null && !string.IsNullOrEmpty(dayFromForm.ImagePath))
+                        {
+                            // אם התמונה שונתה (תמונה חדשה מהספרייה)
+                            if (existingDay.ImagePath != dayFromForm.ImagePath)
+                            {
+                                existingDay.ImagePath = dayFromForm.ImagePath;
+                                Console.WriteLine($"✅ Image from gallery selected for day {displayIndex + 1}: {dayFromForm.ImagePath}");
+                                _context.Update(existingDay);
+                            }
+                            continue; // דלג על העלאת קובץ כי כבר יש תמונה מהספרייה
+                        }
+
                         // חיפוש קובץ עבור יום זה בשם dayImage_0, dayImage_1 וכו'
                         var fileKey = $"dayImage_{displayIndex}";
                         var files = form.Files.GetFiles(fileKey);

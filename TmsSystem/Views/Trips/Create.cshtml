@@ -279,6 +279,29 @@
                 $('#imageGalleryModal').modal('show');
             });
 
+            // Handle file input changes to show preview
+            $(document).on('change', '.day-image-input', function(e) {
+                var input = this;
+                var dayIndex = $(input).closest('.trip-day-card').index();
+                
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        var preview = $(`.gallery-preview-${dayIndex}`);
+                        preview.find('img').attr('src', e.target.result);
+                        preview.show();
+                        
+                        // Clear the hidden ImagePath field since we're using an uploaded file
+                        $(input).closest('.trip-day-card').find('.image-path-input').val('');
+                        
+                        console.log(`File selected for day ${dayIndex + 1}: ${input.files[0].name}`);
+                    }
+                    
+                    reader.readAsDataURL(input.files[0]);
+                }
+            });
+
             // יצירת ימים ראשוניים בהתאם לערך שנבחר
             var initialDays = parseInt($('#numberOfDays').val()) || 7;
             generateDays(initialDays);

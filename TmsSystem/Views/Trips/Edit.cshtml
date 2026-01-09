@@ -409,6 +409,48 @@
                 $('#imageGalleryModal').modal('show');
             });
 
+            // Handle file input changes to show preview
+            $(document).on('change', '.day-image-input', function(e) {
+                var input = this;
+                var card = $(input).closest('.trip-day-card');
+                var dayIndex = card.data('day-index');
+                
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        var currentImageContainer = card.find('.current-image-container');
+                        
+                        if (currentImageContainer.length > 0) {
+                            // Update existing image preview
+                            currentImageContainer.find('img').attr('src', e.target.result);
+                            currentImageContainer.show();
+                        } else {
+                            // Create new image preview
+                            var imagePreviewHtml = `
+                                <div class="col-md-6 mb-3 current-image-container">
+                                    <label class="form-label">תמונה שנבחרה</label>
+                                    <div class="position-relative">
+                                        <img src="${e.target.result}" alt="תמונה נבחרה" class="img-thumbnail current-image" style="max-height: 200px; max-width: 100%; display: block;" />
+                                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn" data-day-index="${dayIndex}" style="z-index: 10;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            card.find('.row').first().prepend(imagePreviewHtml);
+                        }
+                        
+                        // Clear the hidden ImagePath field since we're using an uploaded file
+                        card.find('.image-path-input').val('');
+                        
+                        console.log(`File selected for day ${dayIndex + 1}: ${input.files[0].name}`);
+                    }
+                    
+                    reader.readAsDataURL(input.files[0]);
+                }
+            });
+
             // Delete image handler using event delegation
             $(document).on('click', '.delete-image-btn', function(e) {
                 e.preventDefault();
