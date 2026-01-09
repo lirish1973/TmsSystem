@@ -114,12 +114,15 @@ cat ~/.ssh/github_deploy_key.pub
 
 ```bash
 # הוספת המפתח הציבורי ל-authorized_keys
-echo "המפתח_הציבורי_שלך" >> ~/.ssh/authorized_keys
+# החלף את התוכן בין המירכאות במפתח הציבורי שיצרת (תוכן הקובץ github_deploy_key.pub)
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQ... github-actions-deploy-tmssystem" >> ~/.ssh/authorized_keys
 
 # הגדרת הרשאות
 chmod 600 ~/.ssh/authorized_keys
 chmod 700 ~/.ssh
 ```
+
+**טיפ:** אם רצת את `generate-ssh-keys.sh`, המפתח הציבורי הוצג במסך. העתק אותו כולל.
 
 ## 🔐 שלב 3: הגדרת GitHub Secrets
 

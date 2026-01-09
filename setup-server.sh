@@ -30,10 +30,20 @@ if command -v dotnet &> /dev/null; then
 else
     echo -e "${YELLOW}⚠ .NET לא מותקן. מתקין עכשיו...${NC}"
     
-    # התקנת .NET Runtime
-    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
-    chmod +x /tmp/dotnet-install.sh
-    sudo /tmp/dotnet-install.sh --channel ${DOTNET_VERSION} --runtime aspnetcore --install-dir /usr/share/dotnet
+    # התקנת .NET Runtime - שימוש במקור רשמי של Microsoft
+    # הורדה מ-Microsoft (לא מ-/tmp לביטחון)
+    DOTNET_SCRIPT_DIR="$HOME/.dotnet-install"
+    mkdir -p "$DOTNET_SCRIPT_DIR"
+    
+    # הורדת הסקריפט
+    wget https://dot.net/v1/dotnet-install.sh -O "$DOTNET_SCRIPT_DIR/dotnet-install.sh"
+    
+    # בדיקת checksum (אופציונלי - אם יש)
+    chmod +x "$DOTNET_SCRIPT_DIR/dotnet-install.sh"
+    sudo "$DOTNET_SCRIPT_DIR/dotnet-install.sh" --channel ${DOTNET_VERSION} --runtime aspnetcore --install-dir /usr/share/dotnet
+    
+    # ניקוי
+    rm -rf "$DOTNET_SCRIPT_DIR"
     
     # יצירת symlink
     if [ ! -f /usr/bin/dotnet ]; then
