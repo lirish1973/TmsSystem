@@ -151,6 +151,36 @@
     </div>
 </div>
 
+<!-- Image Gallery Modal -->
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-labelledby="imageGalleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageGalleryModalLabel"><i class="fas fa-images"></i> בחר תמונה מהספרייה</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <p class="text-muted">טוען תמונות...</p>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">טוען...</span>
+                    </div>
+                </div>
+                <div id="galleryImagesContainer" class="row g-3" style="display: none;">
+                    <!-- Gallery images will be loaded here dynamically -->
+                </div>
+                <div id="galleryEmptyMessage" class="alert alert-info text-center" style="display: none;">
+                    <i class="fas fa-info-circle"></i> אין תמונות בספרייה.
+                    <a href="@Url.Action("Index", "ImageGallery")" target="_blank" class="alert-link">לחץ כאן להעלאת תמונות</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -158,6 +188,94 @@
 
     <script>
         $(document).ready(function () {
+            var currentDayIndex = -1; // Track which day we're selecting an image for
+
+            // Load gallery images
+            function loadGalleryImages() {
+                $.ajax({
+                    url: '@Url.Action("GetImages", "ImageGallery")',
+                    type: 'GET',
+                    success: function(images) {
+                        var container = $('#galleryImagesContainer');
+                        container.empty();
+
+                        if (images && images.length > 0) {
+                            images.forEach(function(image) {
+                                var imageHtml = `
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="card h-100 gallery-image-card" style="cursor: pointer;" data-image-path="${image.filePath}">
+                                            <img src="${image.filePath}" class="card-img-top" alt="${image.fileName}" style="height: 200px; object-fit: cover;">
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">${image.description || image.fileName}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                container.append(imageHtml);
+                            });
+
+                            container.show();
+                            $('#galleryEmptyMessage').hide();
+                            $('.spinner-border').parent().hide();
+
+                            // Handle image selection
+                            $('.gallery-image-card').on('click', function() {
+                                var imagePath = $(this).data('image-path');
+                                selectImageFromGallery(imagePath);
+                            });
+                        } else {
+                            container.hide();
+                            $('#galleryEmptyMessage').show();
+                            $('.spinner-border').parent().hide();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading gallery images:', error);
+                        $('#galleryImagesContainer').hide();
+                        $('.spinner-border').parent().html('<div class="alert alert-danger">שגיאה בטעינת תמונות. אנא נסה שנית.</div>');
+                    }
+                });
+            }
+
+            // Select image from gallery
+            function selectImageFromGallery(imagePath) {
+                if (currentDayIndex < 0) {
+                    alert('שגיאה: לא נבחר יום');
+                    return;
+                }
+
+                var card = $(`.trip-day-card`).eq(currentDayIndex);
+                
+                // Update the hidden ImagePath field
+                card.find('.image-path-input').val(imagePath);
+
+                // Show preview
+                var preview = card.find(`.gallery-preview-${currentDayIndex}`);
+                preview.find('img').attr('src', imagePath);
+                preview.show();
+
+                // Clear file input if any
+                card.find('.day-image-input').val('');
+
+                // Close modal
+                $('#imageGalleryModal').modal('hide');
+                
+                console.log(`Image from gallery selected for day ${currentDayIndex}: ${imagePath}`);
+            }
+
+            // Open gallery modal - using event delegation
+            $(document).on('click', '.select-from-gallery-btn', function(e) {
+                e.preventDefault();
+                currentDayIndex = $(this).data('day-index');
+                console.log('Opening gallery for day index:', currentDayIndex);
+                
+                // Load gallery images
+                loadGalleryImages();
+                
+                // Show modal
+                $('#imageGalleryModal').modal('show');
+            });
+
             // יצירת ימים ראשוניים בהתאם לערך שנבחר
             var initialDays = parseInt($('#numberOfDays').val()) || 7;
             generateDays(initialDays);
@@ -207,8 +325,20 @@
 
                                    <div class="mb-3">
             <label class="form-label">תמונה ליום</label>
-            <input type="file" name="dayImages_${index}" class="form-control" accept="image/*" />
-            <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
+            <div class="btn-group d-flex mb-2" role="group">
+                <button type="button" class="btn btn-outline-primary select-from-gallery-btn" data-day-index="${index}">
+                    <i class="fas fa-images"></i> בחר מהספרייה
+                </button>
+                <label class="btn btn-outline-secondary" style="cursor: pointer;">
+                    <i class="fas fa-upload"></i> העלה חדשה
+                    <input type="file" name="dayImages_${index}" class="form-control day-image-input d-none" accept="image/*" />
+                </label>
+            </div>
+            <input type="hidden" name="TripDays[${index}].ImagePath" value="" class="image-path-input" />
+            <div class="gallery-preview-${index}" style="display: none; margin-top: 10px;">
+                <img src="" alt="תמונה נבחרה" class="img-thumbnail" style="max-height: 150px; max-width: 100%;">
+            </div>
+            <small class="form-text text-muted">בחר תמונה מהספרייה או העלה חדשה (גודל מומלץ: 1200x800 פיקסלים)</small>
         </div>
                         </div>
                     </div>

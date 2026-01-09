@@ -164,15 +164,23 @@
                                         }
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">@(string.IsNullOrEmpty(day.ImagePath) ? "תמונה ליום" : "תמונה חדשה (אופציונלי)")</label>
-                                            <input type="file" name="dayImage_@i" class="form-control day-image-input" accept="image/*" data-day-index="@i" />
+                                            <div class="btn-group d-flex mb-2" role="group">
+                                                <button type="button" class="btn btn-outline-primary select-from-gallery-btn" data-day-index="@i">
+                                                    <i class="fas fa-images"></i> בחר מהספרייה
+                                                </button>
+                                                <label class="btn btn-outline-secondary" style="cursor: pointer;">
+                                                    <i class="fas fa-upload"></i> העלה חדשה
+                                                    <input type="file" name="dayImage_@i" class="form-control day-image-input d-none" accept="image/*" data-day-index="@i" />
+                                                </label>
+                                            </div>
                                             <small class="form-text text-muted">
                                                 @if (!string.IsNullOrEmpty(day.ImagePath))
                                                 {
-                                                    <text>השאר ריק כדי לשמור את התמונה הנוכחית</text>
+                                                    <text>בחר תמונה מהספרייה או העלה חדשה, או השאר ריק לשמור הנוכחית</text>
                                                 }
                                                 else
                                                 {
-                                                    <text>גודל מומלץ: 1200x800 פיקסלים</text>
+                                                    <text>בחר תמונה מהספרייה או העלה חדשה (גודל מומלץ: 1200x800 פיקסלים)</text>
                                                 }
                                             </small>
                                         </div>
@@ -254,6 +262,36 @@
     </div>
 </div>
 
+<!-- Image Gallery Modal -->
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-labelledby="imageGalleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageGalleryModalLabel"><i class="fas fa-images"></i> בחר תמונה מהספרייה</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <p class="text-muted">טוען תמונות...</p>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">טוען...</span>
+                    </div>
+                </div>
+                <div id="galleryImagesContainer" class="row g-3" style="display: none;">
+                    <!-- Gallery images will be loaded here dynamically -->
+                </div>
+                <div id="galleryEmptyMessage" class="alert alert-info text-center" style="display: none;">
+                    <i class="fas fa-info-circle"></i> אין תמונות בספרייה.
+                    <a href="@Url.Action("Index", "ImageGallery")" target="_blank" class="alert-link">לחץ כאן להעלאת תמונות</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -263,18 +301,130 @@
         $(document).ready(function () {
             console.log('Edit page loaded.Current days: ' + @orderedDays.Count);
 
-            // מחיקת תמונה
-            $(document).on('click', '.delete-image-btn', function(e) {
-                e.preventDefault();
-                var dayIndex = $(this).data('day-index');
-                var card = $(this).closest('.trip-day-card');
+            var currentDayIndex = -1; // Track which day we're selecting an image for
 
-                if (confirm('האם אתה בטוח שברצונך למחוק את התמונה?')) {
-                    $(this).closest('.current-image-container').hide();
-                    card.find('.image-path-input').val('');
-                    alert('התמונה תימחק בעת שמירת השינויים');
+            // Load gallery images
+            function loadGalleryImages() {
+                $.ajax({
+                    url: '@Url.Action("GetImages", "ImageGallery")',
+                    type: 'GET',
+                    success: function(images) {
+                        var container = $('#galleryImagesContainer');
+                        container.empty();
+
+                        if (images && images.length > 0) {
+                            images.forEach(function(image) {
+                                var imageHtml = `
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="card h-100 gallery-image-card" style="cursor: pointer;" data-image-path="${image.filePath}">
+                                            <img src="${image.filePath}" class="card-img-top" alt="${image.fileName}" style="height: 200px; object-fit: cover;">
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">${image.description || image.fileName}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                container.append(imageHtml);
+                            });
+
+                            container.show();
+                            $('#galleryEmptyMessage').hide();
+                            $('.spinner-border').parent().hide();
+
+                            // Handle image selection
+                            $('.gallery-image-card').on('click', function() {
+                                var imagePath = $(this).data('image-path');
+                                selectImageFromGallery(imagePath);
+                            });
+                        } else {
+                            container.hide();
+                            $('#galleryEmptyMessage').show();
+                            $('.spinner-border').parent().hide();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading gallery images:', error);
+                        $('#galleryImagesContainer').hide();
+                        $('.spinner-border').parent().html('<div class="alert alert-danger">שגיאה בטעינת תמונות. אנא נסה שנית.</div>');
+                    }
+                });
+            }
+
+            // Select image from gallery
+            function selectImageFromGallery(imagePath) {
+                if (currentDayIndex < 0) {
+                    alert('שגיאה: לא נבחר יום');
+                    return;
                 }
+
+                var card = $(`.trip-day-card[data-day-index="${currentDayIndex}"]`);
+                
+                // Update the hidden ImagePath field
+                card.find('.image-path-input').val(imagePath);
+
+                // Update or create image preview
+                var currentImageContainer = card.find('.current-image-container');
+                if (currentImageContainer.length > 0) {
+                    // Update existing image
+                    currentImageContainer.find('img').attr('src', imagePath);
+                    currentImageContainer.show();
+                } else {
+                    // Create new image preview
+                    var imagePreviewHtml = `
+                        <div class="col-md-6 mb-3 current-image-container">
+                            <label class="form-label">תמונה שנבחרה</label>
+                            <div class="position-relative">
+                                <img src="${imagePath}" alt="תמונה מהספרייה" class="img-thumbnail current-image" style="max-height: 200px; max-width: 100%; display: block;" />
+                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 delete-image-btn" data-day-index="${currentDayIndex}" style="z-index: 10;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    card.find('.row').first().prepend(imagePreviewHtml);
+                    
+                    // Re-attach delete handler
+                    attachDeleteHandler();
+                }
+
+                // Clear file input if any
+                card.find('.day-image-input').val('');
+
+                // Close modal
+                $('#imageGalleryModal').modal('hide');
+                
+                console.log(`Image from gallery selected for day ${currentDayIndex}: ${imagePath}`);
+            }
+
+            // Open gallery modal
+            $(document).on('click', '.select-from-gallery-btn', function(e) {
+                e.preventDefault();
+                currentDayIndex = $(this).data('day-index');
+                console.log('Opening gallery for day index:', currentDayIndex);
+                
+                // Load gallery images
+                loadGalleryImages();
+                
+                // Show modal
+                $('#imageGalleryModal').modal('show');
             });
+
+            // Delete image handler
+            function attachDeleteHandler() {
+                $('.delete-image-btn').off('click').on('click', function(e) {
+                    e.preventDefault();
+                    var dayIndex = $(this).data('day-index');
+                    var card = $(this).closest('.trip-day-card');
+
+                    if (confirm('האם אתה בטוח שברצונך למחוק את התמונה?')) {
+                        $(this).closest('.current-image-container').hide();
+                        card.find('.image-path-input').val('');
+                        alert('התמונה תימחק בעת שמירת השינויים');
+                    }
+                });
+            }
+
+            attachDeleteHandler();
 
             // שינוי מספר ימים
             $('#numberOfDays').change(function () {
