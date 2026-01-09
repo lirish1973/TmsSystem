@@ -30,6 +30,7 @@ namespace TmsSystem.Data
         public DbSet<Trip> Trips { get; set; }
         public DbSet<TripDay> TripDays { get; set; }
         public DbSet<TripOffer> TripOffers { get; set; }
+        public DbSet<ImageGallery> ImageGalleries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -45,6 +46,7 @@ namespace TmsSystem.Data
             builder.Entity<Trip>().ToTable("trips");
             builder.Entity<TripDay>().ToTable("tripdays");
             builder.Entity<TripOffer>().ToTable("tripoffers");
+            builder.Entity<ImageGallery>().ToTable("imagegallery");
 
             // ===== Identity - IdentityUserLogin =====
             builder.Entity<IdentityUserLogin<string>>()
@@ -121,6 +123,12 @@ namespace TmsSystem.Data
                 // אינדקס ייחודי - טיול + מספר יום
                 entity.HasIndex(td => new { td.TripId, td.DayNumber })
                     .IsUnique();
+            });
+
+            // ===== ImageGallery =====
+            builder.Entity<ImageGallery>(entity =>
+            {
+                entity.HasKey(e => e.ImageId);
             });
 
             // ===== TripOffer - הצעות מחיר לטיולים =====
