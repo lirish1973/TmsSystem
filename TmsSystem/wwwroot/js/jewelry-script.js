@@ -215,73 +215,32 @@
     // ================================
     // Initialize All Features
     // ================================
+    const initializeAll = () => {
+        initSmoothScroll();
+        initHeaderScroll();
+        initScrollAnimations();
+        initMobileMenu();
+        initLazyLoading();
+        initFormValidation();
+        initSearch();
+        initCart();
+        initParallax();
+        initCollectionCards();
+        initTestimonials();
+        
+        console.log('Luxe Jewelry homepage initialized successfully');
+    };
+
     const init = () => {
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                initSmoothScroll();
-                initHeaderScroll();
-                initScrollAnimations();
-                initMobileMenu();
-                initLazyLoading();
-                initFormValidation();
-                initSearch();
-                initCart();
-                initParallax();
-                initCollectionCards();
-                initTestimonials();
-                
-                console.log('Luxe Jewelry homepage initialized successfully');
-            });
+            document.addEventListener('DOMContentLoaded', initializeAll);
         } else {
-            initSmoothScroll();
-            initHeaderScroll();
-            initScrollAnimations();
-            initMobileMenu();
-            initLazyLoading();
-            initFormValidation();
-            initSearch();
-            initCart();
-            initParallax();
-            initCollectionCards();
-            initTestimonials();
-            
-            console.log('Luxe Jewelry homepage initialized successfully');
+            initializeAll();
         }
     };
 
     // Start initialization
     init();
-
-    // ================================
-    // Utility Functions
-    // ================================
-    
-    // Debounce function for performance
-    const debounce = (func, wait) => {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    };
-
-    // Throttle function for scroll events
-    const throttle = (func, limit) => {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    };
 
 })();
