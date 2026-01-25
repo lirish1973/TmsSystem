@@ -53,63 +53,84 @@ namespace TmsSystem.Services
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Arial, sans-serif;
+            line-height: 1.8;
+            color: #2d3748;
+            background: linear-gradient(to bottom, #f7fafc 0%, #edf2f7 100%);
             margin: 0;
             padding: 20px;
             direction: rtl;
             text-align: right;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 50px 40px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>') no-repeat bottom;
+            background-size: cover;
+            opacity: 0.1;
         }
         .header h1 {
             margin: 0;
-            font-size: 2.2em;
-            font-weight: bold;
+            font-size: 2.8em;
+            font-weight: 700;
+            text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
         }
         .header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-            font-size: 1.1em;
+            margin: 15px 0 0 0;
+            opacity: 0.95;
+            font-size: 1.2em;
+            font-weight: 300;
         }
         .content {
-            padding: 30px;
+            padding: 40px;
             direction: rtl;
         }
         .section {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-right: 4px solid #1e3a8a;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
+            border-radius: 12px;
+            border-right: 6px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .section-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #1e3a8a;
-            margin-bottom: 15px;
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
             text-align: right;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
         }
         .info-row {
-            margin-bottom: 12px;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -119,60 +140,71 @@ namespace TmsSystem.Services
             border-bottom: none;
         }
         .info-label {
-            font-weight: bold;
-            color: #495057;
-            min-width: 120px;
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 140px;
             text-align: right;
+            font-size: 1.05em;
         }
         .info-value {
-            color: #212529;
+            color: #2d3748;
             text-align: right;
             flex: 1;
+            font-size: 1.05em;
         }
         .price-section {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            border-right: 4px solid #28a745;
+            border-right: 6px solid #047857;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
         }
         .price-section .section-title {
             color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
         }
         .price-section .info-label {
-            color: rgba(255,255,255,0.9);
+            color: rgba(255,255,255,0.95);
+            font-weight: 600;
         }
         .price-section .info-value {
             color: white;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1.15em;
         }
         .price-highlight {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         .schedule-item {
             background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border-right: 3px solid #1e3a8a;
+            padding: 18px;
+            margin-bottom: 18px;
+            border-radius: 10px;
+            border-right: 4px solid #667eea;
             direction: rtl;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
         .schedule-time {
-            font-weight: bold;
-            color: #1e3a8a;
-            font-size: 16px;
-            margin-bottom: 8px;
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+            margin-bottom: 10px;
             text-align: right;
         }
         .schedule-location {
-            font-weight: bold;
-            color: #495057;
-            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
             text-align: right;
+            font-size: 1.05em;
         }
         .schedule-description {
-            color: #6c757d;
-            font-size: 14px;
-            line-height: 1.5;
+            color: #718096;
+            font-size: 1.05em;
+            line-height: 1.8;
             text-align: right;
         }
         .includes-list, .excludes-list {
@@ -181,92 +213,113 @@ namespace TmsSystem.Services
             direction: rtl;
         }
         .includes-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
             position: relative;
-            padding-right: 25px;
+            padding-right: 35px;
             text-align: right;
+            font-size: 1.05em;
+            line-height: 1.6;
         }
         .includes-list li:before {
             content: '✓';
             position: absolute;
             right: 0;
-            color: #28a745;
+            color: #10b981;
             font-weight: bold;
+            font-size: 20px;
         }
         .excludes-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
             position: relative;
-            padding-right: 25px;
+            padding-right: 35px;
             text-align: right;
+            font-size: 1.05em;
+            line-height: 1.6;
         }
         .excludes-list li:before {
             content: '✗';
             position: absolute;
             right: 0;
-            color: #dc3545;
+            color: #ef4444;
             font-weight: bold;
+            font-size: 20px;
         }
         .terms-section {
-            background: #e3f2fd;
-            border-right: 4px solid #2196f3;
+            background: linear-gradient(to bottom, #dbeafe 0%, #e0f2fe 100%);
+            border-right: 6px solid #3b82f6;
         }
         .term-item {
             margin-bottom: 15px;
-            padding: 12px;
+            padding: 15px;
             background: white;
-            border-radius: 8px;
-            border-right: 3px solid #1e3a8a;
-            line-height: 1.6;
+            border-radius: 10px;
+            border-right: 4px solid #3b82f6;
+            line-height: 1.8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 1.05em;
         }
         .term-item strong {
-            color: #1e3a8a;
+            color: #1d4ed8;
+            font-size: 1.1em;
         }
         .bank-details {
-            background: #f0f9ff;
-            padding: 20px;
-            border-radius: 8px;
-            border-right: 4px solid #0ea5e9;
-            margin-top: 15px;
+            background: linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-right: 6px solid #0ea5e9;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(14,165,233,0.1);
         }
         .bank-details .section-title {
-            color: #212529 !important;
+            color: #0c4a6e !important;
+            font-size: 1.4em;
         }
         .bank-details .info-label {
-            color: #212529 !important;
+            color: #1e293b !important;
+            font-weight: 600;
         }
         .bank-details .info-value {
-            color: #212529 !important;
+            color: #0f172a !important;
+            font-weight: 600;
         }
         .bank-details .price-highlight {
-            color: #28a745 !important;
-            font-weight: bold;
+            color: #10b981 !important;
+            font-weight: 900;
         }
         .contact-info {
-            background: #f3e5f5;
-            border-right: 4px solid #9c27b0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-right: 6px solid #5a67d8;
             text-align: center;
-            color: #212529 !important;
+            color: white !important;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
         }
         .contact-info .section-title {
-            color: #212529 !important;
+            color: white !important;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
         }
         .contact-info .info-label {
-            color: #212529 !important;
+            color: white !important;
+            font-weight: 600;
         }
         .contact-info .info-value {
-            color: #212529 !important;
+            color: white !important;
+            font-weight: 600;
         }
         .logo-container {
             margin-bottom: 20px;
             text-align: center;
         }
         .company-logo {
-            max-width: 150px;
-            max-height: 80px;
+            max-width: 180px;
+            max-height: 100px;
             width: auto;
             height: auto;
+            object-fit: contain;
+        }
             object-fit: contain;
         }
     </style>
