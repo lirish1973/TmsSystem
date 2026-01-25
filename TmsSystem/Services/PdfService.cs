@@ -6,8 +6,6 @@ using System.Text;
 using TmsSystem.ViewModels;
 using System.Web;
 using iText.Html2pdf;
-using iText.Kernel.Pdf;
-using iText.Layout;
 using iText.Layout.Font;
 using iText.IO.Font;
 
