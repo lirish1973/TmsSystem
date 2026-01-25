@@ -960,6 +960,70 @@ namespace TmsSystem.Controllers
             }
         }
 
+        /// <summary>
+        /// פעולה לצפייה ב-PDF בדפדפן (לא הורדה)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ViewPdf(int id)
+        {
+            try
+            {
+                var offer = await _context.Offers
+                    .Include(o => o.Customer)
+                    .Include(o => o.Guide)
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Schedule)
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Includes)
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Excludes)
+                    .Include(o => o.PaymentMethod)
+                    .FirstOrDefaultAsync(o => o.OfferId == id);
+
+                if (offer == null)
+                {
+                    TempData["ErrorMessage"] = "ההצעה לא נמצאה";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                PaymentMethod paymentMethod = null;
+                if (offer.PaymentMethodId.HasValue)
+                {
+                    paymentMethod = await _context.PaymentMethods
+                        .FirstOrDefaultAsync(pm => pm.ID == offer.PaymentMethodId.Value);
+                }
+
+                var viewModel = new ShowOfferViewModel
+                {
+                    Offer = offer,
+                    PaymentMethod = paymentMethod
+                };
+
+                var pdfBytes = await _pdfService.GenerateOfferPdfAsync(viewModel);
+
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    TempData["ErrorMessage"] = "יצירת קובץ PDF נכשלה.";
+                    return RedirectToAction(nameof(ShowOfferHtml), new { id });
+                }
+
+                var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
+
+                // הצגת PDF בדפדפן (inline) במקום הורדה
+                Response.Headers.Add("Content-Disposition", $"inline; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
+                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+                Response.Headers.Add("Pragma", "no-cache");
+                Response.Headers.Add("Expires", "0");
+
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"שגיאה בהצגת PDF: {ex.Message}";
+                return RedirectToAction(nameof(ShowOfferHtml), new { id });
+            }
+        }
+
 
 
      
