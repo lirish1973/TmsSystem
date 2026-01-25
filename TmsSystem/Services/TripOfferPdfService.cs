@@ -61,12 +61,12 @@ namespace TmsSystem.Services
             padding: 0;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Arial, sans-serif;
+            line-height: 1.8;
+            color: #2d3748;
+            background: linear-gradient(to bottom, #f7fafc 0%, #edf2f7 100%);
             margin: 0;
-            padding: 15px;
+            padding: 20px;
             direction: rtl;
             text-align: right;
         }
@@ -74,55 +74,83 @@ namespace TmsSystem.Services
             max-width: 900px;
             margin: 0 auto;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
             overflow: hidden;
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 40px 30px;
+            padding: 50px 40px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white"/></svg>') no-repeat bottom;
+            background-size: cover;
+            opacity: 0.1;
         }
         .header h1 {
             margin: 0;
-            font-size: 2.5em;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-size: 2.8em;
+            font-weight: 700;
+            text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
         }
         .header p {
-            margin: 10px 0 0 0;
+            margin: 15px 0 0 0;
             opacity: 0.95;
-            font-size: 1.1em;
+            font-size: 1.2em;
+            font-weight: 300;
         }
         .logo-text {
-            font-size: 3em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 3.5em;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .content {
-            padding: 30px;
+            padding: 40px;
             direction: rtl;
         }
         .section {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-right: 5px solid #667eea;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
+            border-radius: 12px;
+            border-right: 6px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .section-title {
-            font-size: 1.5em;
-            font-weight: bold;
+            font-size: 1.6em;
+            font-weight: 700;
             color: #667eea;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: right;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
         }
         .info-row {
-            margin-bottom: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -132,89 +160,110 @@ namespace TmsSystem.Services
             border-bottom: none;
         }
         .info-label {
-            font-weight: bold;
-            color: #495057;
-            min-width: 140px;
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 150px;
             text-align: right;
+            font-size: 1.05em;
         }
         .info-value {
-            color: #212529;
+            color: #2d3748;
             text-align: right;
             flex: 1;
+            font-size: 1.05em;
         }
         .trip-day-card {
             background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border-right: 5px solid #667eea;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            border-right: 6px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex;
-            gap: 20px;
+            gap: 25px;
             direction: rtl;
+            transition: all 0.3s ease;
+        }
+        .trip-day-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
         }
         .trip-day-image {
             flex-shrink: 0;
-            width: 250px;
-            height: 180px;
-            border-radius: 8px;
+            width: 280px;
+            height: 200px;
+            border-radius: 10px;
             overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         .trip-day-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .trip-day-image img:hover {
+            transform: scale(1.05);
         }
         .trip-day-content {
             flex: 1;
             text-align: right;
         }
         .trip-day-number {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
+            padding: 6px 18px;
+            border-radius: 25px;
+            font-weight: 700;
             display: inline-block;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(102,126,234,0.4);
+            font-size: 0.95em;
         }
         .trip-day-title {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            line-height: 1.4;
         }
         .trip-day-location {
             color: #667eea;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1em;
         }
         .trip-day-description {
-            color: #6c757d;
-            line-height: 1.6;
+            color: #718096;
+            line-height: 1.8;
             text-align: right;
+            font-size: 1.05em;
         }
         .price-section {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            border-right: 5px solid #28a745;
-            border-radius: 10px;
-            padding: 25px;
+            border-right: 6px solid #047857;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
         }
         .price-section .section-title {
             color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
         }
         .price-section .info-label {
             color: rgba(255,255,255,0.95);
+            font-weight: 600;
         }
         .price-section .info-value {
             color: white;
-            font-weight: bold;
-            font-size: 1.1em;
+            font-weight: 700;
+            font-size: 1.15em;
         }
         .price-highlight {
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         .includes-list, .excludes-list {
             list-style: none;
@@ -222,78 +271,102 @@ namespace TmsSystem.Services
             direction: rtl;
         }
         .includes-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
             position: relative;
-            padding-right: 30px;
+            padding-right: 35px;
             text-align: right;
+            font-size: 1.05em;
+            line-height: 1.6;
         }
         .includes-list li:before {
             content: '✓';
             position: absolute;
             right: 0;
-            color: #28a745;
+            color: #10b981;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
         }
         .excludes-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
             position: relative;
-            padding-right: 30px;
+            padding-right: 35px;
             text-align: right;
+            font-size: 1.05em;
+            line-height: 1.6;
         }
         .excludes-list li:before {
             content: '✗';
             position: absolute;
             right: 0;
-            color: #dc3545;
+            color: #ef4444;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
         }
         .terms-section {
-            background: #e3f2fd;
-            border-right: 5px solid #2196f3;
+            background: linear-gradient(to bottom, #dbeafe 0%, #e0f2fe 100%);
+            border-right: 6px solid #3b82f6;
         }
         .term-item {
-            margin-bottom: 12px;
-            padding: 12px;
+            margin-bottom: 15px;
+            padding: 15px;
             background: white;
-            border-radius: 8px;
-            border-right: 3px solid #2196f3;
-            line-height: 1.6;
+            border-radius: 10px;
+            border-right: 4px solid #3b82f6;
+            line-height: 1.8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 1.05em;
         }
         .term-item strong {
-            color: #2196f3;
+            color: #1d4ed8;
+            font-size: 1.1em;
         }
         .bank-details {
-            background: #f0f9ff;
-            padding: 20px;
-            border-radius: 10px;
-            border-right: 5px solid #0ea5e9;
-            margin-top: 15px;
+            background: linear-gradient(to bottom, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-right: 6px solid #0ea5e9;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(14,165,233,0.1);
+        }
+        .bank-details .section-title {
+            color: #0c4a6e;
+            font-size: 1.4em;
+        }
+        .bank-details .info-label {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        .bank-details .info-value {
+            color: #0f172a;
+            font-weight: 600;
         }
         .contact-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-align: center;
-            border-radius: 10px;
-            padding: 25px;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
         }
         .contact-section .section-title {
             color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
         }
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 10px;
-            border: 2px solid #ffc107;
+            margin-top: 35px;
+            padding: 25px;
+            background: linear-gradient(to bottom, #fef3c7 0%, #fde68a 100%);
+            border-radius: 12px;
+            border: 3px solid #f59e0b;
+            box-shadow: 0 4px 8px rgba(245,158,11,0.2);
         }
         .footer strong {
-            color: #856404;
-            font-size: 1.1em;
+            color: #92400e;
+            font-size: 1.2em;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -647,30 +720,44 @@ namespace TmsSystem.Services
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(imagePath))
+                {
+                    _logger.LogWarning("Empty or null image path provided");
+                    return string.Empty;
+                }
+
                 // Check if it's an external URL
                 if (imagePath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                     imagePath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 {
+                    _logger.LogInformation("Using external URL for image: {ImagePath}", imagePath);
                     return $"<img src='{WebUtility.HtmlEncode(imagePath)}' alt='תמונת טיול' />";
                 }
 
                 // Handle local files - convert to base64
-                if (imagePath.StartsWith("/"))
+                var normalizedPath = imagePath.TrimStart('/');
+                var fullPath = Path.Combine(_env.WebRootPath, normalizedPath);
+                
+                _logger.LogInformation("Attempting to load image from: {FullPath}", fullPath);
+
+                if (!File.Exists(fullPath))
                 {
-                    imagePath = imagePath.TrimStart('/');
+                    _logger.LogWarning("Image file not found: {FullPath}", fullPath);
+                    return string.Empty;
                 }
 
-                var fullPath = Path.Combine(_env.WebRootPath, imagePath);
-
-                if (File.Exists(fullPath))
+                var imageBytes = await File.ReadAllBytesAsync(fullPath);
+                if (imageBytes == null || imageBytes.Length == 0)
                 {
-                    var imageBytes = await File.ReadAllBytesAsync(fullPath);
-                    var base64 = Convert.ToBase64String(imageBytes);
-                    var mimeType = GetMimeType(fullPath);
-                    return $"<img src='data:{mimeType};base64,{base64}' alt='תמונת טיול' />";
+                    _logger.LogWarning("Image file is empty: {FullPath}", fullPath);
+                    return string.Empty;
                 }
 
-                return string.Empty;
+                var base64 = Convert.ToBase64String(imageBytes);
+                var mimeType = GetMimeType(fullPath);
+                
+                _logger.LogInformation("Successfully loaded image: {FullPath}, Size: {Size} bytes", fullPath, imageBytes.Length);
+                return $"<img src='data:{mimeType};base64,{base64}' alt='תמונת טיול' />";
             }
             catch (Exception ex)
             {
