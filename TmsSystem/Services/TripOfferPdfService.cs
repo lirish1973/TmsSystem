@@ -4,6 +4,8 @@ using TmsSystem.Models;
 using iText.Html2pdf;
 using iText.Kernel.Pdf;
 using iText.Layout;
+using iText.Layout.Font;
+using iText.IO.Font;
 
 namespace TmsSystem.Services
 {
@@ -23,8 +25,16 @@ namespace TmsSystem.Services
             var html = await GenerateTripOfferHtmlAsync(offer);
 
             using var memoryStream = new MemoryStream();
+            
+            // Configure converter properties for Hebrew support
             var converterProperties = new ConverterProperties();
             converterProperties.SetCharset("UTF-8");
+            
+            // Add font provider for better Hebrew and RTL support
+            var fontProvider = new FontProvider();
+            fontProvider.AddStandardPdfFonts();
+            fontProvider.AddSystemFonts();
+            converterProperties.SetFontProvider(fontProvider);
             
             HtmlConverter.ConvertToPdf(html, memoryStream, converterProperties);
             

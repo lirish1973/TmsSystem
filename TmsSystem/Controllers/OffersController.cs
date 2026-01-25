@@ -946,10 +946,10 @@ namespace TmsSystem.Controllers
                 var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
 
                 // ✅ פתרון הבעיה - הוספת Headers שיכפו הורדה
-                Response.Headers.Add("Content-Disposition", $"attachment; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
-                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-                Response.Headers.Add("Pragma", "no-cache");
-                Response.Headers.Add("Expires", "0");
+                Response.Headers["Content-Disposition"] = $"attachment; filename*=UTF-8''{Uri.EscapeDataString(fileName)}";
+                Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                Response.Headers["Pragma"] = "no-cache";
+                Response.Headers["Expires"] = "0";
 
                 return File(pdfBytes, "application/pdf", fileName);
             }
@@ -1010,10 +1010,10 @@ namespace TmsSystem.Controllers
                 var fileName = $"הצעת_מחיר_{offer.OfferId}.pdf";
 
                 // הצגת PDF בדפדפן (inline) במקום הורדה
-                Response.Headers.Add("Content-Disposition", $"inline; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
-                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-                Response.Headers.Add("Pragma", "no-cache");
-                Response.Headers.Add("Expires", "0");
+                Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{Uri.EscapeDataString(fileName)}";
+                Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                Response.Headers["Pragma"] = "no-cache";
+                Response.Headers["Expires"] = "0";
 
                 return File(pdfBytes, "application/pdf");
             }
