@@ -951,7 +951,7 @@ namespace TmsSystem.Controllers
                 Response.Headers.Add("Pragma", "no-cache");
                 Response.Headers.Add("Expires", "0");
 
-                return File(pdfBytes, "application/octet-stream", fileName);
+                return File(pdfBytes, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
@@ -1015,7 +1015,7 @@ namespace TmsSystem.Controllers
                 Response.Headers.Add("Pragma", "no-cache");
                 Response.Headers.Add("Expires", "0");
 
-                return File(pdfBytes, "application/pdf", fileName);
+                return File(pdfBytes, "application/pdf");
             }
             catch (Exception ex)
             {
