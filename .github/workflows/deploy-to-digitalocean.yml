@@ -83,9 +83,17 @@ jobs:
               sudo systemctl stop tmssystem.service
             fi
             
-            # ניקוי התיקייה הישנה - בטוח יותר
+            # ניקוי התיקייה הישנה - בטוח יותר (שמירת uploads)
             if [ -d "$APP_DIR" ] && [ "$APP_DIR" = "/var/www/TmsSystem/TmsSystem" ]; then
-              echo "Cleaning old deployment files..."
+              echo "Cleaning old deployment files (preserving uploads)..."
+              
+              # שמירת תיקיית uploads אם קיימת
+              if [ -d "$APP_DIR/wwwroot/uploads" ]; then
+                echo "Backing up uploads folder..."
+                sudo cp -r "$APP_DIR/wwwroot/uploads" /tmp/uploads_backup
+              fi
+              
+              # ניקוי כל הקבצים מלבד uploads
               sudo find "$APP_DIR" -mindepth 1 -delete
             else
               echo "Error: APP_DIR validation failed"
@@ -95,6 +103,14 @@ jobs:
             # חילוץ הגרסה החדשה
             echo "Extracting new deployment..."
             sudo tar -xzf /tmp/deployment.tar.gz -C "$APP_DIR"
+            
+            # שחזור תיקיית uploads
+            if [ -d "/tmp/uploads_backup" ]; then
+              echo "Restoring uploads folder..."
+              sudo mkdir -p "$APP_DIR/wwwroot/uploads"
+              sudo cp -r /tmp/uploads_backup/* "$APP_DIR/wwwroot/uploads/" 2>/dev/null || true
+              sudo rm -rf /tmp/uploads_backup
+            fi
             
             # הגדרת הרשאות
             sudo chown -R www-data:www-data "$APP_DIR"
