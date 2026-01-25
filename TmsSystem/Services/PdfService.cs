@@ -309,8 +309,6 @@ namespace TmsSystem.Services
             height: auto;
             object-fit: contain;
         }
-            object-fit: contain;
-        }
     </style>
 </head>
 <body>");
