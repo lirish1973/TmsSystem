@@ -118,6 +118,7 @@ builder.Services.AddScoped<TripEmailSender>();
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<PdfService>();
+builder.Services.AddScoped<ITripOfferPdfService, TripOfferPdfService>();
 
 // ========================================
 // 🔐 Authorization

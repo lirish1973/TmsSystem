@@ -18,13 +18,16 @@ namespace TmsSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly TripOfferEmailSender _tripOfferEmailSender;
+        private readonly ITripOfferPdfService _tripOfferPdfService;
 
         public TripOffersController(
             ApplicationDbContext context,
-            TripOfferEmailSender tripOfferEmailSender)
+            TripOfferEmailSender tripOfferEmailSender,
+            ITripOfferPdfService tripOfferPdfService)
         {
             _context = context;
             _tripOfferEmailSender = tripOfferEmailSender;
+            _tripOfferPdfService = tripOfferPdfService;
         }
 
         // GET: TripOffers
@@ -644,6 +647,99 @@ namespace TmsSystem.Controllers
                     success = false,
                     message = $"שגיאה בשליחת המייל: {ex.Message}"
                 });
+            }
+        }
+
+        // GET: TripOffers/DownloadPdf/5 - Download PDF
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            try
+            {
+                var tripOffer = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip)
+                        .ThenInclude(t => t.TripDays)
+                    .Include(to => to.Trip)
+                        .ThenInclude(t => t.Guide)
+                    .Include(to => to.PaymentMethod)
+                    .FirstOrDefaultAsync(to => to.TripOfferId == id);
+
+                if (tripOffer == null)
+                {
+                    TempData["ErrorMessage"] = "הצעת המחיר לא נמצאה";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var pdfBytes = await _tripOfferPdfService.GenerateTripOfferPdfAsync(tripOffer);
+
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    TempData["ErrorMessage"] = "יצירת קובץ PDF נכשלה";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                var fileName = $"הצעת_מחיר_טיול_{tripOffer.OfferNumber}.pdf";
+
+                // Force download with proper headers
+                Response.Headers.Add("Content-Disposition", $"attachment; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
+                Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+                Response.Headers.Add("Pragma", "no-cache");
+                Response.Headers.Add("Expires", "0");
+
+                return File(pdfBytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in DownloadPdf: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
+                TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        // GET: TripOffers/ViewPdf/5 - View PDF in browser
+        [HttpGet]
+        public async Task<IActionResult> ViewPdf(int id)
+        {
+            try
+            {
+                var tripOffer = await _context.TripOffers
+                    .Include(to => to.Customer)
+                    .Include(to => to.Trip)
+                        .ThenInclude(t => t.TripDays)
+                    .Include(to => to.Trip)
+                        .ThenInclude(t => t.Guide)
+                    .Include(to => to.PaymentMethod)
+                    .FirstOrDefaultAsync(to => to.TripOfferId == id);
+
+                if (tripOffer == null)
+                {
+                    TempData["ErrorMessage"] = "הצעת המחיר לא נמצאה";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var pdfBytes = await _tripOfferPdfService.GenerateTripOfferPdfAsync(tripOffer);
+
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    TempData["ErrorMessage"] = "יצירת קובץ PDF נכשלה";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                var fileName = $"הצעת_מחיר_טיול_{tripOffer.OfferNumber}.pdf";
+
+                // View in browser - inline disposition
+                Response.Headers.Add("Content-Disposition", $"inline; filename*=UTF-8''{Uri.EscapeDataString(fileName)}");
+
+                return File(pdfBytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ViewPdf: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
+                TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id });
             }
         }
     }

@@ -308,13 +308,16 @@
                 <a asp-action="Index" class="btn btn-secondary btn-lg">
                     <i class="fas fa-arrow-right"></i> חזרה לרשימה
                 </a>
-                <button onclick="window.print()" class="btn btn-info btn-lg">
-                    <i class="fas fa-print"></i> הדפסה/PDF
-                </button>
-                <button type="button" class="btn btn-success btn-lg" onclick="sendEmailOffer(@Model.TripOfferId)">
+                <a asp-action="ViewPdf" asp-route-id="@Model.TripOfferId" class="btn btn-info btn-lg" target="_blank">
+                    <i class="fas fa-eye"></i> צפייה ב-PDF
+                </a>
+                <a asp-action="DownloadPdf" asp-route-id="@Model.TripOfferId" class="btn btn-success btn-lg">
+                    <i class="fas fa-download"></i> הורדת PDF
+                </a>
+                <button type="button" class="btn btn-primary btn-lg" onclick="sendEmailOffer(@Model.TripOfferId)">
                     <i class="fas fa-envelope"></i> שליחה במייל
                 </button>
-                <button type="button" class="btn btn-primary btn-lg" onclick="saveOffer(@Model.TripOfferId)">
+                <button type="button" class="btn btn-dark btn-lg" onclick="saveOffer(@Model.TripOfferId)">
                     <i class="fas fa-save"></i> שמירה
                 </button>
 
@@ -790,12 +793,15 @@
             <a asp-action="Edit" asp-route-id="@Model.TripOfferId" class="btn btn-warning btn-lg">
                 <i class="fas fa-edit"></i> עריכה
             </a>
-            <button type="button" class="btn btn-success btn-lg" onclick="sendEmailOffer(@Model.TripOfferId)">
+            <button type="button" class="btn btn-primary btn-lg" onclick="sendEmailOffer(@Model.TripOfferId)">
                 <i class="fas fa-envelope"></i> שליחה במייל
             </button>
-            <button onclick="window.print()" class="btn btn-info btn-lg">
-                <i class="fas fa-print"></i> הדפסה/שמירה כ-PDF
-            </button>
+            <a asp-action="ViewPdf" asp-route-id="@Model.TripOfferId" class="btn btn-info btn-lg" target="_blank">
+                <i class="fas fa-eye"></i> צפייה ב-PDF
+            </a>
+            <a asp-action="DownloadPdf" asp-route-id="@Model.TripOfferId" class="btn btn-success btn-lg">
+                <i class="fas fa-download"></i> הורדת PDF
+            </a>
             <a asp-action="Index" class="btn btn-secondary btn-lg">
                 <i class="fas fa-list"></i> חזרה לרשימה
             </a>
