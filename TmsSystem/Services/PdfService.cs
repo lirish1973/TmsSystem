@@ -279,7 +279,7 @@ namespace TmsSystem.Services
         }
         .contact-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-right: 6px solid #5a67d8;
+            border-right: 6px solid #667eea;
             text-align: center;
             color: white !important;
             border-radius: 12px;
