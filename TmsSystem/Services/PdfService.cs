@@ -262,40 +262,40 @@ namespace TmsSystem.Services
             box-shadow: 0 2px 8px rgba(14,165,233,0.1);
         }
         .bank-details .section-title {
-            color: #0c4a6e !important;
+            color: #0c4a6e;
             font-size: 1.4em;
         }
         .bank-details .info-label {
-            color: #1e293b !important;
+            color: #1e293b;
             font-weight: 600;
         }
         .bank-details .info-value {
-            color: #0f172a !important;
+            color: #0f172a;
             font-weight: 600;
         }
         .bank-details .price-highlight {
-            color: #10b981 !important;
+            color: #10b981;
             font-weight: 900;
         }
         .contact-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-right: 6px solid #667eea;
             text-align: center;
-            color: white !important;
+            color: white;
             border-radius: 12px;
             padding: 30px;
             box-shadow: 0 4px 12px rgba(102,126,234,0.3);
         }
         .contact-info .section-title {
-            color: white !important;
+            color: white;
             border-bottom: 2px solid rgba(255,255,255,0.3);
         }
         .contact-info .info-label {
-            color: white !important;
+            color: white;
             font-weight: 600;
         }
         .contact-info .info-value {
-            color: white !important;
+            color: white;
             font-weight: 600;
         }
         .logo-container {

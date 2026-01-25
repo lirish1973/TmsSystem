@@ -694,7 +694,7 @@ namespace TmsSystem.Services
             {
                 if (string.IsNullOrWhiteSpace(imagePath))
                 {
-                    _logger.LogWarning("Empty or null image path provided");
+                    _logger.LogDebug("Empty or null image path provided");
                     return string.Empty;
                 }
 
@@ -714,7 +714,11 @@ namespace TmsSystem.Services
                 var resolvedPath = Path.GetFullPath(fullPath);
                 var webRootPath = Path.GetFullPath(_env.WebRootPath);
                 
-                if (!resolvedPath.StartsWith(webRootPath, StringComparison.OrdinalIgnoreCase))
+                // Ensure consistent path separators for cross-platform compatibility
+                var normalizedResolvedPath = resolvedPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                var normalizedWebRootPath = webRootPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                
+                if (!normalizedResolvedPath.StartsWith(normalizedWebRootPath, StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogWarning("Path traversal attempt detected: {ImagePath}", imagePath);
                     return string.Empty;
@@ -729,7 +733,7 @@ namespace TmsSystem.Services
                 }
 
                 var imageBytes = await File.ReadAllBytesAsync(resolvedPath);
-                if (imageBytes == null || imageBytes.Length == 0)
+                if (imageBytes.Length == 0)
                 {
                     _logger.LogWarning("Image file is empty: {FullPath}", resolvedPath);
                     return string.Empty;
