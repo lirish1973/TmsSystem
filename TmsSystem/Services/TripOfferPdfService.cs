@@ -702,7 +702,9 @@ namespace TmsSystem.Services
                 if (imagePath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                     imagePath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogInformation("Using external URL for image: {ImagePath}", imagePath);
+                    // Log only the domain for security
+                    var uri = new Uri(imagePath);
+                    _logger.LogInformation("Using external URL for image from domain: {Domain}", uri.Host);
                     return $"<img src='{WebUtility.HtmlEncode(imagePath)}' alt='תמונת טיול' />";
                 }
 
@@ -714,40 +716,46 @@ namespace TmsSystem.Services
                 var resolvedPath = Path.GetFullPath(fullPath);
                 var webRootPath = Path.GetFullPath(_env.WebRootPath);
                 
+                // Ensure web root path ends with directory separator
+                if (!webRootPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                {
+                    webRootPath += Path.DirectorySeparatorChar;
+                }
+                
                 // Ensure consistent path separators for cross-platform compatibility
                 var normalizedResolvedPath = resolvedPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                 var normalizedWebRootPath = webRootPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                 
                 if (!normalizedResolvedPath.StartsWith(normalizedWebRootPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogWarning("Path traversal attempt detected: {ImagePath}", imagePath);
+                    _logger.LogWarning("Path traversal attempt detected for: {RelativePath}", normalizedPath);
                     return string.Empty;
                 }
                 
-                _logger.LogInformation("Attempting to load image from: {FullPath}", resolvedPath);
+                _logger.LogInformation("Attempting to load image: {RelativePath}", normalizedPath);
 
                 if (!File.Exists(resolvedPath))
                 {
-                    _logger.LogWarning("Image file not found: {FullPath}", resolvedPath);
+                    _logger.LogWarning("Image file not found: {RelativePath}", normalizedPath);
                     return string.Empty;
                 }
 
                 var imageBytes = await File.ReadAllBytesAsync(resolvedPath);
                 if (imageBytes.Length == 0)
                 {
-                    _logger.LogWarning("Image file is empty: {FullPath}", resolvedPath);
+                    _logger.LogWarning("Image file is empty: {RelativePath}", normalizedPath);
                     return string.Empty;
                 }
 
                 var base64 = Convert.ToBase64String(imageBytes);
                 var mimeType = GetMimeType(resolvedPath);
                 
-                _logger.LogInformation("Successfully loaded image: {FullPath}, Size: {Size} bytes", resolvedPath, imageBytes.Length);
+                _logger.LogInformation("Successfully loaded image: {RelativePath}, Size: {Size} bytes", normalizedPath, imageBytes.Length);
                 return $"<img src='data:{mimeType};base64,{base64}' alt='תמונת טיול' />";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading image {ImagePath}", imagePath);
+                _logger.LogError(ex, "Error loading image: {ImagePath}", imagePath);
                 return string.Empty;
             }
         }
