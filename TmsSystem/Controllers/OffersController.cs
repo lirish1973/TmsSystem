@@ -627,7 +627,11 @@ namespace TmsSystem.Controllers
                 .Include(o => o.Customer)
                 .Include(o => o.Guide)
                 .Include(o => o.Tour)
-                .Include(o => o.Tour).ThenInclude(t => t.Schedule)
+                    .ThenInclude(t => t.Schedule)
+                .Include(o => o.Tour)
+                    .ThenInclude(t => t.Includes)
+                .Include(o => o.Tour)
+                    .ThenInclude(t => t.Excludes)
                 .Include(o => o.PaymentMethod)
                 .FirstOrDefaultAsync(o => o.OfferId == id);
 
@@ -908,6 +912,11 @@ namespace TmsSystem.Controllers
                     .Include(o => o.Customer)
                     .Include(o => o.Guide)
                     .Include(o => o.Tour)
+                        .ThenInclude(t => t.Schedule)
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Includes)
+                    .Include(o => o.Tour)
+                        .ThenInclude(t => t.Excludes)
                     .Include(o => o.PaymentMethod)
                     .FirstOrDefaultAsync(o => o.OfferId == id);
 
