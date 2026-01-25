@@ -105,10 +105,7 @@ namespace TmsSystem.Services
             margin-bottom: 15px;
             text-shadow: 3px 3px 10px rgba(0,0,0,0.4);
             letter-spacing: 3px;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: white;
         }
         .content {
             padding: 40px;
@@ -121,11 +118,6 @@ namespace TmsSystem.Services
             border-radius: 12px;
             border-right: 6px solid #667eea;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-        .section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .section-title {
             font-size: 1.6em;
@@ -171,11 +163,6 @@ namespace TmsSystem.Services
             display: flex;
             gap: 25px;
             direction: rtl;
-            transition: all 0.3s ease;
-        }
-        .trip-day-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
         }
         .trip-day-image {
             flex-shrink: 0;
@@ -189,10 +176,6 @@ namespace TmsSystem.Services
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        .trip-day-image img:hover {
-            transform: scale(1.05);
         }
         .trip-day-content {
             flex: 1;
@@ -727,25 +710,35 @@ namespace TmsSystem.Services
                 var normalizedPath = imagePath.TrimStart('/');
                 var fullPath = Path.Combine(_env.WebRootPath, normalizedPath);
                 
-                _logger.LogInformation("Attempting to load image from: {FullPath}", fullPath);
-
-                if (!File.Exists(fullPath))
+                // Security: Validate the path to prevent directory traversal attacks
+                var resolvedPath = Path.GetFullPath(fullPath);
+                var webRootPath = Path.GetFullPath(_env.WebRootPath);
+                
+                if (!resolvedPath.StartsWith(webRootPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogWarning("Image file not found: {FullPath}", fullPath);
+                    _logger.LogWarning("Path traversal attempt detected: {ImagePath}", imagePath);
+                    return string.Empty;
+                }
+                
+                _logger.LogInformation("Attempting to load image from: {FullPath}", resolvedPath);
+
+                if (!File.Exists(resolvedPath))
+                {
+                    _logger.LogWarning("Image file not found: {FullPath}", resolvedPath);
                     return string.Empty;
                 }
 
-                var imageBytes = await File.ReadAllBytesAsync(fullPath);
+                var imageBytes = await File.ReadAllBytesAsync(resolvedPath);
                 if (imageBytes == null || imageBytes.Length == 0)
                 {
-                    _logger.LogWarning("Image file is empty: {FullPath}", fullPath);
+                    _logger.LogWarning("Image file is empty: {FullPath}", resolvedPath);
                     return string.Empty;
                 }
 
                 var base64 = Convert.ToBase64String(imageBytes);
-                var mimeType = GetMimeType(fullPath);
+                var mimeType = GetMimeType(resolvedPath);
                 
-                _logger.LogInformation("Successfully loaded image: {FullPath}, Size: {Size} bytes", fullPath, imageBytes.Length);
+                _logger.LogInformation("Successfully loaded image: {FullPath}, Size: {Size} bytes", resolvedPath, imageBytes.Length);
                 return $"<img src='data:{mimeType};base64,{base64}' alt='תמונת טיול' />";
             }
             catch (Exception ex)
