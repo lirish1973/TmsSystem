@@ -27,6 +27,9 @@ namespace TmsSystem.Services
             var converterProperties = new ConverterProperties();
             converterProperties.SetCharset("UTF-8");
             
+            // Set base URI for resolving external resources like images
+            converterProperties.SetBaseUri("https://www.tryit.co.il/");
+            
             // Add font provider for better Hebrew and RTL support
             var fontProvider = new FontProvider();
             fontProvider.AddStandardPdfFonts();
@@ -65,6 +68,7 @@ namespace TmsSystem.Services
             padding: 20px;
             direction: rtl;
             text-align: right;
+            unicode-bidi: embed;
         }
         .container {
             max-width: 900px;
