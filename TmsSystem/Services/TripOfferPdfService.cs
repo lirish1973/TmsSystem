@@ -4,7 +4,6 @@ using TmsSystem.Models;
 using iText.Html2pdf;
 using iText.Layout.Font;
 using iText.IO.Font;
-using iText.License;
 
 namespace TmsSystem.Services
 {
@@ -12,45 +11,15 @@ namespace TmsSystem.Services
     {
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<TripOfferPdfService> _logger;
-        private static bool _licenseLoaded = false;
-        private static readonly object _licenseLock = new object();
 
         public TripOfferPdfService(IWebHostEnvironment env, ILogger<TripOfferPdfService> logger)
         {
             _env = env;
             _logger = logger;
-            LoadLicenseIfAvailable();
-        }
-
-        private void LoadLicenseIfAvailable()
-        {
-            if (_licenseLoaded) return;
-
-            lock (_licenseLock)
-            {
-                if (_licenseLoaded) return;
-
-                try
-                {
-                    // Try to load license key from environment variable or use trial mode
-                    var licenseKey = Environment.GetEnvironmentVariable("ITEXT_LICENSE_KEY");
-                    if (!string.IsNullOrEmpty(licenseKey))
-                    {
-                        LicenseKey.LoadLicenseFile(licenseKey);
-                    }
-                    // pdfCalligraph will work in trial mode (with watermarks) if no license is provided
-                    // This is acceptable for testing. For production, obtain a license from iText.
-                }
-                catch
-                {
-                    // If license loading fails, pdfCalligraph will still work in trial mode
-                    // The trial mode includes watermarks but provides full RTL functionality
-                }
-                finally
-                {
-                    _licenseLoaded = true;
-                }
-            }
+            // pdfCalligraph will automatically handle Hebrew RTL text when the package is referenced
+            // It works in trial mode (with watermarks) without explicit license loading
+            // For production, obtain a commercial license from iText and configure it via
+            // environment variable ITEXT_LICENSE_FILE or by calling LicenseKey.LoadLicenseFile()
         }
 
         public async Task<byte[]> GenerateTripOfferPdfAsync(TripOffer offer)
