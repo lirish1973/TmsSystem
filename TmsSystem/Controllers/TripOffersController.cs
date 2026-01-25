@@ -19,15 +19,18 @@ namespace TmsSystem.Controllers
         private readonly ApplicationDbContext _context;
         private readonly TripOfferEmailSender _tripOfferEmailSender;
         private readonly ITripOfferPdfService _tripOfferPdfService;
+        private readonly ILogger<TripOffersController> _logger;
 
         public TripOffersController(
             ApplicationDbContext context,
             TripOfferEmailSender tripOfferEmailSender,
-            ITripOfferPdfService tripOfferPdfService)
+            ITripOfferPdfService tripOfferPdfService,
+            ILogger<TripOffersController> logger)
         {
             _context = context;
             _tripOfferEmailSender = tripOfferEmailSender;
             _tripOfferPdfService = tripOfferPdfService;
+            _logger = logger;
         }
 
         // GET: TripOffers
@@ -691,8 +694,7 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in DownloadPdf: {ex.Message}");
-                Console.WriteLine($"Stack: {ex.StackTrace}");
+                _logger.LogError(ex, "Error in DownloadPdf for TripOffer {TripOfferId}", id);
                 TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
                 return RedirectToAction(nameof(Details), new { id });
             }
@@ -736,8 +738,7 @@ namespace TmsSystem.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in ViewPdf: {ex.Message}");
-                Console.WriteLine($"Stack: {ex.StackTrace}");
+                _logger.LogError(ex, "Error in ViewPdf for TripOffer {TripOfferId}", id);
                 TempData["ErrorMessage"] = $"שגיאה ביצירת PDF: {ex.Message}";
                 return RedirectToAction(nameof(Details), new { id });
             }
