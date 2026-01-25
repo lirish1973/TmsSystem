@@ -1,6 +1,4 @@
-﻿using DinkToPdf;
-using DinkToPdf.Contracts;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -115,7 +113,6 @@ builder.Services.AddScoped<TripEmailSender>();
 // ========================================
 // 📄 PDF Services
 // ========================================
-builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<ITripOfferPdfService, TripOfferPdfService>();
