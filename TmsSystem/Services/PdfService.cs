@@ -4,43 +4,30 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Http;
 using System.Text;
 using TmsSystem.ViewModels;
-using DinkToPdf;
-using DinkToPdf.Contracts;
 using System.Web;
+using iText.Html2pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
 
 namespace TmsSystem.Services
 {
     public class PdfService : IPdfService
     {
-        private readonly IConverter _converter;
-
-        public PdfService(IConverter converter)
+        public PdfService()
         {
-            _converter = converter;
         }
 
         public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
         {
             var html = await GenerateOfferHtmlAsync(model);
 
-            var doc = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-                    ColorMode = ColorMode.Color,
-                    Orientation = Orientation.Portrait,
-                    PaperSize = PaperKind.A4,
-                    Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
-                },
-                Objects = {
-                    new ObjectSettings() {
-                        PagesCount = true,
-                        HtmlContent = html,
-                        WebSettings = { DefaultEncoding = "utf-8" }
-                    }
-                }
-            };
-
-            return _converter.Convert(doc);
+            using var memoryStream = new MemoryStream();
+            var converterProperties = new ConverterProperties();
+            converterProperties.SetCharset("UTF-8");
+            
+            HtmlConverter.ConvertToPdf(html, memoryStream, converterProperties);
+            
+            return memoryStream.ToArray();
         }
 
         public async Task<string> GenerateOfferHtmlAsync(ShowOfferViewModel model)

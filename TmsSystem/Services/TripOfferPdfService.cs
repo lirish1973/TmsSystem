@@ -1,20 +1,19 @@
-using DinkToPdf;
-using DinkToPdf.Contracts;
 using System.Text;
 using System.Net;
 using TmsSystem.Models;
+using iText.Html2pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
 
 namespace TmsSystem.Services
 {
     public class TripOfferPdfService : ITripOfferPdfService
     {
-        private readonly IConverter _converter;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<TripOfferPdfService> _logger;
 
-        public TripOfferPdfService(IConverter converter, IWebHostEnvironment env, ILogger<TripOfferPdfService> logger)
+        public TripOfferPdfService(IWebHostEnvironment env, ILogger<TripOfferPdfService> logger)
         {
-            _converter = converter;
             _env = env;
             _logger = logger;
         }
@@ -23,24 +22,13 @@ namespace TmsSystem.Services
         {
             var html = await GenerateTripOfferHtmlAsync(offer);
 
-            var doc = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-                    ColorMode = ColorMode.Color,
-                    Orientation = Orientation.Portrait,
-                    PaperSize = PaperKind.A4,
-                    Margins = new MarginSettings { Top = 10, Bottom = 10, Left = 10, Right = 10 }
-                },
-                Objects = {
-                    new ObjectSettings() {
-                        PagesCount = true,
-                        HtmlContent = html,
-                        WebSettings = { DefaultEncoding = "utf-8" }
-                    }
-                }
-            };
-
-            return _converter.Convert(doc);
+            using var memoryStream = new MemoryStream();
+            var converterProperties = new ConverterProperties();
+            converterProperties.SetCharset("UTF-8");
+            
+            HtmlConverter.ConvertToPdf(html, memoryStream, converterProperties);
+            
+            return memoryStream.ToArray();
         }
 
         public async Task<string> GenerateTripOfferHtmlAsync(TripOffer offer)
