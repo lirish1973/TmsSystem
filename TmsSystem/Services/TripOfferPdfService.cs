@@ -2,8 +2,6 @@ using System.Text;
 using System.Net;
 using TmsSystem.Models;
 using iText.Html2pdf;
-using iText.Kernel.Pdf;
-using iText.Layout;
 using iText.Layout.Font;
 using iText.IO.Font;
 
