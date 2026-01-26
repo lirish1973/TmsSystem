@@ -16,10 +16,9 @@ namespace TmsSystem.Services
         {
             _env = env;
             _logger = logger;
-            // pdfCalligraph will automatically handle Hebrew RTL text when the package is referenced
-            // It works in trial mode (with watermarks) without explicit license loading
-            // For production, obtain a commercial license from iText and configure it via
-            // environment variable ITEXT_LICENSE_FILE or by calling LicenseKey.LoadLicenseFile()
+            // Hebrew RTL text support is handled via proper HTML structure (dir='rtl', lang='he')
+            // and CSS directives (direction: rtl, text-align: right, unicode-bidi: embed)
+            // No special library needed - iText7 with pdfhtml handles RTL correctly
         }
 
         public async Task<byte[]> GenerateTripOfferPdfAsync(TripOffer offer)
@@ -28,20 +27,29 @@ namespace TmsSystem.Services
 
             using var memoryStream = new MemoryStream();
             
-            // Configure converter properties for Hebrew support
-            var converterProperties = new ConverterProperties();
-            converterProperties.SetCharset("UTF-8");
-            
-            // Set base URI for resolving external resources like images
-            converterProperties.SetBaseUri("https://www.tryit.co.il/");
-            
-            // Add font provider for better Hebrew and RTL support
-            var fontProvider = new FontProvider();
-            fontProvider.AddStandardPdfFonts();
-            fontProvider.AddSystemFonts();
-            converterProperties.SetFontProvider(fontProvider);
-            
-            HtmlConverter.ConvertToPdf(html, memoryStream, converterProperties);
+            try
+            {
+                // Configure converter properties for Hebrew support
+                var converterProperties = new ConverterProperties();
+                converterProperties.SetCharset("UTF-8");
+                
+                // Set base URI for resolving external resources like images
+                converterProperties.SetBaseUri("https://www.tryit.co.il/");
+                
+                // Add font provider for better Hebrew and RTL support
+                var fontProvider = new FontProvider();
+                fontProvider.AddStandardPdfFonts();
+                fontProvider.AddSystemFonts();
+                converterProperties.SetFontProvider(fontProvider);
+                
+                HtmlConverter.ConvertToPdf(html, memoryStream, converterProperties);
+            }
+            catch (Exception ex)
+            {
+                // Log the error and rethrow with more context
+                _logger.LogError(ex, "Failed to generate trip offer PDF for offer: {OfferId}", offer?.OfferNumber);
+                throw new InvalidOperationException($"Failed to generate PDF: {ex.Message}", ex);
+            }
             
             return memoryStream.ToArray();
         }

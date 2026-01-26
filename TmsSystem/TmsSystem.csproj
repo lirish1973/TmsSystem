@@ -11,7 +11,6 @@
     <PackageReference Include="itext7" Version="8.0.5" />
     <PackageReference Include="itext7.bouncy-castle-adapter" Version="8.0.5" />
     <PackageReference Include="itext7.pdfhtml" Version="5.0.5" />
-    <PackageReference Include="itext7.pdfcalligraph" Version="5.0.5" />
     <PackageReference Include="MailKit" Version="4.14.0" />
     
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.0" />
