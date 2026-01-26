@@ -22,7 +22,8 @@ namespace TmsSystem.Services
         }
 
         /// <summary>
-        /// Reverses Hebrew/RTL text to compensate for iText7's character reversal during PDF rendering
+        /// Reverses Hebrew/RTL text line-by-line to compensate for iText7's character reversal during PDF rendering
+        /// Preserves line order to maintain correct paragraph structure
         /// </summary>
         private string ReverseHebrewText(string? text)
         {
@@ -32,16 +33,32 @@ namespace TmsSystem.Services
             // Check if text contains Hebrew characters
             bool hasHebrew = text.Any(c => c >= 0x0590 && c <= 0x05FF);
             
-            if (hasHebrew)
+            if (!hasHebrew)
+                return text;
+            
+            // Split text into lines to preserve line order
+            var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var reversedLines = new List<string>();
+            
+            foreach (var line in lines)
             {
-                // Reverse the entire string to compensate for iText7's reversal
-                // This ensures "הצעה" doesn't become "העצה" in the PDF
-                char[] charArray = text.ToCharArray();
-                Array.Reverse(charArray);
-                return new string(charArray);
+                if (string.IsNullOrEmpty(line))
+                {
+                    // Preserve empty lines
+                    reversedLines.Add(line);
+                }
+                else
+                {
+                    // Reverse each line individually to compensate for iText7's reversal
+                    // This ensures "הצעה" doesn't become "העצה" in the PDF
+                    char[] charArray = line.ToCharArray();
+                    Array.Reverse(charArray);
+                    reversedLines.Add(new string(charArray));
+                }
             }
             
-            return text;
+            // Rejoin lines with line breaks
+            return string.Join("\n", reversedLines);
         }
 
         /// <summary>
