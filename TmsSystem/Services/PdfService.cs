@@ -50,9 +50,9 @@ namespace TmsSystem.Services
         private string EncodeAndReverseRtl(string? text, string defaultValue = "לא צוין")
         {
             var textToUse = text ?? defaultValue;
-            // First reverse if Hebrew, then HTML encode
-            var reversed = ReverseHebrewText(textToUse);
-            return HttpUtility.HtmlEncode(reversed);
+            // First HTML encode for safety, then reverse if Hebrew
+            var encoded = HttpUtility.HtmlEncode(textToUse);
+            return ReverseHebrewText(encoded);
         }
 
         public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
