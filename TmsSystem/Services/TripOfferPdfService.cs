@@ -12,13 +12,48 @@ namespace TmsSystem.Services
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<TripOfferPdfService> _logger;
 
+        // Unicode BiDi control characters for RTL text
+        private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
+        private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
+        private const char RLM = '\u200F'; // RIGHT-TO-LEFT MARK
+
         public TripOfferPdfService(IWebHostEnvironment env, ILogger<TripOfferPdfService> logger)
         {
             _env = env;
             _logger = logger;
             // Hebrew RTL text support is handled via proper HTML structure (dir='rtl', lang='he')
             // and CSS directives (direction: rtl, text-align: right, unicode-bidi: embed)
-            // No special library needed - iText7 with pdfhtml handles RTL correctly
+            // Additional Unicode BiDi markers ensure proper text direction in PDF
+        }
+
+        /// <summary>
+        /// Wraps Hebrew/RTL text with Unicode BiDi markers to ensure proper rendering in PDF
+        /// </summary>
+        private string WrapRtlText(string? text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+            
+            // Check if text contains Hebrew characters
+            bool hasHebrew = text.Any(c => c >= 0x0590 && c <= 0x05FF);
+            
+            if (hasHebrew)
+            {
+                // Wrap with RLE...PDF to force RTL rendering
+                return $"{RLE}{text}{PDF}";
+            }
+            
+            return text;
+        }
+
+        /// <summary>
+        /// HTML-encodes and wraps RTL text for safe use in PDF generation
+        /// </summary>
+        private string EncodeAndWrapRtl(string? text, string defaultValue = "לא צוין")
+        {
+            var textToUse = text ?? defaultValue;
+            var encoded = System.Web.HttpUtility.HtmlEncode(textToUse);
+            return WrapRtlText(encoded);
         }
 
         public async Task<byte[]> GenerateTripOfferPdfAsync(TripOffer offer)
