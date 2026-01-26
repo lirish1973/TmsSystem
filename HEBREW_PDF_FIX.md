@@ -5,40 +5,31 @@
 Hebrew text was appearing reversed (mirrored) in generated PDF files.
 
 ## הפתרון / Solution  
-**Updated 2026-01-26:** הוסרנו את החבילה `itext7.pdfcalligraph` (שדורשת רישיון מסחרי) והחלפנו אותה בשימוש בסמני Unicode BiDi.
+**Updated 2026-01-26:** החלפנו את גישת סמני BiDi בהיפוך ידני של מחרוזות עבריות לפני יצירת ה-PDF.
 
-We removed the `itext7.pdfcalligraph` package (which requires a commercial license) and replaced it with Unicode BiDi markers for proper RTL text rendering.
+We replaced the BiDi marker approach with manual Hebrew string reversal before PDF generation.
 
-### שימוש בסמני BiDi / Using BiDi Markers
-הפתרון משתמש בתווי בקרה של Unicode לסימון טקסט RTL:
-The solution uses Unicode control characters to mark RTL text:
-- **RLE (U+202B)** - RIGHT-TO-LEFT EMBEDDING - מסמן תחילת טקסט RTL
-- **PDF (U+202C)** - POP DIRECTIONAL FORMATTING - מסמן סיום טקסט RTL
+### הסיבה לשינוי / Why the Change
+הגישה הקודמת עם סמני BiDi Unicode (RLE/PDF) לא עבדה כהלכה עם iText7. ספריית iText7 הופכת את הטקסט העברי בזמן יצירת ה-PDF, ללא קשר לסמני BiDi.
 
-כל טקסט עברי נעטף אוטומטית בסמנים אלו באמצעות פונקציות עזר:
-All Hebrew text is automatically wrapped with these markers using helper functions:
-- `WrapRtlText()` - בודק אם יש תווים עבריים ועוטף עם RLE...PDF
-- `EncodeAndWrapRtl()` - מקודד HTML ועוטף טקסט RTL
+The previous BiDi marker approach didn't work properly with iText7. The iText7 library reverses Hebrew text during PDF generation, regardless of BiDi markers.
+
+### איך זה עובד / How It Works
+1. **זיהוי טקסט עברי** - הפונקציה `ReverseHebrewText()` בודקת אם יש תווים עבריים (U+0590-U+05FF)
+2. **היפוך מחרוזת** - אם נמצא טקסט עברי, המחרוזת מתהפכת באופן ידני
+3. **iText7 מהפך שוב** - כשiText7 יוצר את ה-PDF, הוא מהפך את הטקסט שוב, וכך הוא מגיע למצב הנכון
+4. **קידוד HTML** - לאחר ההיפוך, הטקסט עובר קידוד HTML לבטיחות
+
+1. **Hebrew detection** - The `ReverseHebrewText()` function checks for Hebrew characters (U+0590-U+05FF)
+2. **String reversal** - If Hebrew text is found, the string is manually reversed
+3. **iText7 reverses again** - When iText7 generates the PDF, it reverses the text again, resulting in correct display
+4. **HTML encoding** - After reversal, text is HTML-encoded for safety
 
 ## שינויים שבוצעו / Changes Made
 
-### 1. הסרת חבילה / Package Removed
-```xml
-<!-- REMOVED: requires commercial license -->
-<!-- <PackageReference Include="itext7.pdfcalligraph" Version="5.0.5" /> -->
-```
-
-### 2. תווים חדשים / New Unicode Characters
-קבועים חדשים ב-PdfService.cs ו-TripOfferPdfService.cs:
-New constants in PdfService.cs and TripOfferPdfService.cs:
+### 1. פונקציה חדשה / New Function
 ```csharp
-private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
-private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
-```
-
-### 3. פונקציות עזר / Helper Functions
-```csharp
-private string WrapRtlText(string? text)
+private string ReverseHebrewText(string? text)
 {
     if (string.IsNullOrEmpty(text)) return string.Empty;
     
@@ -47,34 +38,39 @@ private string WrapRtlText(string? text)
     
     if (hasHebrew)
     {
-        // Wrap with RLE...PDF to force RTL rendering
-        return $"{RLE}{text}{PDF}";
+        // Reverse the entire string to compensate for iText7's reversal
+        char[] charArray = text.ToCharArray();
+        Array.Reverse(charArray);
+        return new string(charArray);
     }
     
     return text;
 }
+```
 
-private string EncodeAndWrapRtl(string? text, string defaultValue = "לא צוין")
+### 2. עדכון פונקציית עזר / Updated Helper Function
+```csharp
+private string EncodeAndReverseRtl(string? text, string defaultValue = "לא צוין")
 {
     var textToUse = text ?? defaultValue;
-    var encoded = HttpUtility.HtmlEncode(textToUse);
-    return WrapRtlText(encoded);
+    // First reverse if Hebrew, then HTML encode
+    var reversed = ReverseHebrewText(textToUse);
+    return HttpUtility.HtmlEncode(reversed);
 }
 ```
 
-### 4. קבצים שעודכנו / Updated Files
-- `TmsSystem/TmsSystem.csproj` - removed pdfCalligraph package
-- `TmsSystem/Services/PdfService.cs` - added BiDi helper methods and error handling
-- `TmsSystem/Services/TripOfferPdfService.cs` - added BiDi helper methods and error handling
+### 3. קבצים שעודכנו / Updated Files
+- `TmsSystem/Services/PdfService.cs` - replaced BiDi markers with string reversal
+- `TmsSystem/Services/TripOfferPdfService.cs` - replaced BiDi markers with string reversal
 
 ## איך זה עובד / How It Works
 
-### Automatic RTL Detection
-המערכת בודקת אוטומטית טקסט עברי ועוטפת אותו:
-The system automatically detects Hebrew text and wraps it:
+### Automatic Hebrew Detection and Reversal
+המערכת בודקת אוטומטית טקסט עברי ומהפכת אותו לפני יצירת ה-PDF:
+The system automatically detects Hebrew text and reverses it before PDF generation:
 
 1. ✅ זיהוי אוטומטי של תווים עבריים (U+0590-U+05FF) / Automatic Hebrew character detection
-2. ✅ עטיפה עם RLE...PDF לכפיית כיוון RTL / Wrapping with RLE...PDF to force RTL
+2. ✅ היפוך מחרוזת באופן ידני / Manual string reversal
 3. ✅ קידוד HTML בטוח / Safe HTML encoding  
 4. ✅ עובד עם הגדרות CSS קיימות / Works with existing CSS settings
 
@@ -84,12 +80,12 @@ The templates already contain correct RTL settings:
 
 ```html
 <html dir='rtl' lang='he'>
-<body style='direction: rtl; text-align: right; unicode-bidi: embed;'>
+<body style='direction: rtl; text-align: right;'>
 ```
 
-### What Gets Wrapped
-כל התוכן הבא נעטף אוטומטית בסמני BiDi:
-All the following content is automatically wrapped with BiDi markers:
+### What Gets Reversed
+כל התוכן הבא מתהפך אוטומטית:
+All the following content is automatically reversed:
 - שמות לקוחות / Customer names
 - כתובות / Addresses
 - כותרות טיולים / Tour titles
@@ -102,25 +98,26 @@ All the following content is automatically wrapped with BiDi markers:
 
 ## יתרונות הפתרון / Solution Benefits
 
+✅ **פועל באמת** / Actually works - פתרון שנבדק ועובד עם iText7 / Tested solution that works with iText7
 ✅ **ללא רישיון נדרש** / No license required - פתרון חינמי לחלוטין / Completely free solution
-✅ **עובד מיידית** / Works immediately - אין צורך בהגדרות נוספות / No additional configuration needed
-✅ **ביצועים טובים** / Good performance - קל משקל יותר מ-pdfCalligraph / Lighter than pdfCalligraph
-✅ **אמין** / Reliable - תואם לתקן Unicode BiDi / Unicode BiDi standard compliant
+✅ **פשוט ואמין** / Simple and reliable - ללא תלות בספריות חיצוניות / No external library dependencies
+✅ **קל לתחזוקה** / Easy to maintain - קוד ברור ומובן / Clear and understandable code
 
-## טיפול בשגיאות / Error Handling
+## דוגמה / Example
 
-הוספנו טיפול משופר בשגיאות:
-Added improved error handling:
-```csharp
-try
-{
-    HtmlConverter.ConvertToPdf(html, memoryStream, converterProperties);
-}
-catch (Exception ex)
-{
-    _logger.LogError(ex, "Failed to generate PDF...");
-    throw new InvalidOperationException($"Failed to generate PDF: {ex.Message}", ex);
-}
+**Input (before reversal):**
+```
+"הצעה למחיר"
+```
+
+**After ReverseHebrewText:**
+```
+"ריחמל העצה"
+```
+
+**After iText7 processing (in PDF):**
+```
+"הצעה למחיר" ✅ (correct!)
 ```
 
 ## בדיקה / Testing
@@ -140,16 +137,11 @@ dotnet build
    Verify Hebrew text appears correctly (not reversed)
 
 ### 3. מה לבדוק / What to Check
+- ✅ "הצעה" מופיעה כ"הצעה" ולא כ"העצה" / "הצעה" appears as "הצעה" not "העצה"
 - ✅ שמות לקוחות בעברית / Hebrew customer names
 - ✅ תיאורי טיולים / Tour descriptions
 - ✅ פרטים נוספים / Additional details
-- ✅ כל טקסט עברי אחר / Any other Hebrew text
 - ✅ ה-PDF נפתח ונשמר בהצלחה / PDF opens and saves successfully
-
-## קישורים שימושיים / Useful Links
-- [Unicode BiDi Algorithm](https://unicode.org/reports/tr9/)
-- [iText7 Documentation](https://itextpdf.com/products/itext-7)
-- [HTML dir attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir)
 
 ## תמיכה / Support
 לשאלות או בעיות נוספות, פנה למפתח המערכת.
@@ -157,4 +149,4 @@ For questions or issues, contact the system developer.
 
 ---
 תאריך עדכון / Update Date: 2026-01-26  
-גרסה / Version: 2.0 - Unicode BiDi Solution
+גרסה / Version: 3.0 - String Reversal Solution
