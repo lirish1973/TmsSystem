@@ -13,21 +13,18 @@ namespace TmsSystem.Services
 {
     public class PdfService : IPdfService
     {
-        // Unicode BiDi control characters for RTL text
-        private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING - marks start of RTL text
-        private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING - marks end of RTL text
-
         public PdfService()
         {
-            // Hebrew RTL text support is handled via proper HTML structure (dir='rtl', lang='he')
-            // and CSS directives (direction: rtl, text-align: right, unicode-bidi: embed)
-            // Additional Unicode BiDi markers ensure proper text direction in PDF
+            // Hebrew RTL text support is handled by reversing the Hebrew text before PDF generation
+            // This compensates for iText7's character reversal during rendering
+            // HTML structure with dir='rtl', lang='he' and CSS (direction: rtl, text-align: right)
+            // ensures proper layout and alignment
         }
 
         /// <summary>
-        /// Wraps Hebrew/RTL text with Unicode BiDi markers to ensure proper rendering in PDF
+        /// Reverses Hebrew/RTL text to compensate for iText7's character reversal during PDF rendering
         /// </summary>
-        private string WrapRtlText(string? text)
+        private string ReverseHebrewText(string? text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -37,21 +34,25 @@ namespace TmsSystem.Services
             
             if (hasHebrew)
             {
-                // Wrap with RLE...PDF to force RTL rendering
-                return $"{RLE}{text}{PDF}";
+                // Reverse the entire string to compensate for iText7's reversal
+                // This ensures "הצעה" doesn't become "העצה" in the PDF
+                char[] charArray = text.ToCharArray();
+                Array.Reverse(charArray);
+                return new string(charArray);
             }
             
             return text;
         }
 
         /// <summary>
-        /// HTML-encodes and wraps RTL text for safe use in PDF generation
+        /// HTML-encodes and reverses RTL text for safe use in PDF generation
         /// </summary>
-        private string EncodeAndWrapRtl(string? text, string defaultValue = "לא צוין")
+        private string EncodeAndReverseRtl(string? text, string defaultValue = "לא צוין")
         {
             var textToUse = text ?? defaultValue;
-            var encoded = HttpUtility.HtmlEncode(textToUse);
-            return WrapRtlText(encoded);
+            // First reverse if Hebrew, then HTML encode
+            var reversed = ReverseHebrewText(textToUse);
+            return HttpUtility.HtmlEncode(reversed);
         }
 
         public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
@@ -382,15 +383,15 @@ namespace TmsSystem.Services
                 <div class='section-title'>פרטי הלקוח</div>
                 <div class='info-row'>
                     <span class='info-label'>שם מלא:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer?.FullName) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Customer?.FullName) + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>טלפון:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer?.Phone) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Customer?.Phone) + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>אימייל:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer?.Email) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Customer?.Email) + @"</span>
                 </div>");
 
             if (!string.IsNullOrEmpty(model.Offer.Customer?.Address))
@@ -398,7 +399,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>כתובת:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer.Address) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Customer.Address) + @"</span>
                 </div>");
             }
 
@@ -410,7 +411,7 @@ namespace TmsSystem.Services
                 <div class='section-title'>פרטי הטיול</div>
                 <div class='info-row'>
                     <span class='info-label'>טיול:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Tour?.Title) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Tour?.Title) + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>תאריך:</span>
@@ -426,7 +427,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>נקודת איסוף:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.PickupLocation) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.PickupLocation) + @"</span>
                 </div>");
             }
 
@@ -438,7 +439,7 @@ namespace TmsSystem.Services
                 <div class='section-title'>פרטי המדריך</div>
                 <div class='info-row'>
                     <span class='info-label'>שם המדריך:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Guide?.GuideName) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Guide?.GuideName) + @"</span>
                 </div>");
 
             if (!string.IsNullOrEmpty(model.Offer.Guide?.Description))
@@ -446,7 +447,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>תיאור:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Guide.Description) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.Offer.Guide.Description) + @"</span>
                 </div>");
             }
 
@@ -457,8 +458,8 @@ namespace TmsSystem.Services
             {
                 html.AppendLine(@"
             <div class='section'>
-                <div class='section-title'>אודות הסיור - " + EncodeAndWrapRtl(model.Offer.Tour.Title) + @"</div>
-                <p>" + EncodeAndWrapRtl(model.Offer.Tour.Description).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</p>
+                <div class='section-title'>אודות הסיור - " + EncodeAndReverseRtl(model.Offer.Tour.Title) + @"</div>
+                <p>" + EncodeAndReverseRtl(model.Offer.Tour.Description).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</p>
             </div>");
             }
 
@@ -481,8 +482,8 @@ namespace TmsSystem.Services
                     }
 
                     html.AppendLine(@"</div>
-                    <div class='schedule-location'>" + EncodeAndWrapRtl(item.Location, "") + @"</div>
-                    <div class='schedule-description'>" + EncodeAndWrapRtl(item.Description, "").Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
+                    <div class='schedule-location'>" + EncodeAndReverseRtl(item.Location, "") + @"</div>
+                    <div class='schedule-description'>" + EncodeAndReverseRtl(item.Description, "").Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
                 </div>");
                 }
 
@@ -500,7 +501,7 @@ namespace TmsSystem.Services
                 foreach (var include in model.Offer.Tour.Includes)
                 {
                     html.AppendLine(@"
-                    <li>" + EncodeAndWrapRtl(include.Description ?? include.Text, "") + "</li>");
+                    <li>" + EncodeAndReverseRtl(include.Description ?? include.Text, "") + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -519,7 +520,7 @@ namespace TmsSystem.Services
                 foreach (var exclude in model.Offer.Tour.Excludes)
                 {
                     html.AppendLine(@"
-                    <li>" + EncodeAndWrapRtl(exclude.Description ?? exclude.Text, "") + "</li>");
+                    <li>" + EncodeAndReverseRtl(exclude.Description ?? exclude.Text, "") + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -539,7 +540,7 @@ namespace TmsSystem.Services
                 foreach (var item in priceIncludes)
                 {
                     html.AppendLine(@"
-                    <li>" + EncodeAndWrapRtl(item.Trim()) + "</li>");
+                    <li>" + EncodeAndReverseRtl(item.Trim()) + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -559,7 +560,7 @@ namespace TmsSystem.Services
                 foreach (var item in priceExcludes)
                 {
                     html.AppendLine(@"
-                    <li>" + EncodeAndWrapRtl(item.Trim()) + "</li>");
+                    <li>" + EncodeAndReverseRtl(item.Trim()) + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -573,7 +574,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
             <div class='section'>
                 <div class='section-title'>בקשות מיוחדות וטקסים</div>
-                <div>" + EncodeAndWrapRtl(model.Offer.SpecialRequests).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
+                <div>" + EncodeAndReverseRtl(model.Offer.SpecialRequests).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
             </div>");
             }
 
@@ -619,7 +620,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>שיטת תשלום:</span>
-                    <span class='info-value'>" + EncodeAndWrapRtl(model.PaymentMethod.METHOD) + @"</span>
+                    <span class='info-value'>" + EncodeAndReverseRtl(model.PaymentMethod.METHOD) + @"</span>
                 </div>");
             }
 
