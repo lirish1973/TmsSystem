@@ -16,14 +16,14 @@ The previous BiDi marker approach didn't work properly with iText7. The iText7 l
 
 ### איך זה עובד / How It Works
 1. **זיהוי טקסט עברי** - הפונקציה `ReverseHebrewText()` בודקת אם יש תווים עבריים (U+0590-U+05FF)
-2. **היפוך מחרוזת** - אם נמצא טקסט עברי, המחרוזת מתהפכת באופן ידני
-3. **iText7 מהפך שוב** - כשiText7 יוצר את ה-PDF, הוא מהפך את הטקסט שוב, וכך הוא מגיע למצב הנכון
-4. **קידוד HTML** - לאחר ההיפוך, הטקסט עובר קידוד HTML לבטיחות
+2. **קידוד HTML** - הטקסט עובר קידוד HTML לבטיחות (לפני ההיפוך)
+3. **היפוך מחרוזת** - אם נמצא טקסט עברי, המחרוזת המקודדת מתהפכת באופן ידני
+4. **iText7 מהפך שוב** - כשiText7 יוצר את ה-PDF, הוא מהפך את הטקסט שוב, וכך הוא מגיע למצב הנכון
 
 1. **Hebrew detection** - The `ReverseHebrewText()` function checks for Hebrew characters (U+0590-U+05FF)
-2. **String reversal** - If Hebrew text is found, the string is manually reversed
-3. **iText7 reverses again** - When iText7 generates the PDF, it reverses the text again, resulting in correct display
-4. **HTML encoding** - After reversal, text is HTML-encoded for safety
+2. **HTML encoding** - Text is HTML-encoded for safety (before reversal)
+3. **String reversal** - If Hebrew text is found, the encoded string is manually reversed
+4. **iText7 reverses again** - When iText7 generates the PDF, it reverses the text again, resulting in correct display
 
 ## שינויים שבוצעו / Changes Made
 
@@ -53,9 +53,9 @@ private string ReverseHebrewText(string? text)
 private string EncodeAndReverseRtl(string? text, string defaultValue = "לא צוין")
 {
     var textToUse = text ?? defaultValue;
-    // First reverse if Hebrew, then HTML encode
-    var reversed = ReverseHebrewText(textToUse);
-    return HttpUtility.HtmlEncode(reversed);
+    // First HTML encode for safety, then reverse if Hebrew
+    var encoded = HttpUtility.HtmlEncode(textToUse);
+    return ReverseHebrewText(encoded);
 }
 ```
 
