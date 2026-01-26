@@ -1,5 +1,6 @@
 using System.Text;
 using System.Net;
+using System.Web;
 using TmsSystem.Models;
 using iText.Html2pdf;
 using iText.Layout.Font;
@@ -15,7 +16,6 @@ namespace TmsSystem.Services
         // Unicode BiDi control characters for RTL text
         private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
         private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
-        private const char RLM = '\u200F'; // RIGHT-TO-LEFT MARK
 
         public TripOfferPdfService(IWebHostEnvironment env, ILogger<TripOfferPdfService> logger)
         {
@@ -52,7 +52,7 @@ namespace TmsSystem.Services
         private string EncodeAndWrapRtl(string? text, string defaultValue = "לא צוין")
         {
             var textToUse = text ?? defaultValue;
-            var encoded = System.Web.HttpUtility.HtmlEncode(textToUse);
+            var encoded = HttpUtility.HtmlEncode(textToUse);
             return WrapRtlText(encoded);
         }
 
