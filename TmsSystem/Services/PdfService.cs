@@ -13,11 +13,46 @@ namespace TmsSystem.Services
 {
     public class PdfService : IPdfService
     {
+        // Unicode BiDi control characters for RTL text
+        private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
+        private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
+        private const char RLM = '\u200F'; // RIGHT-TO-LEFT MARK
+
         public PdfService()
         {
             // Hebrew RTL text support is handled via proper HTML structure (dir='rtl', lang='he')
             // and CSS directives (direction: rtl, text-align: right, unicode-bidi: embed)
-            // No special library needed - iText7 with pdfhtml handles RTL correctly
+            // Additional Unicode BiDi markers ensure proper text direction in PDF
+        }
+
+        /// <summary>
+        /// Wraps Hebrew/RTL text with Unicode BiDi markers to ensure proper rendering in PDF
+        /// </summary>
+        private string WrapRtlText(string? text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+            
+            // Check if text contains Hebrew characters
+            bool hasHebrew = text.Any(c => c >= 0x0590 && c <= 0x05FF);
+            
+            if (hasHebrew)
+            {
+                // Wrap with RLE...PDF to force RTL rendering
+                return $"{RLE}{text}{PDF}";
+            }
+            
+            return text;
+        }
+
+        /// <summary>
+        /// HTML-encodes and wraps RTL text for safe use in PDF generation
+        /// </summary>
+        private string EncodeAndWrapRtl(string? text, string defaultValue = "לא צוין")
+        {
+            var textToUse = text ?? defaultValue;
+            var encoded = HttpUtility.HtmlEncode(textToUse);
+            return WrapRtlText(encoded);
         }
 
         public async Task<byte[]> GenerateOfferPdfAsync(ShowOfferViewModel model)
@@ -348,15 +383,15 @@ namespace TmsSystem.Services
                 <div class='section-title'>פרטי הלקוח</div>
                 <div class='info-row'>
                     <span class='info-label'>שם מלא:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Customer?.FullName ?? "לא צוין") + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer?.FullName) + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>טלפון:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Customer?.Phone ?? "לא צוין") + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer?.Phone) + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>אימייל:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Customer?.Email ?? "לא צוין") + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer?.Email) + @"</span>
                 </div>");
 
             if (!string.IsNullOrEmpty(model.Offer.Customer?.Address))
@@ -364,7 +399,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>כתובת:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Customer.Address) + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Customer.Address) + @"</span>
                 </div>");
             }
 
@@ -376,7 +411,7 @@ namespace TmsSystem.Services
                 <div class='section-title'>פרטי הטיול</div>
                 <div class='info-row'>
                     <span class='info-label'>טיול:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Tour?.Title ?? "לא צוין") + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Tour?.Title) + @"</span>
                 </div>
                 <div class='info-row'>
                     <span class='info-label'>תאריך:</span>
@@ -392,7 +427,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>נקודת איסוף:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.PickupLocation) + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.PickupLocation) + @"</span>
                 </div>");
             }
 
@@ -404,7 +439,7 @@ namespace TmsSystem.Services
                 <div class='section-title'>פרטי המדריך</div>
                 <div class='info-row'>
                     <span class='info-label'>שם המדריך:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Guide?.GuideName ?? "לא צוין") + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Guide?.GuideName) + @"</span>
                 </div>");
 
             if (!string.IsNullOrEmpty(model.Offer.Guide?.Description))
@@ -412,7 +447,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>תיאור:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.Offer.Guide.Description) + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.Offer.Guide.Description) + @"</span>
                 </div>");
             }
 
@@ -423,8 +458,8 @@ namespace TmsSystem.Services
             {
                 html.AppendLine(@"
             <div class='section'>
-                <div class='section-title'>אודות הסיור - " + HttpUtility.HtmlEncode(model.Offer.Tour.Title) + @"</div>
-                <p>" + HttpUtility.HtmlEncode(model.Offer.Tour.Description).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</p>
+                <div class='section-title'>אודות הסיור - " + EncodeAndWrapRtl(model.Offer.Tour.Title) + @"</div>
+                <p>" + EncodeAndWrapRtl(model.Offer.Tour.Description).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</p>
             </div>");
             }
 
@@ -447,8 +482,8 @@ namespace TmsSystem.Services
                     }
 
                     html.AppendLine(@"</div>
-                    <div class='schedule-location'>" + HttpUtility.HtmlEncode(item.Location ?? "") + @"</div>
-                    <div class='schedule-description'>" + HttpUtility.HtmlEncode(item.Description ?? "").Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
+                    <div class='schedule-location'>" + EncodeAndWrapRtl(item.Location, "") + @"</div>
+                    <div class='schedule-description'>" + EncodeAndWrapRtl(item.Description, "").Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
                 </div>");
                 }
 
@@ -466,7 +501,7 @@ namespace TmsSystem.Services
                 foreach (var include in model.Offer.Tour.Includes)
                 {
                     html.AppendLine(@"
-                    <li>" + HttpUtility.HtmlEncode(include.Description ?? include.Text ?? "") + "</li>");
+                    <li>" + EncodeAndWrapRtl(include.Description ?? include.Text, "") + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -485,7 +520,7 @@ namespace TmsSystem.Services
                 foreach (var exclude in model.Offer.Tour.Excludes)
                 {
                     html.AppendLine(@"
-                    <li>" + HttpUtility.HtmlEncode(exclude.Description ?? exclude.Text ?? "") + "</li>");
+                    <li>" + EncodeAndWrapRtl(exclude.Description ?? exclude.Text, "") + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -505,7 +540,7 @@ namespace TmsSystem.Services
                 foreach (var item in priceIncludes)
                 {
                     html.AppendLine(@"
-                    <li>" + HttpUtility.HtmlEncode(item.Trim()) + "</li>");
+                    <li>" + EncodeAndWrapRtl(item.Trim()) + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -525,7 +560,7 @@ namespace TmsSystem.Services
                 foreach (var item in priceExcludes)
                 {
                     html.AppendLine(@"
-                    <li>" + HttpUtility.HtmlEncode(item.Trim()) + "</li>");
+                    <li>" + EncodeAndWrapRtl(item.Trim()) + "</li>");
                 }
 
                 html.AppendLine(@"
@@ -539,7 +574,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
             <div class='section'>
                 <div class='section-title'>בקשות מיוחדות וטקסים</div>
-                <div>" + HttpUtility.HtmlEncode(model.Offer.SpecialRequests).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
+                <div>" + EncodeAndWrapRtl(model.Offer.SpecialRequests).Replace("\n", "<br/>").Replace("\r\n", "<br/>") + @"</div>
             </div>");
             }
 
@@ -585,7 +620,7 @@ namespace TmsSystem.Services
                 html.AppendLine(@"
                 <div class='info-row'>
                     <span class='info-label'>שיטת תשלום:</span>
-                    <span class='info-value'>" + HttpUtility.HtmlEncode(model.PaymentMethod.METHOD) + @"</span>
+                    <span class='info-value'>" + EncodeAndWrapRtl(model.PaymentMethod.METHOD) + @"</span>
                 </div>");
             }
 
