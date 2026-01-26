@@ -14,9 +14,8 @@ namespace TmsSystem.Services
     public class PdfService : IPdfService
     {
         // Unicode BiDi control characters for RTL text
-        private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
-        private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
-        private const char RLM = '\u200F'; // RIGHT-TO-LEFT MARK
+        private const char RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING - marks start of RTL text
+        private const char PDF = '\u202C'; // POP DIRECTIONAL FORMATTING - marks end of RTL text
 
         public PdfService()
         {
