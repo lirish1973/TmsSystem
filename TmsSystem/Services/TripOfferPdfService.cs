@@ -333,7 +333,7 @@ namespace TmsSystem.Services
             background: #ebf8ff;
             border: 1px solid #4299e1;
             border-radius: 6px;
-            padding: 20px;
+            padding: 15px;
             margin-top: 15px;
         }
 
@@ -341,8 +341,13 @@ namespace TmsSystem.Services
             background: #4299e1;
             color: white;
             border-right: none;
-            margin: -20px -20px 15px -20px;
-            padding: 12px 20px;
+            margin: -15px -15px 10px -15px;
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+
+        .bank-section .info-table td {
+            padding: 6px 0;
         }
 
         /* Contact section */
