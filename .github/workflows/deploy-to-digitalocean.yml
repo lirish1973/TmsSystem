@@ -116,10 +116,24 @@ jobs:
             # הגדרת הרשאות
             sudo chown -R www-data:www-data "$APP_DIR"
             sudo chmod -R 755 "$APP_DIR"
-            
+
             # ניקוי קובץ הפריסה הזמני
             rm -f /tmp/deployment.tar.gz
-            
+
+            # הרצת Database Migrations
+            echo "Running database migrations..."
+            cd "$APP_DIR"
+
+            # בדיקה אם יש dotnet-ef מותקן גלובלית, אם לא - נתקין
+            if ! command -v dotnet-ef &> /dev/null; then
+              echo "Installing dotnet-ef tool..."
+              sudo dotnet tool install --global dotnet-ef || true
+            fi
+
+            # הרצת migrations עם connection string מה-appsettings
+            export PATH="$PATH:/root/.dotnet/tools"
+            dotnet ef database update --no-build 2>/dev/null || echo "Note: Migrations may require manual run if EF tools not available"
+
             # הפעלה מחדש של השירות
             if [ -f "/etc/systemd/system/tmssystem.service" ]; then
               echo "Starting TmsSystem service..."
