@@ -14,7 +14,7 @@
    ```
 
 2. **הגדרת GitHub Secrets** - הוסף את הערכים הבאים ב-Settings > Secrets:
-   - `DIGITALOCEAN_HOST` - כתובת IP של השרת (64.225.67.19)
+   - `DIGITALOCEAN_HOST` - כתובת IP של השרת 
    - `DIGITALOCEAN_USERNAME` - שם משתמש SSH (root)
    - `DIGITALOCEAN_SSH_KEY` - מפתח SSH פרטי
 
