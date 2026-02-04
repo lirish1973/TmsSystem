@@ -87,9 +87,12 @@ jobs:
             UPLOADS_DIR="$APP_DIR/wwwroot/uploads"
             TEMP_UPLOADS="/tmp/uploads_backup_$TIMESTAMP"
 
-            if [ -d "$UPLOADS_DIR" ]; then
+            if [ -d "$UPLOADS_DIR" ] && [ "$(ls -A $UPLOADS_DIR 2>/dev/null)" ]; then
               echo "Backing up uploads folder..."
-              sudo cp -r "$UPLOADS_DIR" "$TEMP_UPLOADS"
+              sudo mkdir -p "$TEMP_UPLOADS"
+              sudo cp -r "$UPLOADS_DIR"/* "$TEMP_UPLOADS/" 2>/dev/null || true
+              echo "Uploads backed up to $TEMP_UPLOADS"
+              ls -la "$TEMP_UPLOADS" || true
             fi
 
             # ניקוי התיקייה הישנה - בטוח יותר
@@ -106,11 +109,17 @@ jobs:
             sudo tar -xzf /tmp/deployment.tar.gz -C "$APP_DIR"
 
             # שחזור תיקיית uploads (תמונות שהועלו)
-            if [ -d "$TEMP_UPLOADS" ]; then
+            if [ -d "$TEMP_UPLOADS" ] && [ "$(ls -A $TEMP_UPLOADS 2>/dev/null)" ]; then
               echo "Restoring uploads folder..."
-              sudo mkdir -p "$APP_DIR/wwwroot"
-              sudo cp -r "$TEMP_UPLOADS" "$UPLOADS_DIR"
+              sudo mkdir -p "$UPLOADS_DIR"
+              sudo cp -r "$TEMP_UPLOADS"/* "$UPLOADS_DIR/" 2>/dev/null || true
               sudo rm -rf "$TEMP_UPLOADS"
+              echo "Uploads restored to $UPLOADS_DIR"
+              ls -la "$UPLOADS_DIR" || true
+            else
+              echo "No uploads to restore, creating empty uploads directory..."
+              sudo mkdir -p "$UPLOADS_DIR/trips"
+              sudo mkdir -p "$UPLOADS_DIR/gallery"
             fi
 
             # הגדרת הרשאות
