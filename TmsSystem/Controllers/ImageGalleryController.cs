@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TmsSystem.Data;
 using TmsSystem.Models;
+using TmsSystem.Services;
 
 namespace TmsSystem.Controllers
 {
@@ -12,15 +13,18 @@ namespace TmsSystem.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<ImageGalleryController> _logger;
+        private readonly IImageCompressionService _imageCompressionService;
 
         public ImageGalleryController(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             IWebHostEnvironment webHostEnvironment,
-            ILogger<ImageGalleryController> logger)
+            ILogger<ImageGalleryController> logger,
+            IImageCompressionService imageCompressionService)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
+            _imageCompressionService = imageCompressionService;
         }
 
         // GET: ImageGallery
@@ -65,11 +69,30 @@ namespace TmsSystem.Controllers
                 var fileName = $"{Guid.NewGuid()}{extension}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                // Save file
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                // Compress and save image
+                var compressionOptions = new ImageCompressionOptions
                 {
-                    await file.CopyToAsync(stream);
+                    MaxWidth = 1920,
+                    MaxHeight = 1080,
+                    JpegQuality = 75,
+                    MaxFileSizeKB = 200
+                };
+
+                var compressionResult = await _imageCompressionService.CompressAndSaveAsync(
+                    file, filePath, compressionOptions);
+
+                if (!compressionResult.Success)
+                {
+                    _logger.LogError("Failed to compress image: {Error}", compressionResult.ErrorMessage);
+                    TempData["ErrorMessage"] = $"שגיאה בדחיסת תמונה: {compressionResult.ErrorMessage}";
+                    return RedirectToAction(nameof(Index));
                 }
+
+                _logger.LogInformation(
+                    "Image compressed: Original {OrigSize}KB -> Compressed {CompSize}KB (Saved {Ratio}%)",
+                    compressionResult.OriginalSizeBytes / 1024,
+                    compressionResult.CompressedSizeBytes / 1024,
+                    compressionResult.CompressionRatio);
 
                 // Create database record
                 var imageGallery = new ImageGallery
@@ -77,7 +100,7 @@ namespace TmsSystem.Controllers
                     FileName = file.FileName,
                     FilePath = $"/uploads/gallery/{fileName}",
                     Description = description,
-                    FileSize = file.Length,
+                    FileSize = compressionResult.CompressedSizeBytes, // Save compressed size
                     UploadedAt = DateTime.UtcNow,
                     IsActive = true,
                     UsageCount = 0

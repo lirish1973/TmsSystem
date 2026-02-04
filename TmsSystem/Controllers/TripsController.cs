@@ -19,16 +19,19 @@ namespace TmsSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly TripEmailSender _tripEmailSender; // הוסף את זה!
+        private readonly TripEmailSender _tripEmailSender;
+        private readonly IImageCompressionService _imageCompressionService;
 
         public TripsController(
             ApplicationDbContext context,
             IWebHostEnvironment webHostEnvironment,
-            TripEmailSender tripEmailSender) // הוסף פרמטר!
+            TripEmailSender tripEmailSender,
+            IImageCompressionService imageCompressionService)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
-            _tripEmailSender = tripEmailSender; // אתחול!
+            _tripEmailSender = tripEmailSender;
+            _imageCompressionService = imageCompressionService;
         }
 
         // GET: Trips
@@ -188,16 +191,34 @@ namespace TmsSystem.Controllers
                         {
                             try
                             {
-                                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                                var fileName = $"{Guid.NewGuid()}{extension}";
                                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                // Compress and save image
+                                var compressionOptions = new ImageCompressionOptions
                                 {
-                                    await file.CopyToAsync(stream);
-                                }
+                                    MaxWidth = 1920,
+                                    MaxHeight = 1080,
+                                    JpegQuality = 75,
+                                    MaxFileSizeKB = 200
+                                };
 
-                                tripDaysList[i].ImagePath = $"/uploads/trips/{fileName}";
-                                Console.WriteLine($"✅ Image uploaded for day {i + 1}: {fileName}");
+                                var compressionResult = await _imageCompressionService.CompressAndSaveAsync(
+                                    file, filePath, compressionOptions);
+
+                                if (compressionResult.Success)
+                                {
+                                    tripDaysList[i].ImagePath = $"/uploads/trips/{fileName}";
+                                    Console.WriteLine($"✅ Image compressed and uploaded for day {i + 1}: {fileName} " +
+                                        $"(Original: {compressionResult.OriginalSizeBytes / 1024}KB -> " +
+                                        $"Compressed: {compressionResult.CompressedSizeBytes / 1024}KB, " +
+                                        $"Saved: {compressionResult.CompressionRatio}%)");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"⚠️ Compression failed for day {i + 1}: {compressionResult.ErrorMessage}");
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -510,18 +531,36 @@ namespace TmsSystem.Controllers
                                     }
                                 }
 
-                                // הוספת תמונה חדשה
-                                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                                // הוספת תמונה חדשה עם דחיסה
+                                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                                var fileName = $"{Guid.NewGuid()}{extension}";
                                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                // Compress and save image
+                                var compressionOptions = new ImageCompressionOptions
                                 {
-                                    await file.CopyToAsync(stream);
-                                }
+                                    MaxWidth = 1920,
+                                    MaxHeight = 1080,
+                                    JpegQuality = 75,
+                                    MaxFileSizeKB = 200
+                                };
 
-                                existingDay.ImagePath = $"/uploads/trips/{fileName}";
-                                Console.WriteLine($"✅ Updated image for day {displayIndex + 1}: {fileName}");
-                                _context.Update(existingDay);
+                                var compressionResult = await _imageCompressionService.CompressAndSaveAsync(
+                                    file, filePath, compressionOptions);
+
+                                if (compressionResult.Success)
+                                {
+                                    existingDay.ImagePath = $"/uploads/trips/{fileName}";
+                                    Console.WriteLine($"✅ Image compressed and updated for day {displayIndex + 1}: {fileName} " +
+                                        $"(Original: {compressionResult.OriginalSizeBytes / 1024}KB -> " +
+                                        $"Compressed: {compressionResult.CompressedSizeBytes / 1024}KB, " +
+                                        $"Saved: {compressionResult.CompressionRatio}%)");
+                                    _context.Update(existingDay);
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"⚠️ Compression failed for day {displayIndex + 1}: {compressionResult.ErrorMessage}");
+                                }
                             }
                             else
                             {

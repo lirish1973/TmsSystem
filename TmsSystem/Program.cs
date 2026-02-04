@@ -118,6 +118,11 @@ builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<ITripOfferPdfService, TripOfferPdfService>();
 
 // ========================================
+// 🖼️ Image Compression Service
+// ========================================
+builder.Services.AddScoped<IImageCompressionService, ImageCompressionService>();
+
+// ========================================
 // 🔐 Authorization
 // ========================================
 builder.Services.AddAuthorization();
