@@ -616,11 +616,11 @@ namespace TmsSystem.Services
             <table class='info-table'>
                 <tr>
                     <td class='info-label'>מחיר לאדם:</td>
-                    <td class='info-value'><span class='price-total'>₪{model.Offer.Price:N0}</span></td>
+                    <td class='info-value'><span class='price-total'>${model.Offer.Price:N0}</span></td>
                 </tr>
                 <tr>
                     <td class='info-label'>סה״כ לתשלום:</td>
-                    <td class='info-value'><span class='price-total'>₪{model.Offer.TotalPayment:N0}</span></td>
+                    <td class='info-value'><span class='price-total'>${model.Offer.TotalPayment:N0}</span></td>
                 </tr>");
 
             if (model.PaymentMethod != null)
@@ -666,7 +666,7 @@ namespace TmsSystem.Services
                     </tr>
                     <tr>
                         <td class='info-label'><strong>סכום להעברה:</strong></td>
-                        <td class='info-value'><strong style='color: #38a169;'>₪{model.Offer.TotalPayment:N0}</strong></td>
+                        <td class='info-value'><strong style='color: #38a169;'>${model.Offer.TotalPayment:N0}</strong></td>
                     </tr>
                 </table>
             </div>

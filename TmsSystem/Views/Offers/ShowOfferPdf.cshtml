@@ -218,11 +218,11 @@
         <div class="section-title">פרטי מחיר</div>
         <div class="info-row">
             <span class="info-label">מחיר לאדם:</span>
-            <span class="price-highlight">₪@Model.Offer.Price.ToString("N2")</span>
+            <span class="price-highlight">$@Model.Offer.Price.ToString("N2")</span>
         </div>
         <div class="info-row">
             <span class="info-label">סה"כ לתשלום:</span>
-            <span class="price-highlight">₪@Model.Offer.TotalPayment.ToString("N2")</span>
+            <span class="price-highlight">$@Model.Offer.TotalPayment.ToString("N2")</span>
         </div>
         @if (Model.PaymentMethod != null)
         {
