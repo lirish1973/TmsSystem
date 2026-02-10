@@ -96,8 +96,8 @@
                 <div class="col-md-6">
                     <div class="blue-section">
                         <h5 class="text-blue-dark"><i class="fas fa-calculator"></i> מחיר</h5>
-                        <p><strong>מחיר לאדם:</strong> ₪@Model.Offer.Price.ToString("N2")</p>
-                        <p><strong>סה"כ:</strong> <span class="text-blue-primary font-weight-bold">₪@Model.Offer.TotalPayment.ToString("N2")</span></p>
+                        <p><strong>מחיר לאדם:</strong> $@Model.Offer.Price.ToString("N2")</p>
+                        <p><strong>סה"כ:</strong> <span class="text-blue-primary font-weight-bold">$@Model.Offer.TotalPayment.ToString("N2")</span></p>
                         @if (Model.Offer.LunchIncluded)
                         {
                             <p><span class="badge badge-blue">כולל ארוחת צהריים</span></p>
@@ -330,7 +330,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <h6 class="text-blue-dark">סכום לתשלום</h6>
-                                    <p class="font-weight-bold text-blue-primary">₪@Model.Offer.TotalPayment.ToString("N2")</p>
+                                    <p class="font-weight-bold text-blue-primary">$@Model.Offer.TotalPayment.ToString("N2")</p>
                                 </div>
                             </div>
 
@@ -346,7 +346,7 @@
                                         <div class="col-md-6">
                                             <p><strong>שם בעל החשבון:</strong> ספארי אפריקה בע"מ</p>
                                             <p><strong>ח.פ:</strong> 515323970</p>
-                                            <p class="text-blue-dark"><strong>סכום להעברה:</strong> ₪@Model.Offer.TotalPayment.ToString("N2")</p>
+                                            <p class="text-blue-dark"><strong>סכום להעברה:</strong> $@Model.Offer.TotalPayment.ToString("N2")</p>
                                         </div>
                                     </div>
                                 </div>

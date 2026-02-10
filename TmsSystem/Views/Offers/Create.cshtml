@@ -369,9 +369,9 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="row-cards">
-                                    <label class="form-label required-field" for="Price">מחיר לאדם (₪)</label>
+                                    <label class="form-label required-field" for="Price">מחיר לאדם ($)</label>
                                     <div class="position-relative">
-                                        <i class="fas fa-shekel-sign floating-icon"></i>
+                                        <i class="fas fa-dollar-sign floating-icon"></i>
                                         <input asp-for="Price" type="number" class="form-control has-icon"
                                                min="0" step="0.01" required oninput="calculateTotal()" />
                                         <span asp-validation-for="Price" class="text-danger"></span>
@@ -421,7 +421,7 @@
 
                             <div class="total-display">
                                 <i class="fas fa-calculator me-2"></i>
-                                סה"כ לתשלום: <span id="totalAmount">₪0</span>
+                                סה"כ לתשלום: <span id="totalAmount">$0</span>
                             </div>
                         </div>
                     </div>
@@ -475,7 +475,7 @@
 
             var totalAmountElement = document.getElementById('totalAmount');
             if (totalAmountElement) {
-                totalAmountElement.textContent = `₪${total.toLocaleString('he-IL')}`;
+                totalAmountElement.textContent = `$${total.toLocaleString('en-US')}`;
             }
         }
 

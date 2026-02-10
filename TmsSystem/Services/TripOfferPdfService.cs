@@ -635,7 +635,7 @@ namespace TmsSystem.Services
             <table class='info-table'>
                 <tr>
                     <td class='info-label'>מחיר לאדם:</td>
-                    <td class='info-value'><strong>₪{offer.PricePerPerson:N2}</strong></td>
+                    <td class='info-value'><strong>${offer.PricePerPerson:N2}</strong></td>
                 </tr>
                 <tr>
                     <td class='info-label'>מספר משתתפים:</td>
@@ -643,7 +643,7 @@ namespace TmsSystem.Services
                 </tr>
                 <tr>
                     <td class='info-label'>סכום ביניים:</td>
-                    <td class='info-value'>₪{(offer.PricePerPerson * offer.Participants):N2}</td>
+                    <td class='info-value'>${(offer.PricePerPerson * offer.Participants):N2}</td>
                 </tr>");
 
             if (offer.SingleRooms > 0 && offer.SingleRoomSupplement.HasValue)
@@ -651,7 +651,7 @@ namespace TmsSystem.Services
                 html.AppendLine($@"
                 <tr>
                     <td class='info-label'>תוספת חדרים יחידים:</td>
-                    <td class='info-value'>{offer.SingleRooms} × ₪{offer.SingleRoomSupplement.Value:N2} = ₪{(offer.SingleRoomSupplement.Value * offer.SingleRooms):N2}</td>
+                    <td class='info-value'>{offer.SingleRooms} × ${offer.SingleRoomSupplement.Value:N2} = ${(offer.SingleRoomSupplement.Value * offer.SingleRooms):N2}</td>
                 </tr>");
             }
 
@@ -660,14 +660,14 @@ namespace TmsSystem.Services
                 html.AppendLine($@"
                 <tr>
                     <td class='info-label'>ביטוח נסיעות:</td>
-                    <td class='info-value'>{offer.Participants} × ₪{offer.InsurancePrice.Value:N2} = ₪{(offer.InsurancePrice.Value * offer.Participants):N2}</td>
+                    <td class='info-value'>{offer.Participants} × ${offer.InsurancePrice.Value:N2} = ${(offer.InsurancePrice.Value * offer.Participants):N2}</td>
                 </tr>");
             }
 
             html.AppendLine($@"
                 <tr>
                     <td class='info-label'><strong>סה""כ לתשלום:</strong></td>
-                    <td class='info-value'><span class='price-total'>₪{offer.TotalPrice:N2}</span></td>
+                    <td class='info-value'><span class='price-total'>${offer.TotalPrice:N2}</span></td>
                 </tr>");
 
             if (offer.PaymentMethod != null)
@@ -718,7 +718,7 @@ namespace TmsSystem.Services
                     </tr>
                     <tr>
                         <td class='info-label'><strong>סכום להעברה:</strong></td>
-                        <td class='info-value'><strong style='color: #38a169;'>₪{offer.TotalPrice:N2}</strong></td>
+                        <td class='info-value'><strong style='color: #38a169;'>${offer.TotalPrice:N2}</strong></td>
                     </tr>
                 </table>
             </div>

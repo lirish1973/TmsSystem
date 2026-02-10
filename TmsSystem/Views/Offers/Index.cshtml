@@ -142,10 +142,10 @@
                                 <div class="col-lg-4 d-flex flex-column align-items-end justify-content-between gap-2">
                                     <div class="price-section bg-gradient-to-br from-green-50 to-emerald-100 p-2 rounded-3 border border-success w-100">
                                         <div class="text-success fw-bold mb-1" style="font-size: 0.85rem;">מחיר לאדם</div>
-                                        <div class="fw-bold text-success mb-1" style="font-size: 1.5rem;">₪@offer.Price.ToString("N0")</div>
+                                        <div class="fw-bold text-success mb-1" style="font-size: 1.5rem;">$@offer.Price.ToString("N0")</div>
                                         <hr class="my-1" />
                                         <div class="text-success fw-bold mb-1" style="font-size: 0.85rem;">סה"כ לתשלום</div>
-                                        <div class="fw-bold text-success" style="font-size: 1.7rem;">₪@offer.TotalPayment.ToString("N0")</div>
+                                        <div class="fw-bold text-success" style="font-size: 1.7rem;">$@offer.TotalPayment.ToString("N0")</div>
                                     </div>
                                     <div class="offer-actions d-flex gap-2 w-100">
                                         <a href="@Url.Action("ShowOffers", "Offers", new { id = offer.OfferId })" class="btn btn-outline-primary flex-fill btn-sm" title="צפה">
