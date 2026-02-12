@@ -1,0 +1,202 @@
+@model TmsSystem.ViewModels.SoftwarePricingViewModel
+
+@{
+    ViewData["Title"] = "מחשבון תמחור תוכנה";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0">
+                        <i class="bi bi-calculator"></i> מחשבון תמחור תוכנה
+                    </h2>
+                    <p class="mb-0 mt-2">חישוב מחיר מכירה מומלץ על בסיס עלויות תפעול</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- עלויות תפעול קבועות -->
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> עלויות תפעול חודשיות קבועות
+                        </h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>עלות שרת:</strong> 
+                                    <span class="badge bg-success">$6.00</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>עלות שרת מייל:</strong> 
+                                    <span class="badge bg-success">$8.00</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <p class="mb-0">
+                                <strong>סה"כ עלויות חודשיות:</strong> 
+                                <span class="badge bg-primary fs-6">$14.00</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- טופס חישוב -->
+                    <form asp-action="Calculator" method="post">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="NumberOfMonths" class="form-label">
+                                        <i class="bi bi-calendar-month"></i> מספר חודשים לכיסוי
+                                    </label>
+                                    <input asp-for="NumberOfMonths" class="form-control form-control-lg" />
+                                    <span asp-validation-for="NumberOfMonths" class="text-danger"></span>
+                                    <small class="form-text text-muted">כמה חודשים של עלויות תפעול לכסות במחיר המכירה</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ProfitMarginPercentage" class="form-label">
+                                        <i class="bi bi-percent"></i> אחוז רווח
+                                    </label>
+                                    <input asp-for="ProfitMarginPercentage" class="form-control form-control-lg" />
+                                    <span asp-validation-for="ProfitMarginPercentage" class="text-danger"></span>
+                                    <small class="form-text text-muted">אחוז הרווח שתרצה להוסיף מעל העלויות</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-calculator-fill"></i> חשב מחיר מומלץ
+                            </button>
+                        </div>
+                    </form>
+
+                    @if (Model.RecommendedPrice > 0)
+                    {
+                        <hr class="my-4">
+                        
+                        <!-- תוצאות החישוב -->
+                        <div class="results-section">
+                            <h4 class="text-center mb-4">
+                                <i class="bi bi-clipboard-data"></i> תוצאות החישוב
+                            </h4>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">עלות תפעול חודשית</h6>
+                                            <h3 class="text-info">$@Model.MonthlyOperationalCost.ToString("N2")</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">מספר חודשים</h6>
+                                            <h3 class="text-info">@Model.NumberOfMonths</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">סה"כ עלויות תפעול</h6>
+                                            <h3 class="text-warning">$@Model.TotalOperationalCost.ToString("N2")</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">רווח (@Model.ProfitMarginPercentage%)</h6>
+                                            <h3 class="text-warning">$@Model.ProfitAmount.ToString("N2")</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-success text-white mt-4">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title mb-3">
+                                        <i class="bi bi-cash-coin"></i> מחיר מכירה מומלץ
+                                    </h5>
+                                    <h1 class="display-3 mb-0">$@Model.RecommendedPrice.ToString("N2")</h1>
+                                </div>
+                            </div>
+
+                            <!-- פירוט נוסף -->
+                            <div class="alert alert-light mt-4">
+                                <h6><i class="bi bi-info-circle"></i> פירוט:</h6>
+                                <ul class="mb-0">
+                                    <li>עלות שרת חודשית: $@Model.ServerCostPerMonth.ToString("N2")</li>
+                                    <li>עלות שרת מייל חודשית: $@Model.EmailServerCostPerMonth.ToString("N2")</li>
+                                    <li>סה"כ עלות חודשית: $@Model.MonthlyOperationalCost.ToString("N2")</li>
+                                    <li>עלות ל-@Model.NumberOfMonths חודשים: $@Model.TotalOperationalCost.ToString("N2")</li>
+                                    <li>רווח (@Model.ProfitMarginPercentage%): $@Model.ProfitAmount.ToString("N2")</li>
+                                    <li><strong>מחיר סופי מומלץ: $@Model.RecommendedPrice.ToString("N2")</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+    }
+
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1.5rem;
+    }
+
+    .form-control-lg {
+        border-radius: 10px;
+        border: 2px solid #dee2e6;
+    }
+
+    .form-control-lg:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-lg {
+        border-radius: 10px;
+        padding: 12px 40px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .results-section .card {
+        border: 1px solid #dee2e6;
+        transition: transform 0.2s;
+    }
+
+    .results-section .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .display-3 {
+        font-weight: 700;
+    }
+</style>
