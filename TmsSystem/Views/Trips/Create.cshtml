@@ -51,7 +51,7 @@
                     </div>
                 </div>
 
-                <!-- 👨‍✈️ שדה מדריך -->
+                <!-- 👨‍✈️ שדה מדריך + סוג טיול -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="GuideId" class="form-label">
@@ -67,7 +67,12 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <!-- ריק לאיזון הגריד -->
+                        <label asp-for="TripType" class="form-label">
+                            <i class="fas fa-tags"></i> סוג טיול
+                        </label>
+                        <select asp-for="TripType" class="form-select" asp-items="ViewBag.TourTypes">
+                            <option value="">-- בחר סוג --</option>
+                        </select>
                     </div>
                 </div>
 

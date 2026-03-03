@@ -9,13 +9,21 @@
         <i class="fas fa-route"></i> רשימת סיורים
     </h2>
     <div class="mb-3" style="padding:10px;">
-        
+
         <button class="btn btn-primary">
-           
+
         <a class="nav-link" asp-controller="Tours" asp-action="CreateTour">
             <i class="bi bi-plus-circle"></i> הוסף סיור
         </a>
         </button>
+
+        <!-- פילטר לפי סוג טיול -->
+        <div class="btn-group me-2 mt-2" role="group" aria-label="סינון לפי סוג">
+            <a asp-action="Index" class="btn btn-sm @(ViewBag.TourTypeFilter == null ? "btn-primary" : "btn-outline-primary")">הכל</a>
+            <a asp-action="Index" asp-route-tourType="Private" class="btn btn-sm @(ViewBag.TourTypeFilter == "Private" ? "btn-success" : "btn-outline-success")">פרטי</a>
+            <a asp-action="Index" asp-route-tourType="Organized" class="btn btn-sm @(ViewBag.TourTypeFilter == "Organized" ? "btn-info" : "btn-outline-info")">מאורגן</a>
+            <a asp-action="Index" asp-route-tourType="Corporate" class="btn btn-sm @(ViewBag.TourTypeFilter == "Corporate" ? "btn-warning" : "btn-outline-warning")">לחברות</a>
+        </div>
         <br/>
     </div>
     <table class="table table-bordered table-striped table-hover compact-table" style="background-color:#e0f2ff;">
@@ -23,6 +31,7 @@
             <tr>
                 <th style="width: 80px;"></th>
                 <th style="width: 200px;">מס" סיור</th>
+                <th style="width: 100px;">סוג</th>
                 <th style="width: 250px;">תיאור</th>
                 <th style="width: 120px;">תאריך יצירה</th>
                 <th style="width: 100px;">לוח זמנים</th>
@@ -44,6 +53,30 @@
                             <i class="fas fa-map-marker-alt text-primary"></i>
                             <strong>@tour.Title</strong>
                         </div>
+                    </td>
+                    <td class="text-center">
+                        @if (tour.TourType != null)
+                        {
+                            var badgeClass = tour.TourType switch
+                            {
+                                TmsSystem.Models.TourType.Private => "bg-success",
+                                TmsSystem.Models.TourType.Organized => "bg-info",
+                                TmsSystem.Models.TourType.Corporate => "bg-warning text-dark",
+                                _ => "bg-secondary"
+                            };
+                            var typeName = tour.TourType switch
+                            {
+                                TmsSystem.Models.TourType.Private => "פרטי",
+                                TmsSystem.Models.TourType.Organized => "מאורגן",
+                                TmsSystem.Models.TourType.Corporate => "לחברות",
+                                _ => "לא ידוע"
+                            };
+                            <span class="badge @badgeClass">@typeName</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
                     </td>
                     <td>
                         <div class="description-preview">

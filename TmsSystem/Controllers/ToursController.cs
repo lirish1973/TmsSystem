@@ -19,14 +19,23 @@ namespace TmsSystem.Controllers
         }
 
         // GET: /Tours/ - רשימת סיורים
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string tourType)
         {
-            var tours = await _context.Tours
+            var toursQuery = _context.Tours
                 .Include(t => t.Schedule)   // ItineraryItems
                 .Include(t => t.Includes)   // tourInclude
                 .Include(t => t.Excludes)   // tourExclude
-                .ToListAsync();
+                .AsQueryable();
 
+            // פילטר לפי סוג טיול
+            if (!string.IsNullOrEmpty(tourType) && Enum.TryParse<TmsSystem.Models.TourType>(tourType, out var type))
+            {
+                toursQuery = toursQuery.Where(t => t.TourType == type);
+            }
+
+            var tours = await toursQuery.ToListAsync();
+
+            ViewBag.TourTypeFilter = tourType;
             return View(tours);
         }
 
@@ -34,12 +43,14 @@ namespace TmsSystem.Controllers
         // GET: /Tours/CreateTour
         public IActionResult CreateTour()
         {
+            LoadTourTypesDropdown();
             return View();
         }
 
         [HttpGet]
         public IActionResult Create()
         {
+            LoadTourTypesDropdown();
             return View(new CreateTourViewModel());
         }
 
@@ -97,6 +108,7 @@ namespace TmsSystem.Controllers
                 // עדכן פרטי הסיור הבסיסיים
                 existingTour.Title = model.Title;
                 existingTour.Description = model.Description;
+                existingTour.TourType = model.TourType;
 
                 // ✅ תיקון: מצא או צור Itinerary לסיור
                 var itinerary = await _context.Itineraries
@@ -219,6 +231,7 @@ namespace TmsSystem.Controllers
                 TourId = tour.TourId,
                 Title = tour.Title ?? string.Empty,
                 Description = tour.Description ?? string.Empty,
+                TourType = tour.TourType,
                 Schedule = tour.Schedule?.Select(s => new ScheduleItemViewModel
                 {
                     StartTime = s.StartTime,
@@ -232,6 +245,7 @@ namespace TmsSystem.Controllers
 
             System.Diagnostics.Debug.WriteLine($"Loaded tour for editing - ID: {model.TourId}, Title: {model.Title}");
 
+            LoadTourTypesDropdown(tour.TourType);
             return View(model);
         }
 
@@ -274,11 +288,14 @@ namespace TmsSystem.Controllers
 
             if (tour == null) return NotFound();
 
+            LoadTourTypesDropdown(tour.TourType);
+
             var model = new CreateTourViewModel
             {
                 TourId = tour.TourId,  // ✅ תיקון: הוספתי את ה-TourId למודל
                 Title = tour.Title,
                 Description = tour.Description,
+                TourType = tour.TourType,
                 Schedule = tour.Schedule.Select(s => new ScheduleItemViewModel
                 {
                     StartTime = s.StartTime,
@@ -320,6 +337,7 @@ namespace TmsSystem.Controllers
                 // עדכון פרטים כלליים
                 tour.Title = model.Title;
                 tour.Description = model.Description;
+                tour.TourType = model.TourType;
 
                 // ✅ תיקון: מצא או צור Itinerary לסיור
                 var itinerary = await _context.Itineraries
@@ -332,7 +350,7 @@ namespace TmsSystem.Controllers
                     {
                         TourId = tour.TourId,
                         Name = $"לוח זמנים - {tour.Title}"
-                        
+
                     };
                     _context.Itineraries.Add(itinerary);
                     await _context.SaveChangesAsync();
@@ -556,6 +574,7 @@ namespace TmsSystem.Controllers
             {
                 Title = model.Title,
                 Description = model.Description,
+                TourType = model.TourType,
                 CreatedAt = DateTime.Now
             };
             _context.Tours.Add(tour);
@@ -655,6 +674,7 @@ namespace TmsSystem.Controllers
                 {
                     Title = $"{originalTour.Title} (עותק)",
                     Description = originalTour.Description,
+                    TourType = originalTour.TourType,
                     CreatedAt = DateTime.Now
                 };
 
@@ -753,6 +773,27 @@ namespace TmsSystem.Controllers
                 TempData["ErrorMessage"] = $"שגיאה בשכפול הסיור: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // ==================== Helper Methods ====================
+        private void LoadTourTypesDropdown(TourType? selectedType = null)
+        {
+            var tourTypes = Enum.GetValues(typeof(TourType))
+                .Cast<TourType>()
+                .Select(t => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = t.ToString(),
+                    Text = t switch
+                    {
+                        TourType.Private => "פרטי",
+                        TourType.Organized => "מאורגן",
+                        TourType.Corporate => "לחברות",
+                        _ => t.ToString()
+                    },
+                    Selected = (selectedType == t)
+                }).ToList();
+
+            ViewBag.TourTypes = tourTypes;
         }
     }
 }

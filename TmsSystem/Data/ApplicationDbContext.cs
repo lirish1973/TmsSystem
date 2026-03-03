@@ -72,7 +72,11 @@ namespace TmsSystem.Data
             builder.Entity<Guide>()
                 .HasKey(e => e.GuideId);
 
-            // ===== Tour - קשרים לטיולים רגילים =====
+            // ===== Tour - סוג טיול =====
+            builder.Entity<Tour>()
+                .Property(t => t.TourType)
+                .HasConversion<int?>();
+
             builder.Entity<Tour>()
                 .HasMany(t => t.Schedule)
                 .WithOne(s => s.Tour)
@@ -95,6 +99,10 @@ namespace TmsSystem.Data
             builder.Entity<Trip>(entity =>
             {
                 entity.HasKey(e => e.TripId);
+
+                // סוג טיול
+                entity.Property(t => t.TripType)
+                    .HasConversion<int?>();
 
                 // קשר למדריך
                 entity.HasOne(t => t.Guide)
