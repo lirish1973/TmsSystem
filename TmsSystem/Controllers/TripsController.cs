@@ -35,7 +35,7 @@ namespace TmsSystem.Controllers
         }
 
         // GET: Trips
-        public async Task<IActionResult> Index(string filter)
+        public async Task<IActionResult> Index(string filter, string tripType)
         {
             var tripsQuery = _context.Trips
                 .Include(t => t.TripDays)
@@ -47,11 +47,18 @@ namespace TmsSystem.Controllers
                 tripsQuery = tripsQuery.Where(t => t.IsActive);
             }
 
+            // פילטר לפי סוג טיול
+            if (!string.IsNullOrEmpty(tripType) && Enum.TryParse<TourType>(tripType, out var type))
+            {
+                tripsQuery = tripsQuery.Where(t => t.TripType == type);
+            }
+
             var trips = await tripsQuery
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
 
             ViewBag.Filter = filter;
+            ViewBag.TripTypeFilter = tripType;
             return View(trips);
         }
 
@@ -105,6 +112,7 @@ namespace TmsSystem.Controllers
             {
                 // טעינת רשימת מדריכים
                 await LoadGuidesDropdown();
+                LoadTourTypesDropdown();
 
                 Console.WriteLine("✅ Create page loaded");
 
@@ -122,6 +130,7 @@ namespace TmsSystem.Controllers
                 Console.WriteLine($"❌ Error loading Create page: {ex.Message}");
 
                 ViewBag.Guides = new SelectList(new List<object>(), "GuideId", "GuideName");
+                LoadTourTypesDropdown();
 
                 return View(new Trip { NumberOfDays = 7, IsActive = true });
             }
@@ -141,6 +150,7 @@ namespace TmsSystem.Controllers
                 if (!ModelState.IsValid)
                 {
                     await LoadGuidesDropdown(trip.GuideId);
+                    LoadTourTypesDropdown(trip.TripType);
                     foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                     {
                         Console.WriteLine($"❌ Validation Error: {error.ErrorMessage}");
@@ -158,6 +168,7 @@ namespace TmsSystem.Controllers
                     {
                         ModelState.AddModelError("GuideId", "המדריך שנבחר לא קיים או לא פעיל");
                         await LoadGuidesDropdown(trip.GuideId);
+                        LoadTourTypesDropdown(trip.TripType);
                         return View(trip);
                     }
                     Console.WriteLine($"👨‍✈️ Guide assigned: {trip.GuideId}");
@@ -243,6 +254,7 @@ namespace TmsSystem.Controllers
                 Console.WriteLine($"Stack: {ex.StackTrace}");
 
                 await LoadGuidesDropdown(trip.GuideId);
+                LoadTourTypesDropdown(trip.TripType);
 
                 ModelState.AddModelError("", $"שגיאה ביצירת הטיול: {ex.Message}");
                 return View(trip);
@@ -341,8 +353,9 @@ namespace TmsSystem.Controllers
                 return NotFound();
             }
 
-            // טעינת מדריכים
+            // טעינת מדריכים וסוגי טיולים
             await LoadGuidesDropdown(trip.GuideId);
+            LoadTourTypesDropdown(trip.TripType);
 
             Console.WriteLine($"✅ Editing trip: {trip.Title}");
             Console.WriteLine($"👨‍✈️ Current guide: {trip.Guide?.GuideName ?? "None"}");
@@ -367,6 +380,7 @@ namespace TmsSystem.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadGuidesDropdown(trip.GuideId);
+                LoadTourTypesDropdown(trip.TripType);
 
                 var vmTemp = await _context.Trips
                     .Include(t => t.TripDays)
@@ -403,6 +417,7 @@ namespace TmsSystem.Controllers
                     {
                         ModelState.AddModelError("GuideId", "המדריך שנבחר לא קיים או לא פעיל");
                         await LoadGuidesDropdown(trip.GuideId);
+                        LoadTourTypesDropdown(trip.TripType);
 
                         var vmTemp = await _context.Trips
                             .Include(t => t.TripDays)
@@ -428,6 +443,7 @@ namespace TmsSystem.Controllers
                 existingTrip.Includes = trip.Includes;
                 existingTrip.Excludes = trip.Excludes;
                 existingTrip.FlightDetails = trip.FlightDetails;
+                existingTrip.TripType = trip.TripType;
                 existingTrip.GuideId = trip.GuideId;
 
                 Console.WriteLine($"👨‍✈️ Existing trip GuideId after manual assignment: {existingTrip.GuideId}");
@@ -627,6 +643,7 @@ namespace TmsSystem.Controllers
                 Console.WriteLine(ex.StackTrace);
 
                 await LoadGuidesDropdown(trip.GuideId);
+                LoadTourTypesDropdown(trip.TripType);
 
                 ModelState.AddModelError("", $"שגיאה בעדכון הנתונים: {ex.InnerException?.Message ?? ex.Message}");
 
@@ -647,6 +664,7 @@ namespace TmsSystem.Controllers
                 Console.WriteLine(ex.StackTrace);
 
                 await LoadGuidesDropdown(trip.GuideId);
+                LoadTourTypesDropdown(trip.TripType);
 
                 ModelState.AddModelError("", $"שגיאה: {ex.Message}");
 
@@ -836,6 +854,7 @@ namespace TmsSystem.Controllers
                     Includes = originalTrip.Includes,
                     Excludes = originalTrip.Excludes,
                     FlightDetails = originalTrip.FlightDetails,
+                    TripType = originalTrip.TripType,
                     IsActive = originalTrip.IsActive,
                     CreatedAt = DateTime.Now
                 };
@@ -970,6 +989,27 @@ namespace TmsSystem.Controllers
         private bool TripExists(int id)
         {
             return _context.Trips.Any(e => e.TripId == id);
+        }
+
+        // ==================== Helper Methods ====================
+        private void LoadTourTypesDropdown(TourType? selectedType = null)
+        {
+            var tourTypes = Enum.GetValues(typeof(TourType))
+                .Cast<TourType>()
+                .Select(t => new SelectListItem
+                {
+                    Value = t.ToString(),
+                    Text = t switch
+                    {
+                        TourType.Private => "פרטי",
+                        TourType.Organized => "מאורגן",
+                        TourType.Corporate => "לחברות",
+                        _ => t.ToString()
+                    },
+                    Selected = (selectedType == t)
+                }).ToList();
+
+            ViewBag.TourTypes = tourTypes;
         }
     }
 }

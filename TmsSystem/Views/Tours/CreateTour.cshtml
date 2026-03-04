@@ -19,6 +19,12 @@
                 <label asp-for="Description" class="form-label">תיאור</label>
                 <textarea asp-for="Description" name="Description" class="form-control"></textarea>
             </div>
+            <div class="mb-3">
+                <label asp-for="TourType" class="form-label">סוג סיור</label>
+                <select asp-for="TourType" class="form-select" asp-items="ViewBag.TourTypes">
+                    <option value="">-- בחר סוג --</option>
+                </select>
+            </div>
         </div>
 
         <div class="card p-4 mb-4">

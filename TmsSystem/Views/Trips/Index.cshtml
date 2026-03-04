@@ -29,6 +29,16 @@
         </div>
     }
 
+    <!-- פילטר לפי סוג טיול -->
+    <div class="mb-3">
+        <div class="btn-group me-2" role="group" aria-label="סינון לפי סוג">
+            <a asp-action="Index" asp-route-filter="@ViewBag.Filter" class="btn btn-sm @(ViewBag.TripTypeFilter == null ? "btn-primary" : "btn-outline-primary")">הכל</a>
+            <a asp-action="Index" asp-route-filter="@ViewBag.Filter" asp-route-tripType="Private" class="btn btn-sm @(ViewBag.TripTypeFilter == "Private" ? "btn-success" : "btn-outline-success")">פרטי</a>
+            <a asp-action="Index" asp-route-filter="@ViewBag.Filter" asp-route-tripType="Organized" class="btn btn-sm @(ViewBag.TripTypeFilter == "Organized" ? "btn-info" : "btn-outline-info")">מאורגן</a>
+            <a asp-action="Index" asp-route-filter="@ViewBag.Filter" asp-route-tripType="Corporate" class="btn btn-sm @(ViewBag.TripTypeFilter == "Corporate" ? "btn-warning" : "btn-outline-warning")">לחברות</a>
+        </div>
+    </div>
+
     <div class="card shadow">
         <div class="card-body">
             @if (!Model.Any())
@@ -46,6 +56,7 @@
                         <thead class="table-light">
                             <tr class="rtl-text">
                                 <th>שם הטיול</th>
+                                <th>סוג</th>
                                 <th>מספר ימים</th>
                                 <th>מדריך</th>
                                 <th>מחיר</th>
@@ -63,6 +74,30 @@
                                         {
                                             <br />
                                             <small class="text-muted">@(trip.Description.Length > 50 ? trip.Description.Substring(0, 50) + "..." : trip.Description)</small>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (trip.TripType != null)
+                                        {
+                                            var badgeClass = trip.TripType switch
+                                            {
+                                                TmsSystem.Models.TourType.Private => "bg-success",
+                                                TmsSystem.Models.TourType.Organized => "bg-info",
+                                                TmsSystem.Models.TourType.Corporate => "bg-warning text-dark",
+                                                _ => "bg-secondary"
+                                            };
+                                            var typeName = trip.TripType switch
+                                            {
+                                                TmsSystem.Models.TourType.Private => "פרטי",
+                                                TmsSystem.Models.TourType.Organized => "מאורגן",
+                                                TmsSystem.Models.TourType.Corporate => "לחברות",
+                                                _ => "לא ידוע"
+                                            };
+                                            <span class="badge @badgeClass">@typeName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
                                         }
                                     </td>
                                     <td class="rtl-text">

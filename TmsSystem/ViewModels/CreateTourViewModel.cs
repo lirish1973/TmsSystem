@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using TmsSystem.Models;
 
 namespace TmsSystem.ViewModels
 {
@@ -12,6 +13,9 @@ namespace TmsSystem.ViewModels
         [Required]
         public string Title { get; set; }
         public string Description { get; set; }
+
+        // סוג הסיור
+        public TourType? TourType { get; set; }
 
         // לוח זמנים
         public List<ScheduleItemViewModel> Schedule { get; set; } = new List<ScheduleItemViewModel>();

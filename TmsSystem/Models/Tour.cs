@@ -13,6 +13,9 @@ namespace TmsSystem.Models
         public string? Title { get; set; }
         public string? Description { get; set; }
 
+        // סוג הסיור: פרטי / מאורגן / לחברות
+        public TourType? TourType { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // קשרים לטבלאות המשנה
