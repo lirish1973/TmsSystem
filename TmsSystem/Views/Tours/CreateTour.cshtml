@@ -68,6 +68,26 @@
         </div>
 
 
+        <div class="card p-4 mb-4">
+            <h5>מחירון</h5>
+            <div id="price-items">
+                <div class="row mb-3 align-items-end">
+                    <div class="col">
+                        <label class="form-label">קטגוריה</label>
+                        <input type="text" name="PriceList[0].CategoryName" class="form-control" placeholder="למשל: זוג, ילד, 4 אנשים" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label">מחיר ($)</label>
+                        <input type="number" name="PriceList[0].Price" class="form-control" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removePriceItem(this)">הסר</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addPriceItem()">הוסף שורת מחיר</button>
+        </div>
+
         <button type="submit" class="btn btn-primary">צור סיור</button>
     </form>
 </div>
@@ -139,6 +159,30 @@
         input.placeholder = "עוד פריט לא כולל";
         container.appendChild(input);
         excludeIndex++;
+    }
+
+    let priceIndex = 1;
+    function addPriceItem() {
+        const container = document.getElementById("price-items");
+        const row = document.createElement("div");
+        row.classList.add("row", "mb-3", "align-items-end");
+        row.innerHTML = `
+            <div class="col">
+                <input type="text" name="PriceList[${priceIndex}].CategoryName" class="form-control" placeholder="למשל: זוג, ילד, 4 אנשים" />
+            </div>
+            <div class="col">
+                <input type="number" name="PriceList[${priceIndex}].Price" class="form-control" step="0.01" min="0" placeholder="0.00" />
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removePriceItem(this)">הסר</button>
+            </div>
+        `;
+        container.appendChild(row);
+        priceIndex++;
+    }
+
+    function removePriceItem(button) {
+        button.closest('.row').remove();
     }
 </script>
 

@@ -31,6 +31,7 @@ namespace TmsSystem.Data
         public DbSet<TripDay> TripDays { get; set; }
         public DbSet<TripOffer> TripOffers { get; set; }
         public DbSet<ImageGallery> ImageGalleries { get; set; }
+        public DbSet<TourPriceItem> TourPriceItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -93,6 +94,16 @@ namespace TmsSystem.Data
                 .HasMany(t => t.Excludes)
                 .WithOne(e => e.Tour)
                 .HasForeignKey(e => e.TourId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TourPriceItem - מחירון =====
+            builder.Entity<TourPriceItem>().ToTable("tourpriceitems");
+            builder.Entity<TourPriceItem>()
+                .HasKey(p => p.Id);
+            builder.Entity<Tour>()
+                .HasMany(t => t.PriceList)
+                .WithOne(p => p.Tour)
+                .HasForeignKey(p => p.TourId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ===== Trip - טיולים מאורגנים =====
