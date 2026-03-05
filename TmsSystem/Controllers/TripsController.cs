@@ -75,7 +75,8 @@ namespace TmsSystem.Controllers
 
             var trip = await _context.Trips
                 .Include(t => t.TripDays.OrderBy(d => d.DayNumber))
-                .Include(t => t.Guide) // 👈 חשוב מאוד!
+                .Include(t => t.Guide)
+                .Include(t => t.PriceItems)
                 .FirstOrDefaultAsync(m => m.TripId == id);
 
             if (trip == null)
@@ -241,6 +242,25 @@ namespace TmsSystem.Controllers
 
                 trip.TripDays = tripDaysList;
 
+                // ==================== טיפול במחירון ====================
+                var priceItems = new List<TripPriceItem>();
+                for (int pi = 0; ; pi++)
+                {
+                    var catKey = $"PriceItems[{pi}].CategoryName";
+                    var priceKey = $"PriceItems[{pi}].Price";
+                    if (!form.ContainsKey(catKey)) break;
+
+                    var catName = form[catKey].ToString().Trim();
+                    var priceStr = form[priceKey].ToString().Trim();
+
+                    if (!string.IsNullOrEmpty(catName) && decimal.TryParse(priceStr, out var price) && price > 0)
+                    {
+                        priceItems.Add(new TripPriceItem { CategoryName = catName, Price = price });
+                        Console.WriteLine($"💰 Price item: {catName} = {price}$");
+                    }
+                }
+                trip.PriceItems = priceItems;
+
                 _context.Add(trip);
                 await _context.SaveChangesAsync();
 
@@ -346,6 +366,7 @@ namespace TmsSystem.Controllers
             var trip = await _context.Trips
                 .Include(t => t.TripDays.OrderBy(d => d.DayNumber))
                 .Include(t => t.Guide)
+                .Include(t => t.PriceItems)
                 .FirstOrDefaultAsync(t => t.TripId == id);
 
             if (trip == null)
@@ -624,6 +645,33 @@ namespace TmsSystem.Controllers
                     Console.WriteLine($"🗑️ Removed TripDay {dayToDelete.TripDayId}: {dayToDelete.Title}");
                 }
 
+                // ==================== טיפול במחירון ====================
+                var existingPriceItems = await _context.TripPriceItems
+                    .Where(p => p.TripId == id)
+                    .ToListAsync();
+                _context.TripPriceItems.RemoveRange(existingPriceItems);
+
+                for (int pi = 0; ; pi++)
+                {
+                    var catKey = $"PriceItems[{pi}].CategoryName";
+                    var priceKey = $"PriceItems[{pi}].Price";
+                    if (!form.ContainsKey(catKey)) break;
+
+                    var catName = form[catKey].ToString().Trim();
+                    var priceStr = form[priceKey].ToString().Trim();
+
+                    if (!string.IsNullOrEmpty(catName) && decimal.TryParse(priceStr, out var price) && price > 0)
+                    {
+                        _context.TripPriceItems.Add(new TripPriceItem
+                        {
+                            TripId = id,
+                            CategoryName = catName,
+                            Price = price
+                        });
+                        Console.WriteLine($"💰 Price item updated: {catName} = {price}$");
+                    }
+                }
+
                 // ==================== שמירת שינויים ====================
                 Console.WriteLine("[Edit] Saving changes to database...");
                 Console.WriteLine($"👨‍✈️ Final GuideId value before save: {existingTrip.GuideId}");
@@ -830,7 +878,8 @@ namespace TmsSystem.Controllers
                 var originalTrip = await _context.Trips
                     .Include(t => t.TripDays.OrderBy(d => d.DayNumber))
                     .Include(t => t.Guide)
-                    .AsNoTracking() // Important: don't track the original
+                    .Include(t => t.PriceItems)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(t => t.TripId == id);
 
                 if (originalTrip == null)
@@ -965,6 +1014,17 @@ namespace TmsSystem.Controllers
                     }
 
                     Console.WriteLine($"✅ All trip days cloned successfully");
+                }
+
+                // Clone price items
+                if (originalTrip.PriceItems != null && originalTrip.PriceItems.Any())
+                {
+                    clonedTrip.PriceItems = originalTrip.PriceItems.Select(p => new TripPriceItem
+                    {
+                        CategoryName = p.CategoryName,
+                        Price = p.Price
+                    }).ToList();
+                    Console.WriteLine($"💰 Cloned {clonedTrip.PriceItems.Count} price items");
                 }
 
                 // Save the cloned trip to database
