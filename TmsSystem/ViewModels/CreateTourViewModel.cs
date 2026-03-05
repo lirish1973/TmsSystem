@@ -23,6 +23,15 @@ namespace TmsSystem.ViewModels
         // כולל / לא כולל
         public List<string> Includes { get; set; } = new();
         public List<string> Excludes { get; set; } = new();
+
+        // מחירון
+        public List<PriceItemViewModel> PriceList { get; set; } = new();
+    }
+
+    public class PriceItemViewModel
+    {
+        public string CategoryName { get; set; } = string.Empty;
+        public decimal Price { get; set; }
     }
 
     public class ScheduleItemViewModel

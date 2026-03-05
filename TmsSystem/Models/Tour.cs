@@ -23,5 +23,8 @@ namespace TmsSystem.Models
 
         public ICollection<TourInclude> Includes { get; set; } = new List<TourInclude>();
         public ICollection<TourExclude> Excludes { get; set; } = new List<TourExclude>();
+
+        // מחירון
+        public ICollection<TourPriceItem> PriceList { get; set; } = new List<TourPriceItem>();
     }
 }

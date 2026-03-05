@@ -25,6 +25,7 @@ namespace TmsSystem.Controllers
                 .Include(t => t.Schedule)   // ItineraryItems
                 .Include(t => t.Includes)   // tourInclude
                 .Include(t => t.Excludes)   // tourExclude
+                .Include(t => t.PriceList)  // מחירון
                 .AsQueryable();
 
             // פילטר לפי סוג טיול
@@ -86,6 +87,7 @@ namespace TmsSystem.Controllers
                     .Include(t => t.Schedule)
                     .Include(t => t.Includes)
                     .Include(t => t.Excludes)
+                    .Include(t => t.PriceList)
                     .FirstOrDefaultAsync(t => t.TourId == model.TourId);
 
                 if (existingTour == null)
@@ -190,6 +192,26 @@ namespace TmsSystem.Controllers
                     await _context.TourExcludes.AddRangeAsync(excludeItems);
                 }
 
+                // עדכן מחירון
+                if (existingTour.PriceList != null && existingTour.PriceList.Any())
+                {
+                    _context.TourPriceItems.RemoveRange(existingTour.PriceList);
+                }
+
+                if (model.PriceList != null && model.PriceList.Any(p => !string.IsNullOrWhiteSpace(p.CategoryName) && p.Price > 0))
+                {
+                    var priceItems = model.PriceList
+                        .Where(p => !string.IsNullOrWhiteSpace(p.CategoryName) && p.Price > 0)
+                        .Select(p => new TourPriceItem
+                        {
+                            TourId = existingTour.TourId,
+                            CategoryName = p.CategoryName,
+                            Price = p.Price
+                        }).ToList();
+
+                    await _context.TourPriceItems.AddRangeAsync(priceItems);
+                }
+
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "הסיור עודכן בהצלחה";
@@ -218,6 +240,7 @@ namespace TmsSystem.Controllers
                 .Include(t => t.Schedule)
                 .Include(t => t.Includes)
                 .Include(t => t.Excludes)
+                .Include(t => t.PriceList)
                 .FirstOrDefaultAsync(t => t.TourId == id);
 
             if (tour == null)
@@ -240,7 +263,12 @@ namespace TmsSystem.Controllers
                     Description = s.Description ?? string.Empty
                 }).ToList() ?? new List<ScheduleItemViewModel>(),
                 Includes = tour.Includes?.Select(i => i.Text ?? string.Empty).ToList() ?? new List<string>(),
-                Excludes = tour.Excludes?.Select(e => e.Text ?? string.Empty).ToList() ?? new List<string>()
+                Excludes = tour.Excludes?.Select(e => e.Text ?? string.Empty).ToList() ?? new List<string>(),
+                PriceList = tour.PriceList?.Select(p => new PriceItemViewModel
+                {
+                    CategoryName = p.CategoryName,
+                    Price = p.Price
+                }).ToList() ?? new List<PriceItemViewModel>()
             };
 
             System.Diagnostics.Debug.WriteLine($"Loaded tour for editing - ID: {model.TourId}, Title: {model.Title}");
@@ -284,6 +312,7 @@ namespace TmsSystem.Controllers
                 .Include(t => t.Schedule)
                 .Include(t => t.Includes)
                 .Include(t => t.Excludes)
+                .Include(t => t.PriceList)
                 .FirstOrDefaultAsync(t => t.TourId == id);
 
             if (tour == null) return NotFound();
@@ -304,7 +333,12 @@ namespace TmsSystem.Controllers
                     Description = s.Description
                 }).ToList(),
                 Includes = tour.Includes.Select(i => i.Description).ToList(),
-                Excludes = tour.Excludes.Select(e => e.Description).ToList()
+                Excludes = tour.Excludes.Select(e => e.Description).ToList(),
+                PriceList = tour.PriceList?.Select(p => new PriceItemViewModel
+                {
+                    CategoryName = p.CategoryName,
+                    Price = p.Price
+                }).ToList() ?? new List<PriceItemViewModel>()
             };
 
             return View(model);
@@ -326,6 +360,7 @@ namespace TmsSystem.Controllers
                     .Include(t => t.Schedule)
                     .Include(t => t.Includes)
                     .Include(t => t.Excludes)
+                    .Include(t => t.PriceList)
                     .FirstOrDefaultAsync(t => t.TourId == model.TourId);
 
                 if (tour == null)
@@ -398,6 +433,24 @@ namespace TmsSystem.Controllers
                         {
                             TourId = tour.TourId,
                             Description = exc
+                        });
+                    }
+                }
+
+                // ---- עדכון מחירון ----
+                if (tour.PriceList != null)
+                {
+                    _context.TourPriceItems.RemoveRange(tour.PriceList);
+                }
+                if (model.PriceList != null)
+                {
+                    foreach (var priceItem in model.PriceList.Where(p => !string.IsNullOrWhiteSpace(p.CategoryName) && p.Price > 0))
+                    {
+                        _context.TourPriceItems.Add(new TourPriceItem
+                        {
+                            TourId = tour.TourId,
+                            CategoryName = priceItem.CategoryName,
+                            Price = priceItem.Price
                         });
                     }
                 }
@@ -486,6 +539,11 @@ namespace TmsSystem.Controllers
                 var excludesDeleted = await _context.Database.ExecuteSqlRawAsync(
                     "DELETE FROM tourexclude WHERE TourId = {0}", id);
                 System.Diagnostics.Debug.WriteLine($"✅ Deleted {excludesDeleted} excludes");
+
+                // 4.5 מחק TourPriceItems (מחירון)
+                var priceItemsDeleted = await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE FROM tourpriceitems WHERE TourId = {0}", id);
+                System.Diagnostics.Debug.WriteLine($"✅ Deleted {priceItemsDeleted} price items");
 
                 // 5. מחק Itineraries
                 var itinerariesDeleted = await _context.Database.ExecuteSqlRawAsync(
@@ -636,6 +694,20 @@ namespace TmsSystem.Controllers
                 }
             }
 
+            // יצירת מחירון
+            if (model.PriceList != null)
+            {
+                foreach (var priceItem in model.PriceList.Where(p => !string.IsNullOrWhiteSpace(p.CategoryName) && p.Price > 0))
+                {
+                    _context.TourPriceItems.Add(new TourPriceItem
+                    {
+                        TourId = tour.TourId,
+                        CategoryName = priceItem.CategoryName,
+                        Price = priceItem.Price
+                    });
+                }
+            }
+
             // שמירה סופית
             await _context.SaveChangesAsync();
 
@@ -657,6 +729,7 @@ namespace TmsSystem.Controllers
                     .Include(t => t.Schedule)
                     .Include(t => t.Includes)
                     .Include(t => t.Excludes)
+                    .Include(t => t.PriceList)
                     .AsNoTracking() // Important: don't track the original
                     .FirstOrDefaultAsync(t => t.TourId == id);
 
@@ -757,6 +830,24 @@ namespace TmsSystem.Controllers
                     System.Diagnostics.Debug.WriteLine($"✅ All exclude items cloned");
                 }
 
+                // Clone PriceList (מחירון)
+                if (originalTour.PriceList != null && originalTour.PriceList.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"📋 Cloning {originalTour.PriceList.Count} price items");
+
+                    foreach (var originalPrice in originalTour.PriceList)
+                    {
+                        _context.TourPriceItems.Add(new TourPriceItem
+                        {
+                            TourId = clonedTour.TourId,
+                            CategoryName = originalPrice.CategoryName,
+                            Price = originalPrice.Price
+                        });
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"✅ All price items cloned");
+                }
+
                 // Save all cloned related data
                 await _context.SaveChangesAsync();
 
@@ -773,6 +864,18 @@ namespace TmsSystem.Controllers
                 TempData["ErrorMessage"] = $"שגיאה בשכפול הסיור: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // API: קבלת מחירון לטיול מסוים (לשימוש בהצעות מחיר)
+        [HttpGet]
+        public async Task<IActionResult> GetTourPrices(int tourId)
+        {
+            var prices = await _context.TourPriceItems
+                .Where(p => p.TourId == tourId)
+                .Select(p => new { p.CategoryName, p.Price })
+                .ToListAsync();
+
+            return Json(prices);
         }
 
         // ==================== Helper Methods ====================

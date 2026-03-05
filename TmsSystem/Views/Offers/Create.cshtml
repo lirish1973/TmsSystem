@@ -366,6 +366,15 @@
                             מחירים ופירוט
                         </h4>
 
+                        <!-- מחירון מהסיור -->
+                        <div id="tour-price-list" class="row-cards mb-3" style="display:none;">
+                            <label class="form-label">
+                                <i class="fas fa-list-alt me-2"></i>
+                                בחר מהמחירון
+                            </label>
+                            <div id="tour-price-buttons" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="row-cards">
@@ -477,6 +486,50 @@
             if (totalAmountElement) {
                 totalAmountElement.textContent = `$${total.toLocaleString('en-US')}`;
             }
+        }
+
+        // טעינת מחירון כשבוחרים סיור
+        var tourSelect = document.querySelector("select[name='TourId']");
+        if (tourSelect) {
+            tourSelect.addEventListener('change', function() {
+                var tourId = this.value;
+                var priceListDiv = document.getElementById('tour-price-list');
+                var buttonsDiv = document.getElementById('tour-price-buttons');
+
+                if (!tourId) {
+                    priceListDiv.style.display = 'none';
+                    return;
+                }
+
+                fetch('/Tours/GetTourPrices?tourId=' + tourId)
+                    .then(response => response.json())
+                    .then(data => {
+                        buttonsDiv.innerHTML = '';
+                        if (data.length === 0) {
+                            priceListDiv.style.display = 'none';
+                            return;
+                        }
+
+                        priceListDiv.style.display = 'block';
+                        data.forEach(function(item) {
+                            var btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'btn btn-outline-primary';
+                            btn.innerHTML = '<strong>' + item.categoryName + '</strong><br>$' + item.price.toLocaleString('en-US');
+                            btn.style.minWidth = '120px';
+                            btn.onclick = function() {
+                                document.querySelector("input[name='Price']").value = item.price;
+                                calculateTotal();
+                                // סמן את הכפתור הנבחר
+                                buttonsDiv.querySelectorAll('.btn').forEach(b => b.classList.remove('btn-primary'));
+                                buttonsDiv.querySelectorAll('.btn').forEach(b => b.classList.add('btn-outline-primary'));
+                                btn.classList.remove('btn-outline-primary');
+                                btn.classList.add('btn-primary');
+                            };
+                            buttonsDiv.appendChild(btn);
+                        });
+                    });
+            });
         }
 
         function updateLunchStatus() {

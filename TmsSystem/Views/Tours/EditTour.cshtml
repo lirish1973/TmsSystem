@@ -71,7 +71,32 @@
             <button type="button" class="btn btn-secondary" onclick="addScheduleItem()">הוסף שלב</button>
         </div>
 
-        <!-- שאר הקוד... -->
+        <!-- מחירון -->
+        <div class="card p-4 mb-4">
+            <h5>מחירון</h5>
+            <div id="price-items">
+                @if (Model.PriceList != null && Model.PriceList.Any())
+                {
+                    for (int i = 0; i < Model.PriceList.Count; i++)
+                    {
+                        <div class="row mb-3 align-items-end">
+                            <div class="col">
+                                <label class="form-label">קטגוריה</label>
+                                <input type="text" name="PriceList[@i].CategoryName" class="form-control" value="@Model.PriceList[i].CategoryName" placeholder="למשל: זוג, ילד, 4 אנשים" />
+                            </div>
+                            <div class="col">
+                                <label class="form-label">מחיר ($)</label>
+                                <input type="number" name="PriceList[@i].Price" class="form-control" step="0.01" min="0" value="@Model.PriceList[i].Price" />
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removePriceItem(this)">הסר</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addPriceItem()">הוסף שורת מחיר</button>
+        </div>
 
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">עדכן סיור</button>
@@ -140,6 +165,30 @@
             button.closest('.row').remove();
         }
 
-        
+        let priceIndex = @(Model.PriceList?.Count ?? 0);
+        function addPriceItem() {
+            const container = document.getElementById("price-items");
+            const row = document.createElement("div");
+            row.classList.add("row", "mb-3", "align-items-end");
+            row.innerHTML = `
+                <div class="col">
+                    <label class="form-label">קטגוריה</label>
+                    <input type="text" name="PriceList[${priceIndex}].CategoryName" class="form-control" placeholder="למשל: זוג, ילד, 4 אנשים" />
+                </div>
+                <div class="col">
+                    <label class="form-label">מחיר ($)</label>
+                    <input type="number" name="PriceList[${priceIndex}].Price" class="form-control" step="0.01" min="0" placeholder="0.00" />
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removePriceItem(this)">הסר</button>
+                </div>
+            `;
+            container.appendChild(row);
+            priceIndex++;
+        }
+
+        function removePriceItem(button) {
+            button.closest('.row').remove();
+        }
     </script>
 }
