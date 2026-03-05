@@ -15,7 +15,7 @@ namespace TmsSystem.Models
         public int TripId { get; set; }
 
         [Required]
-        [Range(1, 12)]
+        [Range(1, 31)]
         [Column("DayNumber")]
         public int DayNumber { get; set; }
 
