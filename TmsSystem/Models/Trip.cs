@@ -45,5 +45,7 @@ namespace TmsSystem.Models
         public virtual Guide? Guide { get; set; }
 
         public virtual ICollection<TripOffer> TripOffers { get; set; } = new List<TripOffer>();
+
+        public virtual ICollection<TripPriceItem> PriceItems { get; set; } = new List<TripPriceItem>();
     }
 }

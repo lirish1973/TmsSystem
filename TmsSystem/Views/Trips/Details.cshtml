@@ -96,6 +96,33 @@
                             }
                         </div>
                     }
+                    @if (Model.PriceItems != null && Model.PriceItems.Any())
+                    {
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0 rtl-content"><i class="fas fa-list-ol"></i> מחירון</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="rtl-content">קטגוריה</th>
+                                            <th class="rtl-content">מחיר</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.PriceItems)
+                                        {
+                                            <tr>
+                                                <td class="rtl-content">@item.CategoryName</td>
+                                                <td class="rtl-content text-success fw-bold">@item.Price.ToString("N2")$</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 

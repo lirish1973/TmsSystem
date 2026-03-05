@@ -261,6 +261,38 @@
                     </div>
                 </div>
 
+                <!-- מחירון -->
+                <div class="card mb-3 bg-light">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-list-ol"></i> מחירון</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="price-items">
+                            @if (Model.PriceItems != null && Model.PriceItems.Any())
+                            {
+                                var priceList = Model.PriceItems.ToList();
+                                for (int i = 0; i < priceList.Count; i++)
+                                {
+                                    <div class="row mb-2 price-item-row">
+                                        <div class="col-md-5">
+                                            <label class="form-label">קטגוריה</label>
+                                            <input type="text" name="PriceItems[@i].CategoryName" class="form-control" value="@priceList[i].CategoryName" placeholder="למשל: זוג, ילד, 4 אנשים" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">מחיר ($)</label>
+                                            <input type="number" name="PriceItems[@i].Price" class="form-control" step="0.01" min="0" value="@priceList[i].Price" />
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removePriceItem(this)">הסר</button>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <button type="button" class="btn btn-secondary mt-2" onclick="addPriceItem()">הוסף שורת מחיר</button>
+                    </div>
+                </div>
+
                 <div class="d-flex justify-content-between mt-4">
                     <a asp-action="Index" class="btn btn-secondary">
                         <i class="fas fa-arrow-right"></i> חזרה
@@ -566,5 +598,38 @@
                 formChanged = false;
             });
         });
+
+        // ===== מחירון =====
+        var priceIndex = @(Model.PriceItems?.Count ?? 0);
+        function addPriceItem() {
+            var container = document.getElementById("price-items");
+            container.insertAdjacentHTML('beforeend', `
+                <div class="row mb-2 price-item-row">
+                    <div class="col-md-5">
+                        <label class="form-label">קטגוריה</label>
+                        <input type="text" name="PriceItems[${priceIndex}].CategoryName" class="form-control" placeholder="למשל: זוג, ילד, 4 אנשים" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">מחיר ($)</label>
+                        <input type="number" name="PriceItems[${priceIndex}].Price" class="form-control" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removePriceItem(this)">הסר</button>
+                    </div>
+                </div>
+            `);
+            priceIndex++;
+        }
+
+        function removePriceItem(button) {
+            button.closest('.price-item-row').remove();
+            // reindex
+            var rows = document.querySelectorAll('#price-items .price-item-row');
+            rows.forEach(function(row, idx) {
+                row.querySelector('input[name*="CategoryName"]').name = `PriceItems[${idx}].CategoryName`;
+                row.querySelector('input[name*="Price"]').name = `PriceItems[${idx}].Price`;
+            });
+            priceIndex = rows.length;
+        }
     </script>
 }
