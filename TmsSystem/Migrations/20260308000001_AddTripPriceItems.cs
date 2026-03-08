@@ -18,7 +18,7 @@ namespace TmsSystem.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     TripId = table.Column<int>(type: "int", nullable: false),
-                    CategoryName = table.Column<string>(tyie: "longtext", nullable: false)
+                    CategoryName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Price = table.Column<decimal>(type: "decimal(65,30)", nullable: false)
                 },
@@ -48,4 +48,3 @@ namespace TmsSystem.Migrations
         }
     }
 }
-
