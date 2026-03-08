@@ -15,7 +15,7 @@ namespace TmsSystem.Models
         [Required]
         public decimal Price { get; set; }
 
-        // Navigation
-        public Trip Trip { get; set; } = null!;
+        // Navigation - nullable to avoid implicit [Required] from nullable reference types
+        public Trip? Trip { get; set; }
     }
 }
