@@ -75,6 +75,9 @@ namespace TmsSystem.Services
             // Get ordered trip days
             var orderedDays = offer.Trip?.TripDays?.OrderBy(d => d.DayNumber).ToList() ?? new List<TripDay>();
 
+            // Currency symbol
+            var currSym = offer.Currency == "EUR" ? "€" : offer.Currency == "ILS" ? "₪" : "$";
+
             // Professional HTML with proper RTL support
             html.AppendLine(@"
 <!DOCTYPE html>
@@ -487,9 +490,12 @@ namespace TmsSystem.Services
 
                 foreach (var day in orderedDays)
                 {
+                    var hotelBadge = !string.IsNullOrWhiteSpace(day.HotelName)
+                        ? $" <span style='background:#ebf8ff;color:#2b6cb0;border-radius:4px;padding:2px 8px;font-size:12px;margin-right:10px;'>🏨 {EncodeHtml(day.HotelName)}</span>"
+                        : "";
                     html.AppendLine($@"
                 <div class='trip-day'>
-                    <div class='trip-day-header'>יום {day.DayNumber}</div>
+                    <div class='trip-day-header'>יום {day.DayNumber} - {EncodeHtml(day.Title, "")}{hotelBadge}</div>
                     <div class='trip-day-content'>");
 
                     // Image
@@ -635,7 +641,7 @@ namespace TmsSystem.Services
             <table class='info-table'>
                 <tr>
                     <td class='info-label'>מחיר לאדם:</td>
-                    <td class='info-value'><strong>${offer.PricePerPerson:N2}</strong></td>
+                    <td class='info-value'><strong>{currSym}{offer.PricePerPerson:N2}</strong></td>
                 </tr>
                 <tr>
                     <td class='info-label'>מספר משתתפים:</td>
@@ -643,7 +649,7 @@ namespace TmsSystem.Services
                 </tr>
                 <tr>
                     <td class='info-label'>סכום ביניים:</td>
-                    <td class='info-value'>${(offer.PricePerPerson * offer.Participants):N2}</td>
+                    <td class='info-value'>{currSym}{(offer.PricePerPerson * offer.Participants):N2}</td>
                 </tr>");
 
             if (offer.SingleRooms > 0 && offer.SingleRoomSupplement.HasValue)
@@ -651,7 +657,7 @@ namespace TmsSystem.Services
                 html.AppendLine($@"
                 <tr>
                     <td class='info-label'>תוספת חדרים יחידים:</td>
-                    <td class='info-value'>{offer.SingleRooms} × ${offer.SingleRoomSupplement.Value:N2} = ${(offer.SingleRoomSupplement.Value * offer.SingleRooms):N2}</td>
+                    <td class='info-value'>{offer.SingleRooms} × {currSym}{offer.SingleRoomSupplement.Value:N2} = {currSym}{(offer.SingleRoomSupplement.Value * offer.SingleRooms):N2}</td>
                 </tr>");
             }
 
@@ -660,14 +666,14 @@ namespace TmsSystem.Services
                 html.AppendLine($@"
                 <tr>
                     <td class='info-label'>ביטוח נסיעות:</td>
-                    <td class='info-value'>{offer.Participants} × ${offer.InsurancePrice.Value:N2} = ${(offer.InsurancePrice.Value * offer.Participants):N2}</td>
+                    <td class='info-value'>{offer.Participants} × {currSym}{offer.InsurancePrice.Value:N2} = {currSym}{(offer.InsurancePrice.Value * offer.Participants):N2}</td>
                 </tr>");
             }
 
             html.AppendLine($@"
                 <tr>
                     <td class='info-label'><strong>סה""כ לתשלום:</strong></td>
-                    <td class='info-value'><span class='price-total'>${offer.TotalPrice:N2}</span></td>
+                    <td class='info-value'><span class='price-total'>{currSym}{offer.TotalPrice:N2}</span></td>
                 </tr>");
 
             if (offer.PaymentMethod != null)
@@ -718,7 +724,7 @@ namespace TmsSystem.Services
                     </tr>
                     <tr>
                         <td class='info-label'><strong>סכום להעברה:</strong></td>
-                        <td class='info-value'><strong style='color: #38a169;'>${offer.TotalPrice:N2}</strong></td>
+                        <td class='info-value'><strong style='color: #38a169;'>{currSym}{offer.TotalPrice:N2}</strong></td>
                     </tr>
                 </table>
             </div>
