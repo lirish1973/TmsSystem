@@ -23,6 +23,9 @@ namespace TmsSystem.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal? PricePerPerson { get; set; }
 
+        [StringLength(3)]
+        public string Currency { get; set; } = "USD";
+
         [StringLength(500)]
         public string? PriceDescription { get; set; }
 

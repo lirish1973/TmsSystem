@@ -9,10 +9,8 @@ namespace TmsSystem.Models
 
         public int TripId { get; set; }
 
-        [Required]
         public string CategoryName { get; set; } = string.Empty;
 
-        [Required]
         public decimal Price { get; set; }
 
         // Navigation - nullable to avoid implicit [Required] from nullable reference types
