@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "פרטי הצעת מחיר לטיול";
+    var currSym = Model.Currency == "EUR" ? "€" : Model.Currency == "ILS" ? "₪" : "$";
 }
 
 <style>
@@ -477,10 +478,16 @@
                     <div class="trip-day-card card">
                         <div class="trip-day-header">
                             <i class="fas fa-calendar-day"></i> יום @day.DayNumber - @day.Title
-                            @if (!string.IsNullOrEmpty(day.Location))
-                            {
-                                <span class="float-end"><i class="fas fa-map-marker-alt"></i></span>
-                            }
+                            <span class="float-end">
+                                @if (!string.IsNullOrEmpty(day.Location))
+                                {
+                                    <span class="me-2"><i class="fas fa-map-marker-alt"></i> @day.Location</span>
+                                }
+                                @if (!string.IsNullOrEmpty(day.HotelName))
+                                {
+                                    <span class="badge bg-light text-dark"><i class="fas fa-hotel"></i> @day.HotelName</span>
+                                }
+                            </span>
                         </div>
                         <div class="trip-day-body">
                             <div class="row">
@@ -584,7 +591,7 @@
                         <tbody>
                             <tr>
                                 <td><i class="fas fa-user"></i> מחיר לאדם</td>
-                                <td class="text-end"><strong>$@Model.PricePerPerson.ToString("N2")</strong></td>
+                                <td class="text-end"><strong>@currSym@Model.PricePerPerson.ToString("N2")</strong></td>
                             </tr>
                             <tr>
                                 <td><i class="fas fa-users"></i> מספר משתתפים</td>
@@ -592,25 +599,25 @@
                             </tr>
                             <tr class="table-light">
                                 <td><strong>סה"כ בסיסי</strong></td>
-                                <td class="text-end"><strong>$@((Model.PricePerPerson * Model.Participants).ToString("N2"))</strong></td>
+                                <td class="text-end"><strong>@currSym@((Model.PricePerPerson * Model.Participants).ToString("N2"))</strong></td>
                             </tr>
                             @if (Model.SingleRoomSupplement.HasValue && Model.SingleRooms > 0)
                             {
                                 <tr>
-                                    <td><i class="fas fa-bed"></i> תוספת חדר יחיד (@Model.SingleRooms חדרים x $@Model.SingleRoomSupplement.Value.ToString("N2"))</td>
-                                    <td class="text-end"><strong>$@((Model.SingleRoomSupplement.Value * Model.SingleRooms).ToString("N2"))</strong></td>
+                                    <td><i class="fas fa-bed"></i> תוספת חדר יחיד (@Model.SingleRooms חדרים x @currSym@Model.SingleRoomSupplement.Value.ToString("N2"))</td>
+                                    <td class="text-end"><strong>@currSym@((Model.SingleRoomSupplement.Value * Model.SingleRooms).ToString("N2"))</strong></td>
                                 </tr>
                             }
                             @if (Model.InsuranceIncluded && Model.InsurancePrice.HasValue)
                             {
                                 <tr>
-                                    <td><i class="fas fa-shield-alt"></i> ביטוח נסיעות (@Model.Participants x $@Model.InsurancePrice.Value.ToString("N2"))</td>
-                                    <td class="text-end"><strong>$@((Model.InsurancePrice.Value * Model.Participants).ToString("N2"))</strong></td>
+                                    <td><i class="fas fa-shield-alt"></i> ביטוח נסיעות (@Model.Participants x @currSym@Model.InsurancePrice.Value.ToString("N2"))</td>
+                                    <td class="text-end"><strong>@currSym@((Model.InsurancePrice.Value * Model.Participants).ToString("N2"))</strong></td>
                                 </tr>
                             }
                             <tr class="table-success">
                                 <td><h5 class="mb-0"><i class="fas fa-dollar-sign"></i> <strong>סה"כ לתשלום</strong></h5></td>
-                                <td class="text-end"><h4 class="mb-0 text-success"><strong>$@Model.TotalPrice.ToString("N2")</strong></h4></td>
+                                <td class="text-end"><h4 class="mb-0 text-success"><strong>@currSym@Model.TotalPrice.ToString("N2")</strong></h4></td>
                             </tr>
                         </tbody>
                     </table>
@@ -621,11 +628,11 @@
         <div class="col-md-4">
             <div class="price-card">
                 <div><i class="fas fa-tags fa-3x"></i></div>
-                <div class="price-amount">$@Model.TotalPrice.ToString("N2")</div>
+                <div class="price-amount">@currSym@Model.TotalPrice.ToString("N2")</div>
                 <p class="mb-0">סה"כ לתשלום</p>
                 <hr style="border-color: rgba(255,255,255,0.3);">
                 <p class="mb-1"><small>מקדמה (50%)</small></p>
-                <h5><strong>$@((Model.TotalPrice * 0.5m).ToString("N2"))</strong></h5>
+                <h5><strong>@currSym@((Model.TotalPrice * 0.5m).ToString("N2"))</strong></h5>
             </div>
         </div>
     </div>
@@ -718,13 +725,13 @@
                             @if (Model.PaymentInstallments.HasValue && Model.PaymentInstallments.Value > 1)
                             {
                                 <p><i class="fas fa-list-ol text-blue-primary mr-2"></i><strong>תשלומים:</strong> @Model.PaymentInstallments.Value תשלומים</p>
-                                <p><strong>תשלום חודשי:</strong> $@((Model.TotalPrice / Model.PaymentInstallments.Value).ToString("N2"))</p>
+                                <p><strong>תשלום חודשי:</strong> @currSym@((Model.TotalPrice / Model.PaymentInstallments.Value).ToString("N2"))</p>
                             }
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-blue-dark">סכום לתשלום</h6>
-                            <p class="fw-bold text-blue-primary fs-4">$@Model.TotalPrice.ToString("N2")</p>
-                            <p class="text-muted">מקדמה נדרשת (50%): <strong>$@((Model.TotalPrice * 0.5m).ToString("N2"))</strong></p>
+                            <p class="fw-bold text-blue-primary fs-4">@currSym@Model.TotalPrice.ToString("N2")</p>
+                            <p class="text-muted">מקדמה נדרשת (50%): <strong>@currSym@((Model.TotalPrice * 0.5m).ToString("N2"))</strong></p>
                         </div>
                     </div>
 
@@ -740,7 +747,7 @@
                                 <div class="col-md-6">
                                     <p><strong>שם בעל החשבון:</strong> TRYIT- אפריקה אקסטרים בע"מ </p>
                                     <p><strong>ח.פ:</strong> 515323970</p>
-                                    <p class="text-blue-dark"><strong>סכום להעברה:</strong> $@Model.TotalPrice.ToString("N2")</strong></p>
+                                    <p class="text-blue-dark"><strong>סכום להעברה:</strong> @currSym@Model.TotalPrice.ToString("N2")</p>
                                 </div>
                             </div>
                             <div class="mt-3 p-2 bg-light border-end border-primary border-4">

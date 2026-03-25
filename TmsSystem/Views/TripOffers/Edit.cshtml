@@ -90,10 +90,22 @@
                 </div>
 
                 <div class="row">
+                    <!-- מטבע -->
+                    <div class="col-md-2 mb-3">
+                        <label asp-for="Currency" class="form-label">
+                            <i class="fas fa-coins"></i> מטבע
+                        </label>
+                        <select asp-for="Currency" class="form-select">
+                            <option value="USD">$ דולר</option>
+                            <option value="EUR">€ יורו</option>
+                            <option value="ILS">₪ שקל</option>
+                        </select>
+                    </div>
+
                     <!-- מחיר לאדם -->
                     <div class="col-md-4 mb-3">
                         <label asp-for="PricePerPerson" class="form-label">
-                            <i class="fas fa-dollar-sign"></i> מחיר לאדם ($) <span class="text-danger">*</span>
+                            <i class="fas fa-dollar-sign"></i> מחיר לאדם <span class="text-danger">*</span>
                         </label>
                         <input asp-for="PricePerPerson" type="number" step="0.01" class="form-control" />
                         <span asp-validation-for="PricePerPerson" class="text-danger"></span>
