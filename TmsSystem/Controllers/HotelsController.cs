@@ -66,6 +66,28 @@ namespace TmsSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: Hotels/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, string hotelName, string? location)
+        {
+            if (string.IsNullOrWhiteSpace(hotelName))
+            {
+                TempData["ErrorMessage"] = "שם בית המלון הוא שדה חובה.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var hotel = await _context.Hotels.FindAsync(id);
+            if (hotel == null) return NotFound();
+
+            hotel.HotelName = hotelName.Trim();
+            hotel.Location = location?.Trim();
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"'{hotel.HotelName}' עודכן בהצלחה!";
+            return RedirectToAction(nameof(Index));
+        }
+
         // POST: Hotels/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
