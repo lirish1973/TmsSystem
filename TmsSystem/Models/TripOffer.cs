@@ -79,6 +79,12 @@ namespace TmsSystem.Models
         public string? AdditionalNotes { get; set; }
 
         [Required]
+        [StringLength(3)]
+        [Column("Currency")]
+        [Display(Name = "מטבע")]
+        public string Currency { get; set; } = "USD";
+
+        [Required]
         [StringLength(50)]
         [Column("Status")]
         public string Status { get; set; } = "Pending";

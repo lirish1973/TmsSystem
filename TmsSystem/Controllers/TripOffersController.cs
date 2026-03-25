@@ -255,6 +255,7 @@ namespace TmsSystem.Controllers
                     InsurancePrice = model.InsurancePrice,
                     SpecialRequests = model.SpecialRequests,
                     AdditionalNotes = model.AdditionalNotes,
+                    Currency = model.Currency ?? "USD",
                     Status = "Pending",
                     CreatedAt = DateTime.Now
                 };

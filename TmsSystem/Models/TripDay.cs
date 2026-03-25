@@ -35,6 +35,11 @@ namespace TmsSystem.Models
         [Column("ImagePath")]
         public string? ImagePath { get; set; }
 
+        [StringLength(255)]
+        [Column("HotelName")]
+        [Display(Name = "שם בית המלון")]
+        public string? HotelName { get; set; }
+
         [Column("DisplayOrder")]
         public int DisplayOrder { get; set; }
 

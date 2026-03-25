@@ -385,11 +385,23 @@
                         </h4>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-2 mb-3">
                                 <div class="row-cards">
-                                    <label class="form-label required-field" for="PricePerPerson">מחיר לאדם ($)</label>
+                                    <label class="form-label required-field" for="Currency">מטבע</label>
+                                    <select asp-for="Currency" class="form-select" id="currencySelect" onchange="updateCurrencySymbols(); calculateTotal();">
+                                        <option value="USD">$ דולר (USD)</option>
+                                        <option value="EUR">€ יורו (EUR)</option>
+                                        <option value="ILS">₪ שקל (ILS)</option>
+                                    </select>
+                                    <span asp-validation-for="Currency" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <div class="row-cards">
+                                    <label class="form-label required-field" for="PricePerPerson">מחיר לאדם <span id="currencyLabel">($)</span></label>
                                     <div class="position-relative">
-                                        <i class="fas fa-dollar-sign floating-icon"></i>
+                                        <i class="fas fa-money-bill-wave floating-icon"></i>
                                         <input asp-for="PricePerPerson" type="number" class="form-control has-icon"
                                                min="0" step="0.01" required oninput="calculateTotal()" />
                                         <span asp-validation-for="PricePerPerson" class="text-danger"></span>
@@ -573,6 +585,18 @@
             }
         }
 
+        // מטבעות
+        var currencySymbols = { 'USD': '$', 'EUR': '€', 'ILS': '₪' };
+
+        function getCurrencySymbol() {
+            return currencySymbols[$('#currencySelect').val()] || '$';
+        }
+
+        function updateCurrencySymbols() {
+            var sym = getCurrencySymbol();
+            $('#currencyLabel').text('(' + sym + ')');
+        }
+
         // חישוב מחיר כולל
         function calculateTotal() {
             var participants = parseInt($('#Participants').val()) || 0;
@@ -589,7 +613,8 @@
                 total += insurancePrice * participants;
             }
 
-            $('#totalAmount').text('$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            var sym = getCurrencySymbol();
+            $('#totalAmount').text(sym + total.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
         }
 
         function toggleFlightDetails() {
@@ -618,6 +643,7 @@
             if (!$('#DepartureDate').val()) {
                 $('#DepartureDate').val(today.toISOString().split('T')[0]);
             }
+            updateCurrencySymbols();
             calculateTotal();
         });
     </script>

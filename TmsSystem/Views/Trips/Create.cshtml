@@ -217,13 +217,72 @@
     }
 
     <script>
-        $(document).ready(function () {
-            // Use namespace to avoid global variable conflicts
-            var TripImageGallery = {
-                currentDayIndex: -1
-            };
+        // ===== רשימת מלונות מהשרת =====
+        var hotelsList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize((ViewBag.Hotels as List<string>) ?? new List<string>()));
 
-            // Load gallery images
+        $(document).ready(function () {
+            var TripImageGallery = { currentDayIndex: -1 };
+
+            // ===== AUTO-SAVE DRAFT (localStorage) =====
+            var DRAFT_KEY = 'trip_create_draft';
+            var autoSaveTimer;
+
+            function saveDraft() {
+                var data = {};
+                $('#tripForm').find('input:not([type=file]), select, textarea').each(function() {
+                    if (this.name) data[this.name] = $(this).val();
+                });
+                // שמור גם מספר הימים
+                data['__numberOfDays'] = $('#numberOfDays').val();
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+            }
+
+            function loadDraft() {
+                var raw = localStorage.getItem(DRAFT_KEY);
+                if (!raw) return;
+                try {
+                    var data = JSON.parse(raw);
+                    if (data['__numberOfDays']) {
+                        var days = parseInt(data['__numberOfDays']);
+                        $('#numberOfDays').val(days);
+                        generateDays(days, data);
+                    }
+                    // שחזר שדות כלליים
+                    $.each(data, function(name, val) {
+                        if (name.startsWith('__') || name.startsWith('TripDays[')) return;
+                        var el = $('[name="' + name + '"]');
+                        if (el.length) el.val(val);
+                    });
+                    showDraftBanner();
+                } catch(e) {}
+            }
+
+            function showDraftBanner() {
+                if ($('#draftBanner').length) return;
+                var banner = $('<div id="draftBanner" class="alert alert-info alert-dismissible mt-2">' +
+                    '<i class="fas fa-save me-2"></i> <strong>טיוטה שמורה שוחזרה.</strong> ' +
+                    '<button type="button" class="btn btn-sm btn-danger ms-3" id="clearDraftBtn">מחק טיוטה</button>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                    '</div>');
+                $('#tripForm').prepend(banner);
+                $('#clearDraftBtn').on('click', function() {
+                    localStorage.removeItem(DRAFT_KEY);
+                    $('#draftBanner').remove();
+                });
+            }
+
+            // שמור אוטומטית בכל שינוי
+            $(document).on('change input', '#tripForm input:not([type=file]), #tripForm select, #tripForm textarea', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(saveDraft, 800);
+            });
+
+            // מחיקת טיוטה בעת שמירה
+            $('#tripForm').on('submit', function() {
+                localStorage.removeItem(DRAFT_KEY);
+            });
+
+            // ===== GALLERY =====
             function loadGalleryImages() {
                 $.ajax({
                     url: '@Url.Action("GetImages", "ImageGallery")',
@@ -231,30 +290,21 @@
                     success: function(images) {
                         var container = $('#galleryImagesContainer');
                         container.empty();
-
                         if (images && images.length > 0) {
                             images.forEach(function(image) {
-                                var imageHtml = `
+                                container.append(`
                                     <div class="col-md-3 col-sm-6">
                                         <div class="card h-100 gallery-image-card" style="cursor: pointer;" data-image-path="${image.filePath}">
                                             <img src="${image.filePath}" class="card-img-top" alt="${image.fileName}" style="height: 200px; object-fit: cover;">
-                                            <div class="card-body p-2">
-                                                <small class="text-muted">${image.description || image.fileName}</small>
-                                            </div>
+                                            <div class="card-body p-2"><small class="text-muted">${image.description || image.fileName}</small></div>
                                         </div>
-                                    </div>
-                                `;
-                                container.append(imageHtml);
+                                    </div>`);
                             });
-
                             container.show();
                             $('#galleryEmptyMessage').hide();
                             $('.spinner-border').parent().hide();
-
-                            // Handle image selection
                             $('.gallery-image-card').on('click', function() {
-                                var imagePath = $(this).data('image-path');
-                                selectImageFromGallery(imagePath);
+                                selectImageFromGallery($(this).data('image-path'));
                             });
                         } else {
                             container.hide();
@@ -262,144 +312,173 @@
                             $('.spinner-border').parent().hide();
                         }
                     },
-                    error: function(xhr, status, error) {
-                        console.error('Error loading gallery images:', error);
+                    error: function() {
                         $('#galleryImagesContainer').hide();
-                        $('.spinner-border').parent().html('<div class="alert alert-danger">שגיאה בטעינת תמונות. אנא נסה שנית.</div>');
+                        $('.spinner-border').parent().html('<div class="alert alert-danger">שגיאה בטעינת תמונות.</div>');
                     }
                 });
             }
 
-            // Select image from gallery
             function selectImageFromGallery(imagePath) {
-                if (TripImageGallery.currentDayIndex < 0) {
-                    console.error('No day selected');
-                    return;
-                }
-
-                var card = $(`.trip-day-card`).eq(TripImageGallery.currentDayIndex);
-                
-                // Update the hidden ImagePath field
+                if (TripImageGallery.currentDayIndex < 0) return;
+                var card = $('.trip-day-card').eq(TripImageGallery.currentDayIndex);
                 card.find('.image-path-input').val(imagePath);
-
-                // Show preview
-                var preview = card.find(`.gallery-preview-${TripImageGallery.currentDayIndex}`);
+                var preview = card.find('.gallery-preview');
                 preview.find('img').attr('src', imagePath);
                 preview.show();
-
-                // Clear file input if any
                 card.find('.day-image-input').val('');
-
-                // Close modal
                 $('#imageGalleryModal').modal('hide');
-                
-                console.log(`Image from gallery selected for day ${TripImageGallery.currentDayIndex}: ${imagePath}`);
             }
 
-            // Open gallery modal - using event delegation
             $(document).on('click', '.select-from-gallery-btn', function(e) {
                 e.preventDefault();
-                TripImageGallery.currentDayIndex = $(this).data('day-index');
-                console.log('Opening gallery for day index:', TripImageGallery.currentDayIndex);
-                
-                // Load gallery images
+                TripImageGallery.currentDayIndex = $(this).closest('.trip-day-card').index();
                 loadGalleryImages();
-                
-                // Show modal
                 $('#imageGalleryModal').modal('show');
             });
 
-            // Handle file input changes to show preview
-            $(document).on('change', '.day-image-input', function(e) {
+            $(document).on('change', '.day-image-input', function() {
                 var input = this;
-                var dayIndex = $(input).closest('.trip-day-card').index();
-                
+                var card = $(input).closest('.trip-day-card');
                 if (input.files && input.files[0]) {
                     var reader = new FileReader();
-                    
                     reader.onload = function(e) {
-                        var preview = $(`.gallery-preview-${dayIndex}`);
-                        preview.find('img').attr('src', e.target.result);
-                        preview.show();
-                        
-                        // Clear the hidden ImagePath field since we're using an uploaded file
-                        $(input).closest('.trip-day-card').find('.image-path-input').val('');
-                        
-                        console.log(`File selected for day ${dayIndex + 1}: ${input.files[0].name}`);
-                    }
-                    
+                        card.find('.gallery-preview img').attr('src', e.target.result);
+                        card.find('.gallery-preview').show();
+                        card.find('.image-path-input').val('');
+                    };
                     reader.readAsDataURL(input.files[0]);
                 }
             });
 
-            // יצירת ימים ראשוניים בהתאם לערך שנבחר
+            // ===== ניהול ימים =====
             var initialDays = parseInt($('#numberOfDays').val()) || 7;
-            generateDays(initialDays);
 
-            // טיפול בשינוי מספר הימים
-            $('#numberOfDays').change(function () {
-                var numDays = parseInt($(this).val());
-                generateDays(numDays);
-            });
-
-            function generateDays(numDays) {
-                var container = $('#tripDaysContainer');
-                container.empty(); // ניקוי תוכן קיים
-
-                for (var i = 0; i < numDays; i++) {
-                    addDay(i);
-                }
+            // בדוק טיוטה בטעינה
+            var hasDraft = !!localStorage.getItem(DRAFT_KEY);
+            if (hasDraft) {
+                loadDraft();
+            } else {
+                generateDays(initialDays);
             }
 
-            function addDay(index) {
+            $('#numberOfDays').change(function () {
+                generateDays(parseInt($(this).val()));
+            });
+
+            function buildHotelOptions(selectedVal) {
+                var opts = '<option value="">-- ללא מלון --</option>';
+                if (hotelsList && hotelsList.length > 0) {
+                    hotelsList.forEach(function(h) {
+                        var sel = (h === selectedVal) ? ' selected' : '';
+                        opts += '<option value="' + h + '"' + sel + '>' + h + '</option>';
+                    });
+                }
+                return opts;
+            }
+
+            function buildDayCard(index, title, location, description, hotelName) {
                 var dayNumber = index + 1;
-                var html = `
+                title = title || ('יום ' + dayNumber);
+                location = location || '';
+                description = description || '';
+                hotelName = hotelName || '';
+                return `
                     <div class="card mb-3 trip-day-card">
-                        <div class="card-header bg-light">
-                            <h5>יום ${dayNumber}</h5>
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">יום <span class="day-number">${dayNumber}</span></h5>
+                            <button type="button" class="btn btn-sm btn-outline-success insert-day-btn" title="הוסף יום אחרי יום זה">
+                                <i class="fas fa-plus"></i> הוסף יום כאן
+                            </button>
                         </div>
                         <div class="card-body">
-                            <input type="hidden" name="TripDays[${index}].DayNumber" value="${dayNumber}" />
+                            <input type="hidden" class="day-number-input" name="TripDays[${index}].DayNumber" value="${dayNumber}" />
                             <input type="hidden" name="TripDays[${index}].DisplayOrder" value="${dayNumber}" />
 
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">כותרת *</label>
-                                    <input name="TripDays[${index}].Title" class="form-control" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="יום ${dayNumber}" required />
+                                    <input name="TripDays[${index}].Title" class="form-control day-title" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="${title}" required />
                                 </div>
-
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">מיקום</label>
-                                    <input name="TripDays[${index}].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" />
+                                    <input name="TripDays[${index}].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" value="${location}" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-hotel"></i> שם בית המלון</label>
+                                    <select name="TripDays[${index}].HotelName" class="form-select hotel-select">
+                                        ${buildHotelOptions(hotelName)}
+                                    </select>
                                 </div>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label">תיאור</label>
-                                <textarea name="TripDays[${index}].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום..."></textarea>
+                                <textarea name="TripDays[${index}].Description" class="form-control" rows="4" placeholder="פירוט מלא של פעילויות היום...">${description}</textarea>
                             </div>
 
-                                   <div class="mb-3">
-            <label class="form-label">תמונה ליום</label>
-            <div class="btn-group d-flex mb-2" role="group">
-                <button type="button" class="btn btn-outline-primary select-from-gallery-btn" data-day-index="${index}">
-                    <i class="fas fa-images"></i> בחר מהספרייה
-                </button>
-                <label class="btn btn-outline-secondary" style="cursor: pointer;">
-                    <i class="fas fa-upload"></i> העלה חדשה
-                    <input type="file" name="dayImages_${index}" class="form-control day-image-input d-none" accept="image/*" />
-                </label>
-            </div>
-            <input type="hidden" name="TripDays[${index}].ImagePath" value="" class="image-path-input" />
-            <div class="gallery-preview-${index}" style="display: none; margin-top: 10px;">
-                <img src="" alt="תמונה נבחרה" class="img-thumbnail" style="max-height: 150px; max-width: 100%;">
-            </div>
-            <small class="form-text text-muted">בחר תמונה מהספרייה או העלה חדשה (גודל מומלץ: 1200x800 פיקסלים)</small>
-        </div>
+                            <div class="mb-3">
+                                <label class="form-label">תמונה ליום</label>
+                                <div class="btn-group d-flex mb-2" role="group">
+                                    <button type="button" class="btn btn-outline-primary select-from-gallery-btn">
+                                        <i class="fas fa-images"></i> בחר מהספרייה
+                                    </button>
+                                    <label class="btn btn-outline-secondary" style="cursor: pointer;">
+                                        <i class="fas fa-upload"></i> העלה חדשה
+                                        <input type="file" name="dayImages_${index}" class="form-control day-image-input d-none" accept="image/*" />
+                                    </label>
+                                </div>
+                                <input type="hidden" name="TripDays[${index}].ImagePath" value="" class="image-path-input" />
+                                <div class="gallery-preview" style="display: none; margin-top: 10px;">
+                                    <img src="" alt="תמונה נבחרה" class="img-thumbnail" style="max-height: 150px; max-width: 100%;">
+                                </div>
+                                <small class="form-text text-muted">גודל מומלץ: 1200x800 פיקסלים</small>
+                            </div>
                         </div>
                     </div>
                 `;
-                $('#tripDaysContainer').append(html);
+            }
+
+            window.generateDays = function(numDays, draftData) {
+                var container = $('#tripDaysContainer');
+                container.empty();
+                for (var i = 0; i < numDays; i++) {
+                    var title = draftData ? (draftData['TripDays[' + i + '].Title'] || '') : '';
+                    var location = draftData ? (draftData['TripDays[' + i + '].Location'] || '') : '';
+                    var description = draftData ? (draftData['TripDays[' + i + '].Description'] || '') : '';
+                    var hotel = draftData ? (draftData['TripDays[' + i + '].HotelName'] || '') : '';
+                    container.append(buildDayCard(i, title, location, description, hotel));
+                }
+                reindexDays();
+            };
+
+            // ===== הוסף יום באמצע =====
+            $(document).on('click', '.insert-day-btn', function() {
+                var card = $(this).closest('.trip-day-card');
+                var newCard = $(buildDayCard(0, '', '', '', ''));
+                newCard.insertAfter(card);
+                reindexDays();
+                // עדכן מספר ימים בסלקט
+                var totalDays = $('.trip-day-card').length;
+                $('#numberOfDays').val(totalDays);
+                saveDraft();
+            });
+
+            function reindexDays() {
+                $('.trip-day-card').each(function(i) {
+                    var card = $(this);
+                    var dayNum = i + 1;
+                    card.find('.day-number').text(dayNum);
+                    card.find('.day-number-input').attr('name', 'TripDays[' + i + '].DayNumber').val(dayNum);
+                    card.find('input[name*="DisplayOrder"]').attr('name', 'TripDays[' + i + '].DisplayOrder').val(dayNum);
+                    card.find('.day-title').attr('name', 'TripDays[' + i + '].Title');
+                    card.find('input[name*=".Location"]').attr('name', 'TripDays[' + i + '].Location');
+                    card.find('.hotel-select').attr('name', 'TripDays[' + i + '].HotelName');
+                    card.find('textarea').attr('name', 'TripDays[' + i + '].Description');
+                    card.find('.image-path-input').attr('name', 'TripDays[' + i + '].ImagePath');
+                    card.find('.day-image-input').attr('name', 'dayImages_' + i);
+                    card.find('.select-from-gallery-btn').attr('data-day-index', i);
+                });
             }
         });
 
@@ -414,7 +493,7 @@
                         <input type="text" name="PriceItems[${priceIndex}].CategoryName" class="form-control" placeholder="למשל: זוג, ילד, 4 אנשים" />
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">מחיר ($)</label>
+                        <label class="form-label">מחיר</label>
                         <input type="number" name="PriceItems[${priceIndex}].Price" class="form-control" step="0.01" min="0" placeholder="0.00" />
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
@@ -427,7 +506,6 @@
 
         window.removePriceItem = function(button) {
             button.closest('.price-item-row').remove();
-            // reindex
             var rows = document.querySelectorAll('#price-items .price-item-row');
             rows.forEach(function(row, idx) {
                 row.querySelector('input[name*="CategoryName"]').name = `PriceItems[${idx}].CategoryName`;

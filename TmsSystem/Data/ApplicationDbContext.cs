@@ -33,6 +33,7 @@ namespace TmsSystem.Data
         public DbSet<ImageGallery> ImageGalleries { get; set; }
         public DbSet<TourPriceItem> TourPriceItems { get; set; }
         public DbSet<TripPriceItem> TripPriceItems { get; set; }
+        public DbSet<Hotel> Hotels { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

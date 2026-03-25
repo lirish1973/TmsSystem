@@ -69,6 +69,10 @@ namespace TmsSystem.ViewModels
         [StringLength(2000, ErrorMessage = "ההערות לא יכולות לעלות על 2000 תווים")]
         public string? AdditionalNotes { get; set; }
 
+        [Required(ErrorMessage = "נא לבחור מטבע")]
+        [Display(Name = "מטבע")]
+        public string Currency { get; set; } = "USD";
+
         // רשימות לבחירה
         public List<Customer>? Customers { get; set; }
         public List<Trip>? Trips { get; set; }

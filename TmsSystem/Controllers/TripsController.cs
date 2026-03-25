@@ -111,13 +111,12 @@ namespace TmsSystem.Controllers
         {
             try
             {
-                // טעינת רשימת מדריכים
                 await LoadGuidesDropdown();
                 LoadTourTypesDropdown();
+                await LoadHotelsDropdown();
 
                 Console.WriteLine("✅ Create page loaded");
 
-                // יצירת מודל ריק
                 var trip = new Trip
                 {
                     NumberOfDays = 7,
@@ -131,6 +130,7 @@ namespace TmsSystem.Controllers
                 Console.WriteLine($"❌ Error loading Create page: {ex.Message}");
 
                 ViewBag.Guides = new SelectList(new List<object>(), "GuideId", "GuideName");
+                ViewBag.Hotels = new List<string>();
                 LoadTourTypesDropdown();
 
                 return View(new Trip { NumberOfDays = 7, IsActive = true });
@@ -374,9 +374,10 @@ namespace TmsSystem.Controllers
                 return NotFound();
             }
 
-            // טעינת מדריכים וסוגי טיולים
+            // טעינת מדריכים, סוגי טיולים ומלונות
             await LoadGuidesDropdown(trip.GuideId);
             LoadTourTypesDropdown(trip.TripType);
+            await LoadHotelsDropdown();
 
             Console.WriteLine($"✅ Editing trip: {trip.Title}");
             Console.WriteLine($"👨‍✈️ Current guide: {trip.Guide?.GuideName ?? "None"}");
@@ -1070,6 +1071,37 @@ namespace TmsSystem.Controllers
                 }).ToList();
 
             ViewBag.TourTypes = tourTypes;
+        }
+
+        private async Task LoadHotelsDropdown()
+        {
+            try
+            {
+                var hotels = await _context.Hotels
+                    .Where(h => h.IsActive)
+                    .OrderBy(h => h.HotelName)
+                    .Select(h => h.HotelName)
+                    .ToListAsync();
+
+                ViewBag.Hotels = hotels;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error loading hotels: {ex.Message}");
+                ViewBag.Hotels = new List<string>();
+            }
+        }
+
+        // GET: Trips/GetHotels - JSON endpoint לחיפוש מלונות
+        [HttpGet]
+        public async Task<IActionResult> GetHotels()
+        {
+            var hotels = await _context.Hotels
+                .Where(h => h.IsActive)
+                .OrderBy(h => h.HotelName)
+                .Select(h => new { h.HotelId, h.HotelName, h.Location })
+                .ToListAsync();
+            return Json(hotels);
         }
     }
 }

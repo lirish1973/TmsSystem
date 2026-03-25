@@ -129,13 +129,19 @@
                         for (int i = 0; i < orderedDays.Count; i++)
                         {
                             var day = orderedDays[i];
+                            var hotelsList = ViewBag.Hotels as List<string> ?? new List<string>();
                             <div class="card mb-3 trip-day-card" data-day-index="@i">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">יום @day.DayNumber</h5>
-                                    @if (day.TripDayId > 0)
-                                    {
-                                        <span class="badge bg-primary">קיים</span>
-                                    }
+                                    <h5 class="mb-0">יום <span class="day-number">@day.DayNumber</span></h5>
+                                    <div>
+                                        @if (day.TripDayId > 0)
+                                        {
+                                            <span class="badge bg-primary me-2">קיים</span>
+                                        }
+                                        <button type="button" class="btn btn-sm btn-outline-success insert-day-btn" title="הוסף יום אחרי יום זה">
+                                            <i class="fas fa-plus"></i> הוסף יום כאן
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <input type="hidden" name="TripDays[@i].TripDayId" value="@day.TripDayId" class="trip-day-id" />
@@ -145,14 +151,25 @@
                                     <input type="hidden" name="TripDays[@i].ImagePath" value="@day.ImagePath" class="image-path-input" />
 
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">כותרת *</label>
                                             <input name="TripDays[@i].Title" class="form-control" placeholder="לדוגמה: יום פתיחה - הגעה למלון" value="@day.Title" required />
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">מיקום</label>
                                             <input name="TripDays[@i].Location" class="form-control" placeholder="לדוגמה: צפת העתיקה" value="@day.Location" />
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label"><i class="fas fa-hotel"></i> שם בית המלון</label>
+                                            <select name="TripDays[@i].HotelName" class="form-select hotel-select">
+                                                <option value="">-- ללא מלון --</option>
+                                                @foreach (var hotel in hotelsList)
+                                                {
+                                                    <option value="@hotel" selected="@(hotel == day.HotelName)">@hotel</option>
+                                                }
+                                            </select>
                                         </div>
                                     </div>
 
@@ -342,13 +359,23 @@
     }
 
     <script>
-        $(document).ready(function () {
-            console.log('Edit page loaded.Current days: ' + @orderedDays.Count);
+        var hotelsList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize((ViewBag.Hotels as List<string>) ?? new List<string>()));
 
-            // Use namespace to avoid global variable conflicts
-            var TripImageGallery = {
-                currentDayIndex: -1
-            };
+        $(document).ready(function () {
+            console.log('Edit page loaded. Current days: ' + @orderedDays.Count);
+
+            var TripImageGallery = { currentDayIndex: -1 };
+
+            function buildHotelOptions(selectedVal) {
+                var opts = '<option value="">-- ללא מלון --</option>';
+                if (hotelsList && hotelsList.length > 0) {
+                    hotelsList.forEach(function(h) {
+                        var sel = (h === selectedVal) ? ' selected' : '';
+                        opts += '<option value="' + h + '"' + sel + '>' + h + '</option>';
+                    });
+                }
+                return opts;
+            }
 
             // Load gallery images
             function loadGalleryImages() {
@@ -531,23 +558,34 @@
                 var html = `
                     <div class="card mb-3 trip-day-card" data-day-index="${index}">
                         <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">יום ${dayNumber}</h5>
-                            <span class="badge bg-success">חדש</span>
+                            <h5 class="mb-0">יום <span class="day-number">${dayNumber}</span></h5>
+                            <div>
+                                <span class="badge bg-success me-2">חדש</span>
+                                <button type="button" class="btn btn-sm btn-outline-success insert-day-btn" title="הוסף יום אחרי יום זה">
+                                    <i class="fas fa-plus"></i> הוסף יום כאן
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <input type="hidden" name="TripDays[${index}].TripDayId" value="0" />
+                            <input type="hidden" name="TripDays[${index}].TripDayId" value="0" class="trip-day-id" />
                             <input type="hidden" name="TripDays[${index}].TripId" value="@Model.TripId" />
-                            <input type="hidden" name="TripDays[${index}].DayNumber" value="${dayNumber}" />
-                            <input type="hidden" name="TripDays[${index}].DisplayOrder" value="${dayNumber}" />
-                            <input type="hidden" name="TripDays[${index}].ImagePath" value="" />
+                            <input type="hidden" name="TripDays[${index}].DayNumber" value="${dayNumber}" class="day-number-input" />
+                            <input type="hidden" name="TripDays[${index}].DisplayOrder" value="${dayNumber}" class="display-order-input" />
+                            <input type="hidden" name="TripDays[${index}].ImagePath" value="" class="image-path-input" />
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">כותרת *</label>
                                     <input name="TripDays[${index}].Title" class="form-control" value="יום ${dayNumber}" required />
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">מיקום</label>
                                     <input name="TripDays[${index}].Location" class="form-control" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-hotel"></i> שם בית המלון</label>
+                                    <select name="TripDays[${index}].HotelName" class="form-select hotel-select">
+                                        ${buildHotelOptions('')}
+                                    </select>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -556,7 +594,15 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">תמונה ליום</label>
-                                <input type="file" name="dayImage_${index}" class="form-control" accept="image/*" />
+                                <div class="btn-group d-flex mb-2" role="group">
+                                    <button type="button" class="btn btn-outline-primary select-from-gallery-btn" data-day-index="${index}">
+                                        <i class="fas fa-images"></i> בחר מהספרייה
+                                    </button>
+                                    <label class="btn btn-outline-secondary" style="cursor: pointer;">
+                                        <i class="fas fa-upload"></i> העלה חדשה
+                                        <input type="file" name="dayImage_${index}" class="form-control day-image-input d-none" accept="image/*" data-day-index="${index}" />
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -564,22 +610,74 @@
                 $('#tripDaysContainer').append(html);
             }
 
+            // ===== הוסף יום באמצע =====
+            $(document).on('click', '.insert-day-btn', function() {
+                var card = $(this).closest('.trip-day-card');
+                var currentIndex = card.index();
+                var tripId = @Model.TripId;
+
+                var newCardHtml = `
+                    <div class="card mb-3 trip-day-card" data-day-index="0">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">יום <span class="day-number">0</span></h5>
+                            <div>
+                                <span class="badge bg-success me-2">חדש</span>
+                                <button type="button" class="btn btn-sm btn-outline-success insert-day-btn" title="הוסף יום אחרי יום זה">
+                                    <i class="fas fa-plus"></i> הוסף יום כאן
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" name="TripDays[0].TripDayId" value="0" class="trip-day-id" />
+                            <input type="hidden" name="TripDays[0].TripId" value="${tripId}" />
+                            <input type="hidden" name="TripDays[0].DayNumber" value="0" class="day-number-input" />
+                            <input type="hidden" name="TripDays[0].DisplayOrder" value="0" class="display-order-input" />
+                            <input type="hidden" name="TripDays[0].ImagePath" value="" class="image-path-input" />
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">כותרת *</label>
+                                    <input name="TripDays[0].Title" class="form-control" value="" required />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">מיקום</label>
+                                    <input name="TripDays[0].Location" class="form-control" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-hotel"></i> שם בית המלון</label>
+                                    <select name="TripDays[0].HotelName" class="form-select hotel-select">
+                                        ${buildHotelOptions('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">תיאור</label>
+                                <textarea name="TripDays[0].Description" class="form-control" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>`;
+
+                $(newCardHtml).insertAfter(card);
+                reindexDays();
+                var totalDays = $('.trip-day-card').length;
+                $('#numberOfDays').val(totalDays);
+            });
+
             function reindexDays() {
                 $('#tripDaysContainer .trip-day-card').each(function(index) {
                     var dayNumber = index + 1;
                     $(this).attr('data-day-index', index);
-                    $(this).find('h5').first().text('יום ' + dayNumber);
-                    $(this).find('input, textarea').each(function() {
-                        var name = $(this).attr('name');
-                        if (name && name.startsWith('TripDays[')) {
-                            var field = name.split('.')[1] || name.split('_')[0];
-                            if (field.includes('dayImage')) {
-                                $(this).attr('name', `dayImage_${index}`);
-                            } else if (name.includes('.')) {
-                                $(this).attr('name', `TripDays[${index}].${name.split('.')[1]}`);
-                            }
-                        }
-                    });
+                    $(this).find('.day-number').text(dayNumber);
+                    $(this).find('.day-number-input').attr('name', 'TripDays[' + index + '].DayNumber').val(dayNumber);
+                    $(this).find('.display-order-input').attr('name', 'TripDays[' + index + '].DisplayOrder').val(dayNumber);
+                    $(this).find('.trip-day-id').attr('name', 'TripDays[' + index + '].TripDayId');
+                    $(this).find('input[name*=".TripId"]').attr('name', 'TripDays[' + index + '].TripId');
+                    $(this).find('.image-path-input').attr('name', 'TripDays[' + index + '].ImagePath');
+                    $(this).find('input[name*=".Title"]').attr('name', 'TripDays[' + index + '].Title');
+                    $(this).find('input[name*=".Location"]').attr('name', 'TripDays[' + index + '].Location');
+                    $(this).find('.hotel-select').attr('name', 'TripDays[' + index + '].HotelName');
+                    $(this).find('textarea').attr('name', 'TripDays[' + index + '].Description');
+                    $(this).find('.day-image-input, input[type=file]').attr('name', 'dayImage_' + index);
+                    $(this).find('.select-from-gallery-btn').attr('data-day-index', index);
                 });
             }
 
