@@ -559,7 +559,24 @@
             });
 
             function addDay(dayNumber, index) {
-                var html = `
+                $('#tripDaysContainer').append(buildNewDayHtml(index, dayNumber, @Model.TripId));
+            }
+
+            // ===== הוסף יום באמצע =====
+            $(document).on('click', '.insert-day-btn', function() {
+                var card = $(this).closest('.trip-day-card');
+                var tripId = @Model.TripId;
+                var tempIndex = $('.trip-day-card').length;
+
+                var newCardHtml = buildNewDayHtml(tempIndex, tempIndex + 1, tripId);
+                $(newCardHtml).insertAfter(card);
+                reindexDays();
+                var totalDays = $('.trip-day-card').length;
+                $('#numberOfDays').val(totalDays);
+            });
+
+            function buildNewDayHtml(index, dayNumber, tripId) {
+                return `
                     <div class="card mb-3 trip-day-card" data-day-index="${index}">
                         <div class="card-header bg-light d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">יום <span class="day-number">${dayNumber}</span></h5>
@@ -572,7 +589,7 @@
                         </div>
                         <div class="card-body">
                             <input type="hidden" name="TripDays[${index}].TripDayId" value="0" class="trip-day-id" />
-                            <input type="hidden" name="TripDays[${index}].TripId" value="@Model.TripId" />
+                            <input type="hidden" name="TripDays[${index}].TripId" value="${tripId}" />
                             <input type="hidden" name="TripDays[${index}].DayNumber" value="${dayNumber}" class="day-number-input" />
                             <input type="hidden" name="TripDays[${index}].DisplayOrder" value="${dayNumber}" class="display-order-input" />
                             <input type="hidden" name="TripDays[${index}].ImagePath" value="" class="image-path-input" />
@@ -609,62 +626,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                $('#tripDaysContainer').append(html);
-            }
-
-            // ===== הוסף יום באמצע =====
-            $(document).on('click', '.insert-day-btn', function() {
-                var card = $(this).closest('.trip-day-card');
-                var currentIndex = card.index();
-                var tripId = @Model.TripId;
-
-                var newCardHtml = `
-                    <div class="card mb-3 trip-day-card" data-day-index="0">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">יום <span class="day-number">0</span></h5>
-                            <div>
-                                <span class="badge bg-success me-2">חדש</span>
-                                <button type="button" class="btn btn-sm btn-outline-success insert-day-btn" title="הוסף יום אחרי יום זה">
-                                    <i class="fas fa-plus"></i> הוסף יום כאן
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <input type="hidden" name="TripDays[0].TripDayId" value="0" class="trip-day-id" />
-                            <input type="hidden" name="TripDays[0].TripId" value="${tripId}" />
-                            <input type="hidden" name="TripDays[0].DayNumber" value="0" class="day-number-input" />
-                            <input type="hidden" name="TripDays[0].DisplayOrder" value="0" class="display-order-input" />
-                            <input type="hidden" name="TripDays[0].ImagePath" value="" class="image-path-input" />
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">כותרת *</label>
-                                    <input name="TripDays[0].Title" class="form-control" value="" required />
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">מיקום</label>
-                                    <input name="TripDays[0].Location" class="form-control" />
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label"><i class="fas fa-hotel"></i> שם בית המלון</label>
-                                    <select name="TripDays[0].HotelName" class="form-select hotel-select">
-                                        ${buildHotelOptions('')}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">תיאור</label>
-                                <textarea name="TripDays[0].Description" class="form-control" rows="4"></textarea>
-                            </div>
-                        </div>
                     </div>`;
-
-                $(newCardHtml).insertAfter(card);
-                reindexDays();
-                var totalDays = $('.trip-day-card').length;
-                $('#numberOfDays').val(totalDays);
-            });
+            }
 
             function reindexDays() {
                 $('#tripDaysContainer .trip-day-card').each(function(index) {
