@@ -411,7 +411,7 @@
 
                             <div class="col-md-4 mb-3">
                                 <div class="row-cards">
-                                    <label class="form-label" for="SingleRoomSupplement">תוספת חדר יחיד ($)</label>
+                                    <label class="form-label" for="SingleRoomSupplement">תוספת חדר יחיד <span id="currencyLabelSingle">($)</span></label>
                                     <div class="position-relative">
                                         <i class="fas fa-bed floating-icon"></i>
                                         <input asp-for="SingleRoomSupplement" type="number" class="form-control has-icon"
@@ -493,7 +493,7 @@
                                     </div>
                                     <div id="insurancePriceBox" style="display:none; margin-top: 10px;">
                                         <input asp-for="InsurancePrice" type="number" class="form-control"
-                                               min="0" step="0.01" placeholder="מחיר ביטוח לאדם ($)"
+                                               min="0" step="0.01" id="InsurancePriceInput" placeholder="מחיר ביטוח לאדם ($)"
                                                oninput="calculateTotal()" />
                                     </div>
                                 </div>
@@ -594,7 +594,10 @@
 
         function updateCurrencySymbols() {
             var sym = getCurrencySymbol();
-            $('#currencyLabel').text('(' + sym + ')');
+            var symParen = '(' + sym + ')';
+            $('#currencyLabel').text(symParen);
+            $('#currencyLabelSingle').text(symParen);
+            $('#InsurancePriceInput').attr('placeholder', 'מחיר ביטוח לאדם (' + sym + ')');
         }
 
         // חישוב מחיר כולל
