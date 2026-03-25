@@ -89,7 +89,10 @@
                     {
                         <div class="alert alert-success text-center">
                             <h5 class="rtl-content"><i class="fas fa-dollar-sign"></i> מחיר</h5>
-                            <h2 class="rtl-content text-success mb-2">@Model.PricePerPerson?.ToString("N2")$</h2>
+                            <h2 class="rtl-content text-success mb-2">
+                                @Model.PricePerPerson?.ToString("N2")
+                                @(Model.Currency == "EUR" ? "€" : Model.Currency == "ILS" ? "₪" : "$")
+                            </h2>
                             @if (!string.IsNullOrEmpty(Model.PriceDescription))
                             {
                                 <small class="rtl-content d-block">@Model.PriceDescription</small>
@@ -115,7 +118,10 @@
                                         {
                                             <tr>
                                                 <td class="rtl-content">@item.CategoryName</td>
-                                                <td class="rtl-content text-success fw-bold">@item.Price.ToString("N2")$</td>
+                                                <td class="rtl-content text-success fw-bold">
+                                                    @item.Price.ToString("N2")
+                                                    @(Model.Currency == "EUR" ? "€" : Model.Currency == "ILS" ? "₪" : "$")
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -269,12 +275,20 @@
                         <span class="badge bg-primary me-2">יום @day.DayNumber</span>
                         @day.Title
                     </h4>
-                    @if (!string.IsNullOrEmpty(day.Location))
-                    {
-                        <span class="text-muted rtl-content">
-                            <i class="fas fa-map-marker-alt"></i> @day.Location
-                        </span>
-                    }
+                    <div class="text-end">
+                        @if (!string.IsNullOrEmpty(day.Location))
+                        {
+                            <span class="text-muted rtl-content me-3">
+                                <i class="fas fa-map-marker-alt"></i> @day.Location
+                            </span>
+                        }
+                        @if (!string.IsNullOrEmpty(day.HotelName))
+                        {
+                            <span class="badge bg-info text-dark">
+                                <i class="fas fa-hotel"></i> @day.HotelName
+                            </span>
+                        }
+                    </div>
                 </div>
             </div>
             <div class="card-body">

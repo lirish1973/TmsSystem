@@ -471,6 +471,7 @@ namespace TmsSystem.Controllers
                 existingTrip.IsActive = trip.IsActive;
                 existingTrip.NumberOfDays = trip.NumberOfDays;
                 existingTrip.PricePerPerson = trip.PricePerPerson;
+                existingTrip.Currency = trip.Currency ?? "USD";
                 existingTrip.PriceDescription = trip.PriceDescription;
                 existingTrip.Includes = trip.Includes;
                 existingTrip.Excludes = trip.Excludes;
@@ -506,6 +507,7 @@ namespace TmsSystem.Controllers
                             existingDay.Description = day.Description;
                             existingDay.DisplayOrder = day.DisplayOrder;
                             existingDay.DayNumber = day.DayNumber;
+                            existingDay.HotelName = day.HotelName;
 
                             Console.WriteLine($"✏️ Updated TripDay text {day.TripDayId} (Day #{day.DayNumber}): {day.Title}");
 
