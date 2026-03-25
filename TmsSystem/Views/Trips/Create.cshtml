@@ -352,19 +352,6 @@
             });
 
             // ===== ניהול ימים =====
-            var initialDays = parseInt($('#numberOfDays').val()) || 7;
-
-            // בדוק טיוטה בטעינה
-            var hasDraft = !!localStorage.getItem(DRAFT_KEY);
-            if (hasDraft) {
-                loadDraft();
-            } else {
-                generateDays(initialDays);
-            }
-
-            $('#numberOfDays').change(function () {
-                generateDays(parseInt($(this).val()));
-            });
 
             function buildHotelOptions(selectedVal) {
                 var opts = '<option value="">-- ללא מלון --</option>';
@@ -451,6 +438,20 @@
                 }
                 reindexDays();
             };
+
+            var initialDays = parseInt($('#numberOfDays').val()) || 7;
+
+            // בדוק טיוטה בטעינה
+            var hasDraft = !!localStorage.getItem(DRAFT_KEY);
+            if (hasDraft) {
+                loadDraft();
+            } else {
+                generateDays(initialDays);
+            }
+
+            $('#numberOfDays').change(function () {
+                generateDays(parseInt($(this).val()));
+            });
 
             // ===== הוסף יום באמצע =====
             $(document).on('click', '.insert-day-btn', function() {
