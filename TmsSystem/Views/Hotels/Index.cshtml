@@ -1,0 +1,127 @@
+@model List<TmsSystem.Models.Hotel>
+
+@{
+    ViewData["Title"] = "ניהול בתי מלון";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-hotel"></i> ניהול בתי מלון</h4>
+            <span class="badge bg-light text-dark">@Model.Count מלונות</span>
+        </div>
+        <div class="card-body">
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- טופס הוספה -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-plus-circle"></i> הוסף בית מלון חדש</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold">שם בית המלון *</label>
+                                <input type="text" name="hotelName" class="form-control" placeholder="לדוגמה: Serena Kilimanjaro" required />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold">מיקום (אופציונלי)</label>
+                                <input type="text" name="location" class="form-control" placeholder="לדוגמה: אקרה, טנזניה" />
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-plus"></i> הוסף
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- רשימת מלונות -->
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i> אין בתי מלון. הוסף את הראשון למעלה.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>שם בית המלון</th>
+                                <th>מיקום</th>
+                                <th>סטטוס</th>
+                                <th class="text-center">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var hotel in Model)
+                            {
+                                <tr class="@(hotel.IsActive ? "" : "table-secondary text-muted")">
+                                    <td>@hotel.HotelId</td>
+                                    <td>
+                                        <i class="fas fa-hotel me-2 text-primary"></i>
+                                        <strong>@hotel.HotelName</strong>
+                                    </td>
+                                    <td>@(hotel.Location ?? "—")</td>
+                                    <td>
+                                        @if (hotel.IsActive)
+                                        {
+                                            <span class="badge bg-success">פעיל</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">לא פעיל</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <!-- הפעל/השבת -->
+                                            <form asp-action="ToggleActive" asp-route-id="@hotel.HotelId" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn @(hotel.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                        title="@(hotel.IsActive ? "השבת" : "הפעל")">
+                                                    <i class="fas @(hotel.IsActive ? "fa-eye-slash" : "fa-eye")"></i>
+                                                    @(hotel.IsActive ? "השבת" : "הפעל")
+                                                </button>
+                                            </form>
+                                            <!-- מחק -->
+                                            <form asp-action="Delete" asp-route-id="@hotel.HotelId" method="post" class="d-inline"
+                                                  onsubmit="return confirm('למחוק את \'@hotel.HotelName\'?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger" title="מחק">
+                                                    <i class="fas fa-trash"></i> מחק
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
