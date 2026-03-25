@@ -336,6 +336,7 @@ namespace TmsSystem.Controllers
                     InsurancePrice = tripOffer.InsurancePrice,
                     SpecialRequests = tripOffer.SpecialRequests,
                     AdditionalNotes = tripOffer.AdditionalNotes,
+                    Currency = tripOffer.Currency,
 
                     // טעינת הרשימות
                     Customers = await _context.Customers.Where(c => !c.IsDeleted).OrderBy(c => c.FullName).ToListAsync(),
@@ -410,6 +411,7 @@ namespace TmsSystem.Controllers
                 tripOffer.InsurancePrice = model.InsurancePrice;
                 tripOffer.SpecialRequests = model.SpecialRequests;
                 tripOffer.AdditionalNotes = model.AdditionalNotes;
+                tripOffer.Currency = model.Currency ?? "USD";
                 tripOffer.UpdatedAt = DateTime.Now;
 
                 _context.Update(tripOffer);

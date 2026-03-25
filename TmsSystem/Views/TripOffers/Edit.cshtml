@@ -95,7 +95,7 @@
                         <label asp-for="Currency" class="form-label">
                             <i class="fas fa-coins"></i> מטבע
                         </label>
-                        <select asp-for="Currency" class="form-select">
+                        <select asp-for="Currency" class="form-select" id="currencySelect" onchange="updateCurrencySymbols()">
                             <option value="USD">$ דולר</option>
                             <option value="EUR">€ יורו</option>
                             <option value="ILS">₪ שקל</option>
@@ -105,7 +105,7 @@
                     <!-- מחיר לאדם -->
                     <div class="col-md-4 mb-3">
                         <label asp-for="PricePerPerson" class="form-label">
-                            <i class="fas fa-dollar-sign"></i> מחיר לאדם <span class="text-danger">*</span>
+                            <i class="fas fa-dollar-sign"></i> מחיר לאדם <span id="currencyLabel"></span><span class="text-danger">*</span>
                         </label>
                         <input asp-for="PricePerPerson" type="number" step="0.01" class="form-control" />
                         <span asp-validation-for="PricePerPerson" class="text-danger"></span>
@@ -114,7 +114,7 @@
                     <!-- תוספת חדר יחיד -->
                     <div class="col-md-4 mb-3">
                         <label asp-for="SingleRoomSupplement" class="form-label">
-                            <i class="fas fa-bed"></i> תוספת חדר יחיד ($)
+                            <i class="fas fa-bed"></i> תוספת חדר יחיד <span id="currencyLabelSingle"></span>
                         </label>
                         <input asp-for="SingleRoomSupplement" type="number" step="0.01" class="form-control" />
                         <span asp-validation-for="SingleRoomSupplement" class="text-danger"></span>
@@ -225,4 +225,18 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        var currencySymbols = { 'USD': '$', 'EUR': '€', 'ILS': '₪' };
+
+        function updateCurrencySymbols() {
+            var sym = currencySymbols[$('#currencySelect').val()] || '$';
+            var symParen = '(' + sym + ')';
+            $('#currencyLabel').text(symParen);
+            $('#currencyLabelSingle').text(symParen);
+        }
+
+        $(document).ready(function () {
+            updateCurrencySymbols();
+        });
+    </script>
 }
