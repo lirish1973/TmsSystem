@@ -9,7 +9,7 @@ namespace TmsSystem.Models
 
         public int TripId { get; set; }
 
-        public string CategoryName { get; set; } = string.Empty;
+        public string? CategoryName { get; set; }
 
         public decimal Price { get; set; }
 

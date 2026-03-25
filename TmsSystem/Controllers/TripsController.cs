@@ -148,6 +148,11 @@ namespace TmsSystem.Controllers
             {
                 Console.WriteLine($"📝 Creating trip: {trip.Title}");
 
+                // נקה שגיאות validation שאנו מנהלים ידנית
+                ModelState.Remove(nameof(Trip.TripType));
+                foreach (var key in ModelState.Keys.Where(k => k.StartsWith("PriceItems")).ToList())
+                    ModelState.Remove(key);
+
                 if (!ModelState.IsValid)
                 {
                     await LoadGuidesDropdown(trip.GuideId);
@@ -398,6 +403,11 @@ namespace TmsSystem.Controllers
         {
             if (id != trip.TripId)
                 return NotFound();
+
+            // נקה שגיאות validation שאנו מנהלים ידנית
+            ModelState.Remove(nameof(Trip.TripType));
+            foreach (var key in ModelState.Keys.Where(k => k.StartsWith("PriceItems")).ToList())
+                ModelState.Remove(key);
 
             if (!ModelState.IsValid)
             {
