@@ -92,19 +92,34 @@
 
                             <div class="col-md-4 mb-3">
                                 <label asp-for="CurrentPassword" class="form-label">סיסמה נוכחית</label>
-                                <input asp-for="CurrentPassword" type="password" class="form-control" />
+                                <div class="input-group">
+                                    <input asp-for="CurrentPassword" type="password" class="form-control" id="currentPassword" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('currentPassword', this)" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="CurrentPassword" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-4 mb-3">
                                 <label asp-for="NewPassword" class="form-label">סיסמה חדשה</label>
-                                <input asp-for="NewPassword" type="password" class="form-control" />
+                                <div class="input-group">
+                                    <input asp-for="NewPassword" type="password" class="form-control" id="newPassword" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('newPassword', this)" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="NewPassword" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-4 mb-3">
                                 <label asp-for="ConfirmPassword" class="form-label">אישור סיסמה חדשה</label>
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control" id="confirmPassword" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword', this)" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
@@ -141,4 +156,17 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+    </script>
 }
